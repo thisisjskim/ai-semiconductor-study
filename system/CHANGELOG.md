@@ -2,7 +2,29 @@
 
 AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 
-## v0.1.3 — Current
+## v0.2.0 — Current
+
+### Added
+- Custom GPT의 파일 직접 PUT을 제거하고 `Issue → GitHub Actions → learning-logs/**` 저장 경로 도입
+- `createLearningLogIssue`, `appendLearningLogChunk`, `closeLearningLogIssue`, 처리 결과 조회 Action 추가
+- 평문 chunk 저장과 Issue 종료 후 비동기 결과 검증 절차 추가
+- `operation`, `target_path`, `expected_sha`를 사용하는 안전한 create/update 계약 추가
+- Repository owner 검증, 경로 allowlist, 기존 파일 SHA 검증 추가
+- Learning Log Metadata에 Document type, Domain, Roadmap stage, Evidence, Related notes 추가
+- Issue ingest 변환기와 contract test 추가
+
+### Changed
+- Learning Log는 Meaningful Learning Unit 종료를 감지한 GPT가 제안하고 사용자 승인 후 저장
+- 한 Issue는 한 파일만 처리하며 긴 기록은 section 경계에서 30,000자 미만 chunk로 분할
+- 저장 성공은 GitHub Actions 결과 댓글의 path와 commit 확인 후에만 선언
+- Custom GPT PAT 권한을 Contents read-only, Issues read/write로 축소
+
+### Principle
+- GPT는 학습 내용을 판단하고 평문을 전달하며, deterministic CI가 파일 경로 검증과 commit을 담당한다.
+- Base64 생성과 큰 파일 쓰기를 모델에게 맡기지 않는다.
+- 자동화의 목적은 파일 수 증가가 아니라 학습 evidence의 안정적 보존이다.
+
+## v0.1.3
 
 ### Added
 - Meaningful Learning Unit 기준 추가
@@ -50,15 +72,16 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 기존 파일을 중복 생성하거나 확인 없이 덮어쓰지 않는다.
 
 ## v0.1
+
 ### Added
 - Custom GPT와 GitHub repository 연결
 - AI semiconductor 학습 내용을 Markdown 기반으로 장기 기록하는 기본 구조 도입
 - Daily Learning Log를 통한 학습 과정 기록 시작
-- GitHub를 장기 학슴 기록의 Source of Truth로 사용하는 원칙 설정
+- GitHub를 장기 학습 기록의 Source of Truth로 사용하는 원칙 도입
 
 ## 현재 상태
 
-- Version: v0.1.3
+- Version: v0.2.0
 - Repository Role: AI Semiconductor Research OS
 - Primary Goal: KAIST SSL Lab 개별연구 준비
-- Current Focus: v0.1.3 Learning Capture & Knowledge Classification
+- Current Focus: Stable Issue-based Learning Capture
