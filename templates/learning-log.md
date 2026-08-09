@@ -1,10 +1,16 @@
 # 학습 기록: {한국어 주제명} ({English Topic})
 
 ## Metadata
+
 - Date:
 - Topic:
+- Document type: learning-log
+- Domain:
+- Roadmap stage:
 - Status: working
 - Source: conversation
+- Evidence:
+- Related notes:
 - Last updated:
 
 ## 1. 오늘 공부한 목적
@@ -35,11 +41,11 @@
 
 ### 해결되지 않은 질문
 
-- 
+- 없음
 
 ### 해결된 질문
 
-- 
+- 없음
 
 ## 8. AI 반도체 및 SSL 목표와의 연결
 
