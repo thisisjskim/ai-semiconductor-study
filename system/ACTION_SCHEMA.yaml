@@ -1,0 +1,240 @@
+openapi: 3.1.0
+
+info:
+  title: AI Semiconductor Research OS GitHub API
+  description: Read study records and enqueue approved Learning Logs as plain-text GitHub Issues.
+  version: 0.2.0
+
+servers:
+  - url: https://api.github.com
+
+security:
+  - bearerAuth: []
+
+paths:
+  /repos/thisisjskim/ai-semiconductor-study/contents:
+    get:
+      operationId: listRepositoryRoot
+      summary: List repository root
+      description: Lists root files and directories when an exact study path is unknown.
+      parameters:
+        - name: ref
+          in: query
+          required: false
+          schema:
+            type: string
+            default: main
+      responses:
+        "200":
+          description: Repository root contents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentItem"
+
+  /repos/thisisjskim/ai-semiconductor-study/contents/{path}:
+    get:
+      operationId: getStudyPath
+      summary: Read a file or list a directory
+      description: Reads an existing file or lists a directory. Discover actual paths instead of guessing.
+      parameters:
+        - name: path
+          in: path
+          required: true
+          description: Repository-relative file or directory path.
+          schema:
+            type: string
+        - name: ref
+          in: query
+          required: false
+          schema:
+            type: string
+            default: main
+      responses:
+        "200":
+          description: File content or directory listing
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/FileContent"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/ContentItem"
+        "404":
+          description: File or directory does not exist
+
+  /repos/thisisjskim/ai-semiconductor-study/issues:
+    post:
+      operationId: createLearningLogIssue
+      summary: Start an approved Learning Log submission
+      description: Creates one plain-text Issue after user approval. Put the ingest envelope and first Markdown chunk in body.
+      x-openai-isConsequential: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, body]
+              properties:
+                title:
+                  type: string
+                  description: Must be [learning-log] YYYY-MM-DD topic-slug.
+                body:
+                  type: string
+                  description: Ingest envelope followed by the first plain Markdown chunk. Keep each chunk below 30000 characters.
+      responses:
+        "201":
+          description: Issue created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Issue"
+
+  /repos/thisisjskim/ai-semiconductor-study/issues/{issue_number}/comments:
+    get:
+      operationId: listLearningLogIssueComments
+      summary: Check Learning Log processing results
+      description: Lists Issue comments to verify the GitHub Actions success or failure result.
+      parameters:
+        - $ref: "#/components/parameters/IssueNumber"
+      responses:
+        "200":
+          description: Issue comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IssueComment"
+    post:
+      operationId: appendLearningLogChunk
+      summary: Append the next Learning Log chunk
+      description: Appends plain Markdown to an existing approved Issue. Preserve order and keep each chunk below 30000 characters.
+      x-openai-isConsequential: true
+      parameters:
+        - $ref: "#/components/parameters/IssueNumber"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+                  description: Next plain Markdown chunk only. Do not repeat the ingest envelope.
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueComment"
+
+  /repos/thisisjskim/ai-semiconductor-study/issues/{issue_number}:
+    get:
+      operationId: getLearningLogIssue
+      summary: Read a Learning Log submission Issue
+      description: Reads the Issue state and URL before or after processing.
+      parameters:
+        - $ref: "#/components/parameters/IssueNumber"
+      responses:
+        "200":
+          description: Issue details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Issue"
+    patch:
+      operationId: closeLearningLogIssue
+      summary: Finish an approved Learning Log submission
+      description: Closes the Issue after all chunks are appended. Closing triggers GitHub Actions to create or update the file.
+      x-openai-isConsequential: true
+      parameters:
+        - $ref: "#/components/parameters/IssueNumber"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: string
+                  enum: [closed]
+                  default: closed
+      responses:
+        "200":
+          description: Issue closed and processing queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Issue"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    IssueNumber:
+      name: issue_number
+      in: path
+      required: true
+      description: Issue number returned by createLearningLogIssue.
+      schema:
+        type: integer
+
+  schemas:
+    ContentItem:
+      type: object
+      properties:
+        name: { type: string }
+        path: { type: string }
+        sha: { type: string }
+        type: { type: string }
+        size: { type: integer }
+        html_url: { type: string }
+        download_url:
+          type: [string, "null"]
+
+    FileContent:
+      type: object
+      properties:
+        name: { type: string }
+        path: { type: string }
+        sha: { type: string }
+        size: { type: integer }
+        type: { type: string }
+        content:
+          type: string
+          description: Base64 returned by GitHub for reads only. Never reuse it for writes.
+        encoding: { type: string }
+        html_url: { type: string }
+
+    Issue:
+      type: object
+      properties:
+        number: { type: integer }
+        title: { type: string }
+        state: { type: string }
+        body: { type: [string, "null"] }
+        html_url: { type: string }
+
+    IssueComment:
+      type: object
+      properties:
+        id: { type: integer }
+        body: { type: [string, "null"] }
+        html_url: { type: string }
+        user:
+          type: object
+          properties:
+            login: { type: string }
