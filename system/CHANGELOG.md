@@ -2,7 +2,24 @@
 
 AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 
-## v0.1.2 — Current
+## v0.1.3 — Current
+
+### Added
+- Meaningful Learning Unit 기준 추가
+- 의미 있는 학습 단위 종료 시 GPT가 Learning Log 저장을 먼저 제안하는 정책 추가
+- 사용자 승인 후 GitHub에 반영하는 저장 절차 추가
+- Learning Log의 문서 유형, Domain, Roadmap Stage, Evidence, Related Notes 분류 기준 추가
+- 긴 학습 세션을 개념별 Learning Log로 나누는 정책 추가
+- 한 번의 Action에서 하나의 파일만 처리하고 저장 후 검증하는 정책 추가
+- Learning Log, Foundation Note, Paper Note, Final Note의 역할과 경로 구분 추가
+
+### Principle
+- 전체 대화가 아니라 학습 Evidence와 이해 변화를 기록한다.
+- Learning Log 생성은 학습 완료나 Foundation 승격을 의미하지 않는다.
+- 분류와 연결은 일관되게 수행하지만 자동 Promotion은 하지 않는다.
+- 기능 확장보다 저장 안정성과 사용자의 학습 효과를 우선한다.
+
+## v0.1.2
 
 ### Added
 - Custom GPT의 역할을 AI Semiconductor Tutor, Research Mentor, Research OS Manager로 확장
@@ -37,11 +54,11 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - Custom GPT와 GitHub repository 연결
 - AI semiconductor 학습 내용을 Markdown 기반으로 장기 기록하는 기본 구조 도입
 - Daily Learning Log를 통한 학습 과정 기록 시작
-- GitHub를 장기 학습 기록의 Source of Truth로 사용하는 원칙 설정
+- GitHub를 장기 학슴 기록의 Source of Truth로 사용하는 원칙 설정
 
 ## 현재 상태
 
-- Version: v0.1.2
+- Version: v0.1.3
 - Repository Role: AI Semiconductor Research OS
 - Primary Goal: KAIST SSL Lab 개별연구 준비
-- Current Focus: v0.1.2 Learning Protocol 구축 완료, 실제 학습 시작 준비 완료
+- Current Focus: v0.1.3 Learning Capture & Knowledge Classification
