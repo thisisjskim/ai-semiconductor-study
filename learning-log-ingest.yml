@@ -1,0 +1,160 @@
+name: learning-log-ingest
+
+# Approved Custom GPT record: plain-text Issue -> deterministic CI -> learning-logs/**.
+# The GPT never sends Base64 and never writes repository files directly.
+
+on:
+  issues:
+    types: [closed]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "다시 처리할 Issue 번호"
+        required: true
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: learning-log-ingest-${{ github.event.issue.number || github.event.inputs.issue }}
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (startsWith(github.event.issue.title, '[learning-log]') &&
+       (github.event_name == 'issues' || github.event.comment.body == '/기록'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Issue 본문과 댓글 수집
+        id: fetch
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const number = Number(context.payload.issue?.number || context.payload.inputs?.issue);
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+            });
+
+            if (!issue.title.startsWith('[learning-log]')) {
+              core.setFailed('Issue 제목이 [learning-log]로 시작하지 않습니다.');
+              return;
+            }
+            if (issue.user?.login !== context.repo.owner) {
+              core.setFailed('Repository owner가 만든 Issue만 처리합니다.');
+              return;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              per_page: 100,
+            });
+
+            fs.writeFileSync('/tmp/learning-log-payload.json', JSON.stringify({
+              number,
+              title: issue.title,
+              author: issue.user?.login || '',
+              repository_owner: context.repo.owner,
+              body: issue.body || '',
+              html_url: issue.html_url,
+              comments: comments.map(comment => ({
+                author: comment.user?.login || '',
+                body: comment.body || '',
+              })),
+            }));
+            core.setOutput('number', String(number));
+
+      - name: 변환기 계약 테스트
+        run: python3 scripts/test_ingest_learning_log.py
+
+      - name: Learning Log 생성 또는 수정
+        id: ingest
+        run: |
+          python3 scripts/ingest_learning_log.py \
+            --payload /tmp/learning-log-payload.json \
+            --report /tmp/learning-log-report.md \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: 변경 파일만 커밋
+        id: commit
+        env:
+          TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
+          ISSUE_NUMBER: ${{ steps.fetch.outputs.number }}
+        run: |
+          git config user.name "research-os[bot]"
+          git config user.email "research-os[bot]@users.noreply.github.com"
+          git add -- "$TARGET_PATH"
+
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+            echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "log: ingest learning note (Issue #${ISSUE_NUMBER})"
+          for attempt in 1 2 3 4; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep $((2 ** attempt))
+          done
+          exit 1
+
+      - name: 성공 결과를 Issue에 기록
+        if: success()
+        uses: actions/github-script@v8
+        env:
+          COMMIT_SHA: ${{ steps.commit.outputs.commit_sha }}
+        with:
+          script: |
+            const fs = require('fs');
+            const number = Number('${{ steps.fetch.outputs.number }}');
+            let body = fs.existsSync('/tmp/learning-log-report.md')
+              ? fs.readFileSync('/tmp/learning-log-report.md', 'utf8')
+              : '<!-- research-os-result -->\n✅ 처리 완료';
+            if (process.env.COMMIT_SHA) {
+              const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${process.env.COMMIT_SHA}`;
+              body += `\n- Commit: [${process.env.COMMIT_SHA.slice(0, 7)}](${url})\n`;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              body,
+            });
+
+      - name: 실패를 Issue에 기록하고 다시 연다
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const number = Number('${{ steps.fetch.outputs.number }}' || context.payload.issue?.number);
+            if (!number) return;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              body: `<!-- research-os-result -->\n❌ Learning Log 처리 실패 — [실행 로그](${runUrl})\n\n문제를 수정한 뒤 \`/기록\` 댓글로 다시 시도하세요.`,
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              state: 'open',
+            });
