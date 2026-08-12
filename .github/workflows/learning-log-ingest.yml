@@ -15,7 +15,8 @@ permissions:
   issues: write
 
 concurrency:
-  group: learning-log-${{ github.event.issue.number || inputs.issue_number }}
+  # Serialize writes to main so separate Issues cannot race each other.
+  group: learning-log-main
   cancel-in-progress: false
 
 jobs:
@@ -36,6 +37,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+          PAYLOAD_PATH: ${{ runner.temp }}/ingest-payload.json
         with:
           script: |
             const issueNumber = Number(process.env.ISSUE_NUMBER);
@@ -65,35 +67,78 @@ jobs:
             };
 
             require("fs").writeFileSync(
-              "ingest-payload.json", JSON.stringify(payload), "utf8",
+              process.env.PAYLOAD_PATH, JSON.stringify(payload), "utf8",
             );
             core.setOutput("issue_number", String(issueNumber));
+
+      - name: Run contract tests
+        run: python -B scripts/test_ingest_learning_log.py
 
       - name: Ingest Learning Log
         id: ingest
         run: |
           python scripts/ingest_learning_log.py \
-            --payload ingest-payload.json \
+            --payload "$RUNNER_TEMP/ingest-payload.json" \
             --root . \
-            --report ingest-report.md \
+            --report "$RUNNER_TEMP/ingest-report.md" \
             --github-output "$GITHUB_OUTPUT"
+
+      - name: Validate ingest result
+        id: validate
+        env:
+          TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$TARGET_PATH" || "$TARGET_PATH" != learning-logs/* ]]; then
+            echo "Invalid target path: $TARGET_PATH" >&2
+            exit 1
+          fi
+          if [[ ! -f "$TARGET_PATH" ]]; then
+            echo "Target file was not created: $TARGET_PATH" >&2
+            exit 1
+          fi
+
+          mapfile -t changed_paths < <(
+            git status --porcelain --untracked-files=all | sed 's/^...//'
+          )
+          if (( ${#changed_paths[@]} > 1 )); then
+            printf 'Unexpected files changed:\n%s\n' "${changed_paths[@]}" >&2
+            exit 1
+          fi
+          if (( ${#changed_paths[@]} == 1 )) && [[ "${changed_paths[0]}" != "$TARGET_PATH" ]]; then
+            echo "Unexpected file changed: ${changed_paths[0]}" >&2
+            exit 1
+          fi
+
+          if (( ${#changed_paths[@]} == 0 )); then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Commit Learning Log
         id: commit
         env:
           TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
           OPERATION: ${{ steps.ingest.outputs.operation }}
+          HAS_CHANGES: ${{ steps.validate.outputs.has_changes }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- "$TARGET_PATH"
-          if [ "$OPERATION" = "create" ]; then
-            COMMIT_MESSAGE="학습 기록: 새 기록 생성 - ${TARGET_PATH}"
+
+          if [[ "$HAS_CHANGES" == "true" ]]; then
+            git add -- "$TARGET_PATH"
+            if [[ "$OPERATION" == "create" ]]; then
+              COMMIT_MESSAGE="학습 기록: 새 기록 생성 - ${TARGET_PATH}"
+            else
+              COMMIT_MESSAGE="학습 기록: 기존 기록 수정 - ${TARGET_PATH}"
+            fi
+            git commit -m "$COMMIT_MESSAGE"
+            git push origin HEAD:main
           else
-            COMMIT_MESSAGE="학습 기록: 기존 기록 수정 - ${TARGET_PATH}"
+            echo "Learning Log is already up to date; no commit needed."
           fi
-          git commit -m "$COMMIT_MESSAGE"
-          git push origin HEAD:main
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Comment success

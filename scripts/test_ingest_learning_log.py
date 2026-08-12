@@ -3,10 +3,45 @@
 
 from __future__ import annotations
 
+import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 import ingest_learning_log as ingest
+
+
+def assert_rejected(action, message: str) -> None:
+    try:
+        action()
+    except ingest.IngestError:
+        return
+    raise AssertionError(message)
+
+
+def assert_workflow_contract() -> None:
+    workflow_path = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/learning-log-ingest.yml"
+    )
+    workflow = workflow_path.read_text(encoding="utf-8")
+    required_steps = (
+        "- name: Check out repository",
+        "- name: Build ingest payload",
+        "- name: Run contract tests",
+        "- name: Ingest Learning Log",
+        "- name: Validate ingest result",
+        "- name: Commit Learning Log",
+        "- name: Comment success",
+        "- name: Comment failure",
+    )
+    positions = [workflow.index(step) for step in required_steps]
+    assert positions == sorted(positions), "Workflow 단계 순서가 계약과 다릅니다."
+    assert "group: learning-log-main" in workflow
+    assert '[[ ! -f "$TARGET_PATH" ]]' in workflow
+    assert "git status --porcelain --untracked-files=all" in workflow
+    assert 'if [[ "$HAS_CHANGES" == "true" ]]' in workflow
 
 
 def note(extra: str = "") -> str:
@@ -94,7 +129,9 @@ def main() -> int:
         assert operation == "create"
         target = root / path
         assert target.exists()
-        assert "악의적인 내용" not in target.read_text(encoding="utf-8")
+        content = target.read_text(encoding="utf-8")
+        assert "악의적인 내용" not in content  # external comment filtering
+        assert "bot 결과" not in content  # bot comment filtering
 
         sha = ingest.git_blob_sha(target.read_bytes())
         _, operation = ingest.ingest(payload("update", sha, note("업데이트됨.")), root)
@@ -111,25 +148,80 @@ def main() -> int:
         ingest.ingest(mixed_case, root)
         assert "소유자 댓글" in target.read_text(encoding="utf-8")
 
-        try:
-            ingest.ingest(payload("update", "0" * 40, note()), root)
-        except ingest.IngestError:
-            pass
-        else:
-            raise AssertionError("stale SHA가 거부되지 않았습니다.")
+        assert_rejected(
+            lambda: ingest.ingest(payload("update", "0" * 40, note()), root),
+            "stale SHA가 거부되지 않았습니다.",
+        )
 
         invalid = payload("create", "new", note())
         invalid["body"] = invalid["body"].replace(
             "learning-logs/2026/08/2026-08-09-test.md", "system/RESEARCH_OS.md"
         )
-        try:
-            ingest.ingest(invalid, root)
-        except ingest.IngestError:
-            pass
-        else:
-            raise AssertionError("허용되지 않은 경로가 거부되지 않았습니다.")
+        assert_rejected(
+            lambda: ingest.ingest(invalid, root),
+            "허용되지 않은 경로가 거부되지 않았습니다.",
+        )
 
-    print("ingest_learning_log contract tests passed")
+        invalid_envelope = payload("create", "new", note())
+        invalid_envelope["body"] = invalid_envelope["body"].replace(
+            "research-os-ingest:v1", "research-os-ingest:v2"
+        )
+        assert_rejected(
+            lambda: ingest.ingest(invalid_envelope, root),
+            "잘못된 envelope가 거부되지 않았습니다.",
+        )
+
+        result_comment = payload(
+            "update", ingest.git_blob_sha(target.read_bytes()), note("결과 댓글 필터")
+        )
+        result_comment["comments"] = [
+            {
+                "author": "thisisjskim",
+                "body": "<!-- research-os-result -->\n자동 처리 결과",
+            }
+        ]
+        ingest.ingest(result_comment, root)
+        assert "자동 처리 결과" not in target.read_text(encoding="utf-8")
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        payload_path = root / "payload.json"
+        report_path = root / "report.md"
+        output_path = root / "github-output.txt"
+        payload_path.write_text(
+            json.dumps(payload("create", "new", note()), ensure_ascii=False),
+            encoding="utf-8",
+        )
+        script_path = Path(__file__).with_name("ingest_learning_log.py")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-B",
+                str(script_path),
+                "--payload",
+                str(payload_path),
+                "--root",
+                str(root),
+                "--report",
+                str(report_path),
+                "--github-output",
+                str(output_path),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        assert completed.returncode == 0, completed.stderr
+        assert (root / "learning-logs/2026/08/2026-08-09-test.md").exists()
+        assert "<!-- research-os-result -->" in report_path.read_text(encoding="utf-8")
+        outputs = output_path.read_text(encoding="utf-8")
+        assert "target_path=learning-logs/2026/08/2026-08-09-test.md" in outputs
+        assert "operation=create" in outputs
+
+    assert_workflow_contract()
+
+    print("All tests passed")
     return 0
 
 
