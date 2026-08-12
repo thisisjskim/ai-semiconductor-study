@@ -2,13 +2,11 @@ name: Learning Log Ingest
 
 on:
   issues:
-    types:
-      - closed
-
+    types: [closed]
   workflow_dispatch:
     inputs:
       issue_number:
-        description: "다시 처리할 학습 기록 Issue 번호"
+        description: "다시 처리할 Learning Log Issue 번호"
         required: true
         type: string
 
@@ -25,234 +23,110 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.issue.user.login == github.repository_owner
-
     runs-on: ubuntu-latest
 
     steps:
-      - name: Convert Issue to Learning Log
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build ingest payload
+        id: payload
         uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            const issueNumber =
-              context.payload.issue?.number ||
-              Number("${{ inputs.issue_number }}");
-
-            if (!issueNumber) {
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            if (!Number.isInteger(issueNumber) || issueNumber < 1) {
               core.setFailed("Issue 번호를 확인할 수 없습니다.");
               return;
             }
 
-            try {
-              const { data: issue } = await github.rest.issues.get({
-                owner,
-                repo,
-                issue_number: issueNumber
-              });
+            const { owner, repo } = context.repo;
+            const { data: issue } = await github.rest.issues.get({
+              owner, repo, issue_number: issueNumber,
+            });
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: issueNumber, per_page: 100 },
+            );
+            const payload = {
+              number: issue.number,
+              title: issue.title,
+              author: issue.user?.login || "",
+              repository_owner: owner,
+              body: issue.body || "",
+              comments: comments.map((comment) => ({
+                author: comment.user?.login || "",
+                body: comment.body || "",
+              })),
+            };
 
-              /*
-               * 저장소 소유자가 생성한 Issue만 처리한다.
-               * Public repository에서 외부 사용자가 학습 기록을
-               * 임의로 생성하는 것을 방지한다.
-               */
-              if (
-                issue.user.login.toLowerCase() !==
-                owner.toLowerCase()
-              ) {
-                core.setFailed(
-                  `저장소 소유자가 생성한 Issue가 아닙니다: ${issue.user.login}`
-                );
-                return;
-              }
+            require("fs").writeFileSync(
+              "ingest-payload.json", JSON.stringify(payload), "utf8",
+            );
+            core.setOutput("issue_number", String(issueNumber));
 
-              const acceptedPrefixes = [
-                "[학습]",
-                "[학습 기록]",
-                "[learning log]",
-                "[learning-log]"
-              ];
+      - name: Ingest Learning Log
+        id: ingest
+        run: |
+          python scripts/ingest_learning_log.py \
+            --payload ingest-payload.json \
+            --root . \
+            --report ingest-report.md \
+            --github-output "$GITHUB_OUTPUT"
 
-              const normalizedTitle = issue.title.toLowerCase();
+      - name: Commit Learning Log
+        id: commit
+        env:
+          TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
+          OPERATION: ${{ steps.ingest.outputs.operation }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$TARGET_PATH"
+          git commit -m "log: ${OPERATION} ${TARGET_PATH}"
+          git push origin HEAD:main
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-              if (
-                !acceptedPrefixes.some(prefix =>
-                  normalizedTitle.startsWith(prefix.toLowerCase())
-                )
-              ) {
-                core.setFailed(
-                  "학습 기록 Issue 제목 형식이 아닙니다."
-                );
-                return;
-              }
+      - name: Comment success
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ steps.payload.outputs.issue_number }}
+          TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
+          COMMIT_SHA: ${{ steps.commit.outputs.commit }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const path = process.env.TARGET_PATH;
+            const commit = process.env.COMMIT_SHA;
+            const fileUrl = `${context.serverUrl}/${owner}/${repo}/blob/${commit}/${path}`;
+            const commitUrl = `${context.serverUrl}/${owner}/${repo}/commit/${commit}`;
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: issueNumber,
+              body:
+                "<!-- research-os-result -->\n" +
+                "✅ Learning Log 처리 완료\n\n" +
+                `- Path: [\`${path}\`](${fileUrl})\n` +
+                `- Commit: [\`${commit.slice(0, 7)}\`](${commitUrl})`,
+            });
 
-              const { data: comments } =
-                await github.rest.issues.listComments({
-                  owner,
-                  repo,
-                  issue_number: issueNumber,
-                  per_page: 100
-                });
-
-              /*
-               * 저장소 소유자가 작성한 코멘트만 학습 기록에 포함한다.
-               * Actions의 결과 코멘트와 /기록 명령은 제외한다.
-               */
-              const validComments = comments.filter(comment => {
-                const author =
-                  comment.user?.login?.toLowerCase() || "";
-
-                const body = (comment.body || "").trim();
-
-                return (
-                  author === owner.toLowerCase() &&
-                  body &&
-                  !body.startsWith("/기록")
-                );
-              });
-
-              const sections = [];
-
-              if ((issue.body || "").trim()) {
-                sections.push(issue.body.trim());
-              }
-
-              for (const comment of validComments) {
-                sections.push(comment.body.trim());
-              }
-
-              if (sections.length === 0) {
-                core.setFailed("저장할 학습 기록 내용이 없습니다.");
-                return;
-              }
-
-              const fullMarkdown =
-                sections.join("\n\n---\n\n") + "\n";
-
-              /*
-               * 제목 형식:
-               * [학습] YYYY-MM-DD topic-slug — 한국어 제목
-               *
-               * 예:
-               * [학습] 2026-08-09 sram-read — SRAM 읽기 동작
-               */
-              const dateMatch =
-                issue.title.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
-
-              if (!dateMatch) {
-                core.setFailed(
-                  "Issue 제목에서 YYYY-MM-DD 날짜를 찾을 수 없습니다."
-                );
-                return;
-              }
-
-              const date = dateMatch[1];
-
-              const afterDate = issue.title
-                .slice(issue.title.indexOf(date) + date.length)
-                .split(/[—–|]/)[0]
-                .trim();
-
-              const slug = afterDate
-                .toLowerCase()
-                .normalize("NFKD")
-                .replace(/[^a-z0-9]+/g, "-")
-                .replace(/^-+|-+$/g, "")
-                .slice(0, 60);
-
-              if (!slug) {
-                core.setFailed(
-                  "Issue 제목에서 영어 topic-slug를 찾을 수 없습니다."
-                );
-                return;
-              }
-
-              const [year, month] = date.split("-");
-
-              const path =
-                `learning-logs/${year}/${month}/` +
-                `${date}-${slug}.md`;
-
-              let currentSha;
-
-              try {
-                const { data: existing } =
-                  await github.rest.repos.getContent({
-                    owner,
-                    repo,
-                    path,
-                    ref: "main"
-                  });
-
-                if (!Array.isArray(existing)) {
-                  currentSha = existing.sha;
-                }
-              } catch (error) {
-                if (error.status !== 404) {
-                  throw error;
-                }
-              }
-
-              const message = currentSha
-                ? `log: update ${date} study note`
-                : `log: add ${date} study note`;
-
-              const request = {
-                owner,
-                repo,
-                path,
-                message,
-                branch: "main",
-                content: Buffer
-                  .from(fullMarkdown, "utf8")
-                  .toString("base64")
-              };
-
-              if (currentSha) {
-                request.sha = currentSha;
-              }
-
-              await github.rest.repos.createOrUpdateFileContents(
-                request
-              );
-
-              const fileUrl =
-                `https://github.com/${owner}/${repo}/blob/main/${path}`;
-
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: issueNumber,
-                body:
-                  `✅ 학습 기록 저장 완료\n\n` +
-                  `- 경로: \`${path}\`\n` +
-                  `- [저장된 Markdown 파일](${fileUrl})`
-              });
-
-              core.info(`저장 완료: ${path}`);
-
-            } catch (error) {
-              const message =
-                error instanceof Error
-                  ? error.message
-                  : String(error);
-
-              try {
-                await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number: issueNumber,
-                  body:
-                    `❌ 학습 기록 저장 실패\n\n` +
-                    `- 오류: \`${message}\`\n` +
-                    `- Actions 실행 로그를 확인해 주세요.`
-                });
-              } catch (commentError) {
-                core.warning(
-                  `실패 코멘트를 작성하지 못했습니다: ${commentError}`
-                );
-              }
-
-              core.setFailed(message);
-            }
+      - name: Comment failure
+        if: failure() && steps.payload.outputs.issue_number
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ steps.payload.outputs.issue_number }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: Number(process.env.ISSUE_NUMBER),
+              body:
+                "<!-- research-os-result -->\n" +
+                "❌ Learning Log 처리 실패\n\n" +
+                `- Actions 실행 로그: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
+            });

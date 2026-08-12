@@ -101,6 +101,16 @@ def main() -> int:
         assert operation == "update"
         assert "업데이트됨." in target.read_text(encoding="utf-8")
 
+        mixed_case = payload(
+            "update", ingest.git_blob_sha(target.read_bytes()), note("대소문자")
+        )
+        mixed_case["author"] = "ThisIsJsKim"
+        mixed_case["comments"] = [
+            {"author": "THISISJSKIM", "body": "소유자 댓글"},
+        ]
+        ingest.ingest(mixed_case, root)
+        assert "소유자 댓글" in target.read_text(encoding="utf-8")
+
         try:
             ingest.ingest(payload("update", "0" * 40, note()), root)
         except ingest.IngestError:
@@ -119,7 +129,7 @@ def main() -> int:
         else:
             raise AssertionError("허용되지 않은 경로가 거부되지 않았습니다.")
 
-    print("✅ ingest_learning_log contract tests passed")
+    print("ingest_learning_log contract tests passed")
     return 0
 
 
