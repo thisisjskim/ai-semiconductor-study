@@ -296,14 +296,7 @@ Issue 제목 형식은 다음과 같습니다.
 [learning-log] YYYY-MM-DD topic-slug
 ```
 
-현재 Workflow는 다음 말머리를 모두 허용합니다.
-
-```text
-[학습]
-[학습 기록]
-[learning log]
-[learning-log]
-```
+현재 Workflow는 `[learning-log]` 말머리만 허용합니다. 저장 신청과 일반 Issue를 컴퓨터가 확실히 구분하기 위한 규칙입니다.
 
 예:
 
@@ -311,7 +304,26 @@ Issue 제목 형식은 다음과 같습니다.
 [learning-log] 2026-08-09 sram-read
 ```
 
-Issue 본문에는 완성된 Learning Log가 일반 Markdown으로 들어갑니다.
+Issue 본문은 저장 방법을 적은 신청서와 완성된 Learning Log Markdown으로 구성합니다.
+
+```text
+<!-- research-os-ingest:v1
+operation: create 또는 update
+target_path: learning-logs/YYYY/MM/YYYY-MM-DD-topic-slug.md
+expected_sha: new 또는 읽어서 확인한 40자리 SHA
+-->
+# 학습 기록: ...
+```
+
+각 항목의 의미는 다음과 같습니다.
+
+| 항목 | 의미 |
+| --- | --- |
+| `operation` | 새 파일은 `create`, 기존 파일 수정은 `update` |
+| `target_path` | 저장할 정확한 경로. `learning-logs/**`만 허용 |
+| `expected_sha` | 새 파일은 `new`, 수정은 기존 파일을 읽어서 확인한 SHA |
+
+이 신청서는 제목을 보고 경로나 작업 종류를 추측하지 않게 해 줍니다. 기존 파일 수정 시에는 SHA를 파일의 지문처럼 비교하여, 읽은 뒤 다른 변경이 생긴 파일을 실수로 덮어쓰지 않습니다.
 
 ### 3단계: 긴 내용 분할
 
@@ -345,43 +357,38 @@ Issue가 닫히면 `learning-log-ingest.yml`이 실행됩니다.
 Workflow는 다음 순서로 처리합니다.
 
 1. Issue 번호 확인
-2. Issue 작성자가 저장소 소유자인지 확인
-3. 제목이 허용된 말머리로 시작하는지 확인
-4. Issue 본문을 가져옴
-5. 저장소 소유자가 작성한 코멘트를 가져옴
-6. `/기록` 같은 명령 코멘트는 제외
-7. 본문과 코멘트를 하나의 Markdown으로 결합
-8. Issue 제목에서 날짜와 slug를 추출
-9. 저장 경로 생성
-10. 같은 경로의 기존 파일 존재 여부 확인
-11. Action 내부에서 UTF-8 Markdown을 Base64로 변환
-12. 새 파일 생성 또는 기존 파일 수정
-13. 성공 결과를 Issue 댓글로 작성
+2. Issue 본문과 모든 코멘트를 가져와 Python 프로그램에 전달
+3. Issue 작성자가 저장소 소유자인지 확인
+4. 제목이 `[learning-log]`로 시작하는지 확인
+5. 저장소 소유자의 코멘트만 모으고 명령·봇·이전 결과 댓글은 제외
+6. `research-os-ingest:v1` 신청서에서 작업 종류, 정확한 경로, SHA 확인
+7. 저장 경로가 `learning-logs/YYYY/MM/YYYY-MM-DD-topic-slug.md` 형식인지 검사
+8. Learning Log의 필수 항목이 모두 있는지 검사
+9. `create` 또는 `update` 조건과 기존 파일의 SHA 검사
+10. 검사를 통과한 Markdown 파일만 생성 또는 수정
+11. Git 커밋으로 `main`에 저장
+12. 생성된 파일 경로와 커밋을 Issue 댓글로 작성
 
-본문과 코멘트는 다음처럼 결합됩니다.
+본문과 유효한 코멘트는 빈 줄을 사이에 두고 순서대로 결합됩니다.
 
 ```markdown
 Issue 본문
 
----
-
 첫 번째 추가 코멘트
-
----
 
 두 번째 추가 코멘트
 ```
 
-파일이 없으면 다음 커밋 메시지를 사용합니다.
+새 파일을 만들면 다음과 같은 한국어 커밋 메시지를 사용합니다.
 
 ```text
-log: add YYYY-MM-DD study note
+학습 기록: 새 기록 생성 - learning-logs/...
 ```
 
-파일이 있으면 다음 메시지를 사용합니다.
+기존 파일을 수정하면 다음 메시지를 사용합니다.
 
 ```text
-log: update YYYY-MM-DD study note
+학습 기록: 기존 기록 수정 - learning-logs/...
 ```
 
 ---
@@ -405,10 +412,10 @@ Issue와 모든 코멘트가 성공적으로 전송되고 Issue가 닫힌 상태
 Actions가 파일을 생성하고 Issue에 다음과 같은 댓글을 남긴 상태입니다.
 
 ```text
-✅ 학습 기록 저장 완료
+✅ Learning Log 처리 완료
 
-- 경로: learning-logs/...
-- 저장된 Markdown 파일
+- Path: learning-logs/...
+- Commit: 저장을 수행한 커밋
 ```
 
 이 댓글과 실제 경로를 확인한 경우에만 저장 완료라고 말합니다.
