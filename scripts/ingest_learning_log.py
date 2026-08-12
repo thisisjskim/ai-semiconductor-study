@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -51,11 +50,11 @@ def git_blob_sha(content: bytes) -> str:
 def assemble(payload: dict) -> str:
     issue_author = str(payload.get("author") or "")
     repo_owner = str(payload.get("repository_owner") or "")
-    allowed = {issue_author, repo_owner}
+    allowed = {issue_author.casefold(), repo_owner.casefold()}
     chunks = [str(payload.get("body") or "").strip()]
 
     for comment in payload.get("comments") or []:
-        author = str(comment.get("author") or "")
+        author = str(comment.get("author") or "").casefold()
         body = str(comment.get("body") or "").strip()
         if author not in allowed or author.endswith("[bot]"):
             continue
@@ -117,9 +116,9 @@ def ingest(payload: dict, root: Path) -> tuple[str, str]:
     title = str(payload.get("title") or "")
     issue_author = str(payload.get("author") or "")
     repo_owner = str(payload.get("repository_owner") or "")
-    if not title.startswith("[learning-log]"):
+    if not title.casefold().startswith("[learning-log]"):
         raise IngestError("Issue 제목이 [learning-log]로 시작하지 않습니다.")
-    if not issue_author or issue_author != repo_owner:
+    if not issue_author or issue_author.casefold() != repo_owner.casefold():
         raise IngestError("Repository owner가 만든 Issue만 처리할 수 있습니다.")
 
     metadata, markdown = parse_envelope(assemble(payload))
