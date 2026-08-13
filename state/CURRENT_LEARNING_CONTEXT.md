@@ -3,7 +3,7 @@
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
 - Last generated date: 2026-08-12
-- Roadmap reconciliation: **pending**
+- Roadmap reconciliation: **aligned**
 
 ## 현재 상태
 
@@ -51,7 +51,7 @@
 
 ## Roadmap reconciliation
 
-- 의미 있는 Learning Log가 있지만 Current Stage가 Not Started; 의미 있는 Learning Log가 있지만 Current Topic이 지정되지 않음; 최신 Learning Log domain(sram)의 dashboard 상태가 Not Started
+- 최신 Learning Log와 dashboard의 현재 stage/topic에 명백한 충돌이 없음
 - `roadmap/PROGRESS.md`는 자동 수정하지 않음
 
 ## 제외한 기록과 이유
