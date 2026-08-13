@@ -1,48 +1,67 @@
 # Current Learning Context
 
-> 이 문서는 빠른 context 복구를 위한 derived snapshot이다. Source of truth는 아래에 명시한 Learning Log와 roadmap이며, 차이가 있으면 source를 다시 확인한다.
+> 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
-- Last updated: 2026-08-12
+- Last generated date: 2026-08-12
 - Roadmap reconciliation: **pending**
 
 ## 현재 상태
 
-- **활성 학습 영역 — 추론:** Computer Architecture에서 Memory Architecture로 넘어가는 구간(Stage 2 → Stage 3).
-- **현재 학습 주제 — 사실:** Memory Hierarchy와 Data Reuse.
-- **마지막 의미 있는 학습 기록 — 사실:** `learning-logs/2026/08/2026-08-09-memory-hierarchy-data-reuse.md`.
+- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`
+- Current Topic: Register와 SRAM 회로 기초
+- Domain: sram
+- Roadmap stage: Stage 3 — Memory
 
-## 확인된 이해
+### 같은 날짜의 의미 있는 학습 단위
 
-다음은 위 Learning Log에 자기 설명과 오해 수정으로 기록된 사실이다.
+- `learning-logs/2026/08/2026-08-12-register-sram-circuits.md` — Register와 SRAM 회로 기초
 
-- MAC을 늘려도 memory가 데이터를 충분히 공급하지 못하면 bandwidth bottleneck으로 연산기가 기다릴 수 있다.
-- Latency는 한 access의 대기 시간이고, Bandwidth는 단위 시간당 전송량이다.
-- `Off-chip DRAM/HBM → On-chip SRAM → Register → MAC`의 단순화된 hierarchy와, 가까운 memory에서의 Data Reuse가 off-chip data movement를 줄인다는 목적을 설명했다.
-- Register와 SRAM은 저장 공간이고 MAC은 연산 회로라는 역할 구분, inference와 training의 차이에 관한 초기 혼동을 수정했다.
+## 현재 확인된 핵심 개념
 
-## 아직 약한 부분과 미해결 질문
+- Register는 작은 working set을 compute 가까이에 두어 latency와 data movement를 줄인다.
+- Register의 높은 bit당 circuit/area cost 때문에 대용량 storage에는 SRAM이 더 적합하다.
+- Cross-coupled inverter는 feedback을 통해 두 stable voltage states를 유지한다.
+- Latch는 level-sensitive하고, edge-triggered flip-flop은 특정 clock edge의 input을 capture한다.
+- Multi-bit Register는 여러 1-bit storage element가 common clock에 맞춰 병렬로 동작하는 구조로 볼 수 있다.
+- Transistor는 logic gate 자체가 아니라 logic gate와 storage circuit을 구성하는 physical switching device이다.
+- CMOS inverter 하나는 대표적으로 PMOS 1개와 NMOS 1개로 구성된다.
+- 6T SRAM은 4T cross-coupled inverter storage core와 2T access transistor로 구성된다.
 
-- **비교 능력 — 사실:** 자기 설명 점검에서 관련 개념 비교가 아직 완료되지 않았다.
-- Register가 실제로 어떤 회로로 구성되며 SRAM과 어떻게 다른가?
-- SRAM과 DRAM은 구조와 동작 방식에서 어떻게 다른가?
-- NPU에서 Register, SRAM, PE/MAC array는 실제로 어떻게 연결되는가?
-- Weight, activation, partial sum의 배치에 따라 NPU Dataflow가 어떻게 달라지는가?
+## 아직 해결되지 않은 질문
 
-## 바로 다음 학습
+- CMOS inverter에서 input이 0→1 또는 1→0으로 변할 때 output node의 charge가 실제로 어떤 경로로 이동하며 charge/discharge되는가?
+- Pull-up/Pull-down network를 current, charge, node capacitance 관점에서 어떻게 완전히 연결해 설명할 수 있는가?
+- 6T SRAM에서 Hold, Write, Read가 WL, BL/BL̅, Q/Q̅와 각 transistor의 동작으로 구체적으로 어떻게 구현되는가?
+- 6T SRAM Read 과정에서 cell stability와 read disturb는 왜 발생하는가?
 
-**추천: Register와 SRAM의 역할 차이.** 이는 마지막 의미 있는 Learning Log의 첫 번째 다음 행동이며, 그 뒤의 `SRAM과 DRAM 비교 → NPU에서 Register/SRAM/PE 연결 → NPU Dataflow`를 이해하기 위한 가장 가까운 선수 주제다.
+## 미완료 자기 설명 점검
+
+- CMOS inverter의 switching을 current, charge, node capacitance 관점에서 완전히 설명할 수 있다.
+- 6T SRAM의 Hold/Write/Read 동작을 transistor-level에서 설명할 수 있다.
+- SRAM의 read disturb와 cell stability를 설명할 수 있다.
+
+## 바로 다음 행동
+
+- 현재 학습 중인 6T SRAM 블로그의 흐름을 주교재로 삼고, 다음 순서로 이어간다.
+- MOSFET switch 관점 복습을 마무리한다.
+- CMOS inverter에서 PMOS/NMOS에 의한 output node charge/discharge 과정을 current/charge 관점에서 설명한다.
+- Pull-Up Network와 Pull-Down Network를 CMOS inverter 회로에서 확실히 구분한다.
+- Cross-coupled inverter가 1 bit state를 유지하는 과정을 다시 연결한다.
+- 6T SRAM의 Hold → Write → Read 동작을 WL, BL/BL̅, Q/Q̅ 기준으로 분석한다.
+
+## Roadmap reconciliation
+
+- 의미 있는 Learning Log가 있지만 Current Stage가 Not Started; 의미 있는 Learning Log가 있지만 Current Topic이 지정되지 않음; 최신 Learning Log domain(sram)의 dashboard 상태가 Not Started
+- `roadmap/PROGRESS.md`는 자동 수정하지 않음
+
+## 제외한 기록과 이유
+
+- `learning-logs/2026/08/2026-08-07-custom-gpt-github-integration.md` — 필수 Metadata 누락: Document type, Domain, Roadmap stage
+- `learning-logs/2026/08/2026-08-09-memory-hierarchy-data-reuse.md` — 필수 Metadata 누락: Document type, Domain, Roadmap stage
+- `learning-logs/2026/08/2026-08-12-ingest-contract-smoke-test.md` — Domain이 research-os인 시스템 개발·운영 기록
 
 ## 참고한 source paths
 
 - `roadmap/ROADMAP.md`
 - `roadmap/PROGRESS.md`
-- `learning-logs/2026/08/2026-08-09-memory-hierarchy-data-reuse.md`
-
-## 검토했지만 학습 근거에서 제외한 기록
-
-- `learning-logs/2026/08/2026-08-07-custom-gpt-github-integration.md`: GitHub 연동과 Research OS 저장 방식에 관한 시스템 개발 기록으로, AI semiconductor 개념 학습 성취의 근거가 아니다.
-- `learning-logs/2026/08/2026-08-12-ingest-contract-smoke-test.md`: create/update pipeline을 확인한 운영 smoke test로, 학습 성취의 근거가 아니다.
-
-## Roadmap reconciliation
-
-`roadmap/PROGRESS.md`는 2026-08-07 기준으로 모든 Stage를 `Not Started`, 현재 주제를 미지정으로 표시한다. 그러나 2026-08-09 Learning Log에는 Memory Hierarchy, Data Reuse, latency/bandwidth와 NPU 연결에 대한 실제 학습 evidence가 있다. 두 source가 충돌하므로 이 snapshot에서는 상태를 임의로 확정하거나 `PROGRESS.md`를 수정하지 않고 **reconciliation pending**으로 둔다.
+- `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`

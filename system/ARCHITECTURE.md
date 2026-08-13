@@ -12,7 +12,7 @@
 | `scripts/ingest_learning_log.py` | Learning Log 저장의 canonical validation 및 Markdown 변환 구현이다. 작성자, 제목, envelope, 경로, 문서 형식, create/update와 SHA를 검사한다. |
 | `learning-logs/**` | 사용자의 자기 설명, 오해 수정, 질문과 다음 행동을 보존하는 학습 evidence다. |
 | `roadmap/**` | 장기 학습 방향과 명시적으로 관리되는 진행 상태다. |
-| `state/**` | 빠른 context 복구를 위해 source를 압축한 derived state다. |
+| `state/**` | 빠른 context 복구를 위해 source를 압축한 generated/derived state다. `scripts/build_learning_context.py`가 생성한다. |
 | `system/**` | Research OS의 정책, 진입점, 구조와 저장 계약이다. |
 | `templates/**` | Learning Log 등 기록의 형식을 정의한다. |
 | Custom GPT | 당분간 유지되는 legacy/fallback interface다. 정책의 유일한 보관 장소로 사용하지 않는다. |
@@ -32,6 +32,8 @@ GitHub context load
 ```
 
 ChatGPT는 snapshot을 먼저 읽되 관련 Learning Log와 roadmap을 확인한다. 저장 승인을 받으면 `system/ACTION_SCHEMA.yaml`의 계약으로 Issue를 enqueue한다. `.github/workflows/learning-log-ingest.yml`은 Issue와 comments를 모아 `scripts/ingest_learning_log.py`에 전달한다. Python 검증을 통과한 한 개의 `learning-logs/**` 파일만 commit하며, 결과 comment의 path와 commit까지 확인해야 저장이 끝난다.
+
+Learning Log 저장 commit 이후 `.github/workflows/learning-context-refresh.yml`이 별도로 실행되어 `state/CURRENT_LEARNING_CONTEXT.md`만 다시 생성하고 별도 commit한다. 두 workflow는 main 쓰기를 직렬화하지만 실패 경계는 분리된다. Context refresh 실패는 이미 성공한 Learning Log 저장을 되돌리지 않으며 `roadmap/PROGRESS.md`도 수정하지 않는다.
 
 ## B. Research OS 개발 흐름
 
@@ -58,6 +60,6 @@ Canonical source는 판단을 다시 만들 수 있는 원본이다.
 - 학습 evidence: `learning-logs/**`
 - 기록 형식: `templates/**`
 
-`state/CURRENT_LEARNING_CONTEXT.md`는 source of truth가 아니다. Learning Log와 roadmap을 읽어 만든 파생 snapshot이며, 빠른 시작을 돕는다. snapshot과 source가 다르면 source를 확인하고 충돌을 드러내며, 사용자 승인 없이 `roadmap/PROGRESS.md`를 고치지 않는다.
+`state/CURRENT_LEARNING_CONTEXT.md`는 source of truth가 아니다. `scripts/build_learning_context.py`가 Learning Log와 roadmap을 읽어 만든 generated/derived snapshot이며, 빠른 시작을 돕는다. snapshot과 source가 다르면 source를 확인하고 충돌을 드러내며, `roadmap/PROGRESS.md`를 자동으로 고치지 않는다.
 
 최상위 `AGENTS.md`와 `system/CHATGPT_ENTRYPOINT.md`는 정책 복사본이 아니라 canonical source로 안내하는 router와 bootstrap이다.
