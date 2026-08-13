@@ -2,7 +2,7 @@
 
 > 이 문서는 Learning Log evidence와 `roadmap/PROGRESS.md`를 비교해 자동 생성한 검토용 제안서다. `roadmap/PROGRESS.md`를 수정하지 않으며, 아래 변경은 사용자 승인 후 별도 branch와 Pull Request에서만 적용한다.
 
-- Proposal status: **pending-approval**
+- Proposal status: **aligned**
 - Latest evidence date: 2026-08-12
 - Maximum automatic status proposal: **Learning**
 
@@ -10,23 +10,22 @@
 
 | Field | 현재 값 | 제안 값 |
 | --- | --- | --- |
-| Current Stage | Not Started | Stage 3 — Memory |
-| Current Topic | 아직 지정되지 않음 | Register와 SRAM 회로 기초 |
-| Next Milestone | 첫 학습 주제 선정 및 learning log 작성 | MOSFET switch 관점 복습을 마무리한다. |
-| Last Updated | 2026-08-07 | 2026-08-12 |
+| 없음 | 변경 제안 없음 | Progress의 Last Updated가 최신 Learning Log evidence보다 새로움 |
 
 ## Dashboard 변경 제안
 
 | Stage | 상태 제안 | 근거 Learning Log |
 | --- | --- | --- |
-| SRAM / DRAM / eDRAM | `Not Started` → `Learning` | `learning-logs/2026/08/2026-08-12-register-sram-circuits.md` |
+| SRAM / DRAM / eDRAM | `Learning` 유지 | `learning-logs/2026/08/2026-08-12-register-sram-circuits.md` |
 
 ## 판단 제한
 
 - Learning Log가 존재한다는 사실만으로 `Review` 또는 `Completed`를 제안하지 않음
 - 기존 `Review` 또는 `Completed` 상태를 자동으로 낮추지 않음
+- `Execution Phase`, `Active Track`, `Current Deliverable`, `Current Bottleneck`, `Next Milestone`, `Phase Deadline`은 phase-level 계획이므로 자동 제안하지 않음
+- Progress가 최신 Learning Log보다 새로우면 과거 evidence로 현재 focus를 되돌리지 않음
 - Metadata로 dashboard row를 안전하게 특정할 수 없는 기록은 상태 변경 근거로 사용하지 않음
-- 실제 반영 전 사용자가 stage, topic, milestone과 evidence를 검토해야 함
+- 실제 반영 전 사용자가 stage, topic, status와 evidence를 검토해야 함
 
 ## 사용한 source paths
 

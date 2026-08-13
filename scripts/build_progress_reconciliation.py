@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import re
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 import build_learning_context as context
@@ -76,17 +77,6 @@ def evidence_by_row(
     return grouped
 
 
-def first_next_action(log: context.LearningLog) -> str:
-    section = log.sections["## 9. 다음 행동"]
-    listed = [
-        match.group("text").strip()
-        for line in section.splitlines()
-        if (match := context.LIST_RE.match(line.strip()))
-    ]
-    actions = listed[:1] or context.extract_items(section, 1)
-    return actions[0] if actions else "다음 학습 행동을 사용자와 확인"
-
-
 def markdown_cell(value: str, limit: int = 240) -> str:
     cleaned = " ".join(value.replace("|", "\\|").split())
     return cleaned if len(cleaned) <= limit else cleaned[: limit - 1].rstrip() + "…"
@@ -145,12 +135,22 @@ def build_reconciliation(root: Path) -> str:
         primary = latest[-1]
         grouped = evidence_by_row(logs)
         rows = proposal_rows(dashboard, grouped)
-        proposed_fields = {
-            "Current Stage": primary.roadmap_stage,
-            "Current Topic": primary.topic,
-            "Next Milestone": first_next_action(primary),
-            "Last Updated": primary.date.isoformat(),
-        }
+        progress_updated = current_field(progress, "Last Updated")
+        try:
+            progress_updated_date = date.fromisoformat(progress_updated)
+        except ValueError:
+            progress_updated_date = None
+        focus_evidence_is_current = (
+            progress_updated_date is None or progress_updated_date <= latest_date
+        )
+        proposed_fields = (
+            {
+                "Current Stage": primary.roadmap_stage,
+                "Current Topic": primary.topic,
+            }
+            if focus_evidence_is_current
+            else {}
+        )
         changes_needed = any(
             current_field(progress, label) != value
             for label, value in proposed_fields.items()
@@ -172,6 +172,10 @@ def build_reconciliation(root: Path) -> str:
                 f"| {label} | {markdown_cell(current_field(progress, label))} | "
                 f"{markdown_cell(value)} |"
             )
+        if not proposed_fields:
+            lines.append(
+                "| 없음 | 변경 제안 없음 | Progress의 Last Updated가 최신 Learning Log evidence보다 새로움 |"
+            )
         lines.extend(
             [
                 "",
@@ -189,8 +193,10 @@ def build_reconciliation(root: Path) -> str:
                 "",
                 "- Learning Log가 존재한다는 사실만으로 `Review` 또는 `Completed`를 제안하지 않음",
                 "- 기존 `Review` 또는 `Completed` 상태를 자동으로 낮추지 않음",
+                "- `Execution Phase`, `Active Track`, `Current Deliverable`, `Current Bottleneck`, `Next Milestone`, `Phase Deadline`은 phase-level 계획이므로 자동 제안하지 않음",
+                "- Progress가 최신 Learning Log보다 새로우면 과거 evidence로 현재 focus를 되돌리지 않음",
                 "- Metadata로 dashboard row를 안전하게 특정할 수 없는 기록은 상태 변경 근거로 사용하지 않음",
-                "- 실제 반영 전 사용자가 stage, topic, milestone과 evidence를 검토해야 함",
+                "- 실제 반영 전 사용자가 stage, topic, status와 evidence를 검토해야 함",
             ]
         )
 

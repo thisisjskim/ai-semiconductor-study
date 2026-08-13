@@ -12,16 +12,25 @@ from test_build_learning_context import note, write_fixture
 
 PROGRESS = """# Progress
 
+## 3. Current Focus
+
+- Execution Phase: Phase 1 — Test
+- Active Track: Track A — Test
+- Current Deliverable: phase deliverable
+- Current Bottleneck: phase bottleneck
+- Next Milestone: phase milestone
+- Phase Deadline: 2026-08-23
+- Current Stage: Not Started
+- Current Topic: 아직 지정되지 않음
+- Last Updated: 2026-08-01
+
+## 4. Progress Dashboard
+
 | Stage | Status | 핵심 목표 | Evidence / Notes |
 |---|---|---|---|
 | Memory Architecture | Not Started | goal | - |
 | SRAM / DRAM / eDRAM | Not Started | goal | - |
 | Foundational Papers | Review | goal | existing |
-
-- Current Stage: Not Started
-- Current Topic: 아직 지정되지 않음
-- Next Milestone: 첫 주제
-- Last Updated: 2026-08-01
 """
 
 
@@ -83,7 +92,8 @@ def main() -> int:
         assert "Latest evidence date: 2026-08-12" in first
         assert "| Current Stage | Not Started | Stage 3 — Memory |" in first
         assert "| Current Topic | 아직 지정되지 않음 | 6T SRAM |" in first
-        assert "| Next Milestone | 첫 주제 | action 1 |" in first
+        assert "Next Milestone |" not in first
+        assert "phase-level 계획이므로 자동 제안하지 않음" in first
         assert "| Memory Architecture | `Not Started` → `Learning`" in first
         assert "| SRAM / DRAM / eDRAM | `Not Started` → `Learning`" in first
         assert "| Foundational Papers | `Review` 유지" in first
@@ -92,6 +102,28 @@ def main() -> int:
         assert "Domain이 research-os" in first
         assert "별도 branch와 Pull Request" in first
         assert reconciliation.markdown_cell("a|b\nc") == "a\\|b c"
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "roadmap/PROGRESS.md",
+            PROGRESS.replace("- Current Stage: Not Started", "- Current Stage: Stage 3 — Memory")
+            .replace("- Current Topic: 아직 지정되지 않음", "- Current Topic: 6T SRAM")
+            .replace("- Last Updated: 2026-08-01", "- Last Updated: 2026-08-13")
+            .replace("| SRAM / DRAM / eDRAM | Not Started |", "| SRAM / DRAM / eDRAM | Learning |"),
+        )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/sram.md",
+            note(topic="6T SRAM", domain="sram", date="2026-08-12"),
+        )
+        aligned = reconciliation.build_reconciliation(root)
+        assert "Proposal status: **aligned**" in aligned
+        assert "Progress의 Last Updated가 최신 Learning Log evidence보다 새로움" in aligned
+        assert "`Learning` 유지" in aligned
+        assert "phase milestone" not in aligned
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)

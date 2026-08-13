@@ -474,7 +474,7 @@ Learning Log 저장과 context refresh는 서로 다른 commit입니다. Context
 
 ### Progress reconciliation 제안서
 
-Context refresh가 성공하면 별도 workflow가 `state/PROGRESS_RECONCILIATION.md`를 갱신합니다. 이 문서는 유효한 Learning Log를 근거로 현재 stage, topic, next milestone과 dashboard 상태의 변경 후보를 보여줍니다.
+Context refresh가 성공하면 별도 workflow가 `state/PROGRESS_RECONCILIATION.md`를 갱신합니다. 이 문서는 유효한 Learning Log를 근거로 현재 stage, topic과 dashboard 상태의 변경 후보를 보여줍니다. Phase 전체 계획인 execution phase, deliverable, bottleneck, next milestone과 deadline은 단일 Learning Log에서 자동 제안하지 않습니다.
 
 자동 제안은 보수적으로 `Not Started → Learning`까지만 허용합니다. `Review`와 `Completed`는 자동 판단하지 않으며 기존의 높은 상태도 낮추지 않습니다. `roadmap/PROGRESS.md` 자체는 자동으로 변경되지 않습니다. 사용자가 제안을 승인하면 Codex가 별도 branch와 Pull Request에서 승인된 항목만 반영합니다.
 
