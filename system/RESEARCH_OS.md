@@ -155,6 +155,8 @@ expected_sha: new 또는 읽어서 확인한 40자리 SHA
 
 Roadmap은 강제 syllabus가 아니라 navigation map이다. 기초 학습 → foundational/SSL paper 도전 → prerequisite 발견 → targeted 학습 → 논문 복귀 cycle로 bottom-up과 top-down을 함께 사용한다.
 
+`state/PROGRESS_RECONCILIATION.md`는 유효한 Learning Log와 `roadmap/PROGRESS.md`를 비교해 만든 검토용 제안서다. Learning Log가 존재한다는 이유만으로 `Review`나 `Completed`를 판단하지 않으며, 자동 제안은 최대 `Learning`까지로 제한한다. 단일 Learning Log가 증명할 수 없는 execution phase, deliverable, bottleneck, next milestone과 deadline은 자동 제안하지 않는다. Progress가 최신 Learning Log보다 새로우면 과거 evidence로 현재 focus를 되돌리지 않는다. 이 제안서는 `roadmap/PROGRESS.md`를 직접 수정하지 않는다. 실제 반영은 사용자가 stage, topic, status와 evidence를 확인해 승인한 뒤 별도 branch와 Pull Request에서 수행한다.
+
 ## 10. Ultimate Principle
 
 파일 수가 성공 기준이 아니다. 사용자가 SRAM/DRAM, Memory Hierarchy, NPU architecture와 dataflow, PIM/CIM trade-off를 설명하고, AI semiconductor 및 SSL Lab 논문의 problem·motivation·key idea·architecture·experiment·limitation을 분석하며 자신의 research question을 교수에게 설명할 수 있게 되는 것이 성공 기준이다.
