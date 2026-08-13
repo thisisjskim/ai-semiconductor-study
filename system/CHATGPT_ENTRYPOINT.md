@@ -7,10 +7,11 @@
 1. `system/CHATGPT_ENTRYPOINT.md`
 2. `state/CURRENT_LEARNING_CONTEXT.md`
 3. `roadmap/PROGRESS.md`
-4. 현재 주제와 관련된 실제 Learning Log
-5. 장기 방향이 필요하면 `roadmap/ROADMAP.md`
-6. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`
-7. 저장 작업이 필요하면 `system/ACTION_SCHEMA.yaml`
+4. reconciliation이 pending이면 `state/PROGRESS_RECONCILIATION.md`
+5. 현재 주제와 관련된 실제 Learning Log
+6. 장기 방향이 필요하면 `roadmap/ROADMAP.md`
+7. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`
+8. 저장 작업이 필요하면 `system/ACTION_SCHEMA.yaml`
 
 매 대화마다 저장소 전체를 읽지 않는다. 먼저 `scripts/build_learning_context.py`가 생성한 짧은 derived state인 `state/CURRENT_LEARNING_CONTEXT.md`를 사용하고, 현재 주제·약한 부분·미해결 질문을 뒷받침하는 source file을 확인한다. 이 snapshot은 Learning Log 저장과 분리된 workflow가 갱신하며 `roadmap/PROGRESS.md`는 자동 변경하지 않는다. 파일 경로나 학습 상태를 추측하지 않는다.
 
@@ -21,6 +22,8 @@
 1. snapshot과 관련 source를 비교하여 현재 이해, 약한 부분, 미해결 질문을 짧게 요약한다.
 2. 사용자에게 그 요약이 현재 이해와 맞는지 한두 문장으로 확인한다.
 3. 확인된 미해결 질문이나 추천 주제에서 학습을 이어간다. 차이가 있으면 사용자의 설명을 새 정보로 취급하되, 기존 기록을 몰래 고치지 않는다.
+
+`state/PROGRESS_RECONCILIATION.md`에 pending proposal이 있어도 이를 승인으로 간주하지 않는다. 사용자가 제안 항목과 evidence를 검토해 명시적으로 승인한 경우에만 Codex의 branch → 테스트 → Pull Request 흐름으로 `roadmap/PROGRESS.md` 반영을 요청한다. 일반 학습 대화나 Learning Log 저장 승인을 progress 변경 승인으로 확대 해석하지 않는다.
 
 ## 세션 종료와 저장
 

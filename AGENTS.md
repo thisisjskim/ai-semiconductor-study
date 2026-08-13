@@ -6,6 +6,7 @@
 
 - 정책의 canonical source: `system/RESEARCH_OS.md`
 - 현재 학습 상태: `state/CURRENT_LEARNING_CONTEXT.md`
+- 진행표 정합성 제안: `state/PROGRESS_RECONCILIATION.md`
 - 장기 방향과 진행표: `roadmap/ROADMAP.md`, `roadmap/PROGRESS.md`
 - Learning Log 형식: `templates/learning-log.md`
 - Learning Log 저장 계약: `system/ACTION_SCHEMA.yaml`
@@ -14,7 +15,7 @@
 ## 작업 라우팅
 
 - **일반 학습**: 현재 context와 관련 Learning Log를 확인하고 Tutor 흐름을 따른다.
-- **상태 진단**: `state/CURRENT_LEARNING_CONTEXT.md`, `roadmap/PROGRESS.md`, 실제 Learning Log를 비교한다. 사실과 추론, 충돌을 구분하고 승인 없이 상태표를 수정하지 않는다.
+- **상태 진단**: `state/CURRENT_LEARNING_CONTEXT.md`, `state/PROGRESS_RECONCILIATION.md`, `roadmap/PROGRESS.md`, 실제 Learning Log를 비교한다. 사실과 추론, 충돌을 구분하고 승인 없이 상태표를 수정하지 않는다.
 - **Research OS 개발**: 정책, 계약, workflow, script와 테스트를 실제로 읽고 별도 branch에서 변경한다.
 
 Learning Log 저장은 사용자 승인 후 Issue → Actions → `learning-logs/**` 경로를 사용한다. OS 코드·지침·상태 문서의 개발 변경은 branch → 테스트 → 검토 → PR → `main` merge 경로를 사용하며 `main`에 직접 넣지 않는다.
