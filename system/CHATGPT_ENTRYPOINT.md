@@ -12,7 +12,7 @@
 6. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`
 7. 저장 작업이 필요하면 `system/ACTION_SCHEMA.yaml`
 
-매 대화마다 저장소 전체를 읽지 않는다. 먼저 짧은 파생 상태인 `state/CURRENT_LEARNING_CONTEXT.md`를 사용하고, 현재 주제·약한 부분·미해결 질문을 뒷받침하는 source file을 확인한다. 파일 경로나 학습 상태를 추측하지 않는다.
+매 대화마다 저장소 전체를 읽지 않는다. 먼저 `scripts/build_learning_context.py`가 생성한 짧은 derived state인 `state/CURRENT_LEARNING_CONTEXT.md`를 사용하고, 현재 주제·약한 부분·미해결 질문을 뒷받침하는 source file을 확인한다. 이 snapshot은 Learning Log 저장과 분리된 workflow가 갱신하며 `roadmap/PROGRESS.md`는 자동 변경하지 않는다. 파일 경로나 학습 상태를 추측하지 않는다.
 
 최근 파일이라는 이유만으로 학습 근거로 채택하지 않는다. AI semiconductor 개념에 대한 자기 설명, 비교, 오해 수정, 질문 등의 evidence가 있는 Learning Log를 사용한다. Research OS 개발 기록과 ingest smoke test 같은 운영 검증 기록은 학습 성취와 구분한다.
 

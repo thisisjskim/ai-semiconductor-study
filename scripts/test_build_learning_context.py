@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""Contract tests for build_learning_context.py."""
+
+from __future__ import annotations
+
+import tempfile
+from pathlib import Path
+
+import build_learning_context as context
+
+
+def note(
+    topic: str = "SRAM",
+    domain: str = "sram",
+    date: str = "2026-08-12",
+    stage: str = "Stage 3 — Memory",
+    concepts: int = 10,
+) -> str:
+    concept_lines = "\n".join(f"- concept {index}" for index in range(concepts))
+    action_lines = "\n".join(f"{index}. action {index}" for index in range(1, 9))
+    return f"""# 학습 기록: {topic}
+
+## Metadata
+- Date: {date}
+- Topic: {topic}
+- Document type: learning-log
+- Domain: {domain}
+- Roadmap stage: {stage}
+
+## 1. 오늘 공부한 목적
+목적
+
+## 2. 오늘 이해한 내용
+내용
+
+## 3. 핵심 개념
+{concept_lines}
+
+## 4. 내가 처음 이해한 방식
+초기 이해
+
+## 5. 오해 또는 불확실한 부분
+없음
+
+## 6. 수정된 이해
+수정
+
+## 7. 질문
+### 해결되지 않은 질문
+- unresolved one
+- unresolved two
+### 해결된 질문
+- resolved must not appear
+
+## 8. AI 반도체 및 SSL 목표와의 연결
+연결
+
+## 9. 다음 행동
+{action_lines}
+
+## 10. 자기 설명 점검
+- [x] completed must not appear
+- [ ] weak one
+- [ ] weak two
+
+## 사용자 원문
+원문
+"""
+
+
+def write_fixture(root: Path, relative: str, content: str) -> None:
+    path = root / relative
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def setup_root(root: Path) -> None:
+    write_fixture(root, "roadmap/ROADMAP.md", "# Roadmap\n")
+    write_fixture(
+        root,
+        "roadmap/PROGRESS.md",
+        "| Stage | Status |\n"
+        "|---|---|\n"
+        "| SRAM / DRAM / eDRAM | Not Started |\n"
+        "- Current Stage: Not Started\n"
+        "- Current Topic: 아직 지정되지 않음\n",
+    )
+
+
+def assert_workflow_contract(repository_root: Path) -> None:
+    workflow = (
+        repository_root / ".github/workflows/learning-context-refresh.yml"
+    ).read_text(encoding="utf-8")
+    assert "learning-logs/**" in workflow
+    push_paths = workflow.split("paths:", 1)[1].split("workflow_run:", 1)[0]
+    assert "state/CURRENT_LEARNING_CONTEXT.md" not in push_paths
+    assert 'workflows: ["Learning Log Ingest"]' in workflow
+    assert "github.event.workflow_run.conclusion == 'success'" in workflow
+    assert "group: learning-log-main" in workflow
+    assert "python -B scripts/test_build_learning_context.py" in workflow
+    assert "python -B scripts/build_learning_context.py" in workflow
+    assert 'git add -- state/CURRENT_LEARNING_CONTEXT.md' in workflow
+    assert "git add -A" not in workflow
+    assert '[[ "${changed_paths[0]}" != "state/CURRENT_LEARNING_CONTEXT.md" ]]' in workflow
+
+
+def main() -> int:
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(root, "learning-logs/2026/08/older.md", note(topic="Older", date="2026-08-11"))
+        write_fixture(root, "learning-logs/2026/08/z-latest.md", note(topic="Latest Z"))
+        write_fixture(root, "learning-logs/2026/08/a-latest.md", note(topic="Latest A"))
+        write_fixture(root, "learning-logs/2026/08/research-os.md", note(topic="System", domain="research-os"))
+        write_fixture(
+            root,
+            "learning-logs/2026/08/ingest-smoke-test.md",
+            note(topic="Ingest smoke test", domain="research-os"),
+        )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/system-development.md",
+            note(topic="System Stage", stage="system-development"),
+        )
+        write_fixture(root, "learning-logs/2026/08/invalid.md", note().replace("- Domain: sram\n", ""))
+        write_fixture(
+            root,
+            "learning-logs/2026/08/invalid-date.md",
+            note(topic="Invalid Date", date="2026-8-12"),
+        )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/invalid-structure.md",
+            note(topic="Invalid Structure").replace("# 학습 기록:", "# 메모:", 1),
+        )
+
+        included, excluded = context.discover_logs(root)
+        assert [item.topic for item in included] == ["Older", "Latest A", "Latest Z"]
+        assert any(path.endswith("research-os.md") and "research-os" in reason for path, reason in excluded)
+        assert any(
+            path.endswith("ingest-smoke-test.md") and "research-os" in reason
+            for path, reason in excluded
+        )
+        assert any(
+            path.endswith("system-development.md") and "system-development" in reason
+            for path, reason in excluded
+        )
+        assert any(path.endswith("invalid.md") and "Metadata" in reason for path, reason in excluded)
+        assert any(
+            path.endswith("invalid-date.md") and "YYYY-MM-DD" in reason
+            for path, reason in excluded
+        )
+        assert any(
+            path.endswith("invalid-structure.md") and "canonical" in reason
+            for path, reason in excluded
+        )
+
+        first = context.build_context(root)
+        second = context.build_context(root)
+        assert first == second
+        assert "`learning-logs/2026/08/z-latest.md`" in first
+        assert "Current Topic: Latest Z" in first
+        assert "unresolved one" in first and "unresolved two" in first
+        assert "resolved must not appear" not in first
+        assert "weak one" in first and "weak two" in first
+        assert "completed must not appear" not in first
+        assert "action 1" in first and "action 6" in first
+        assert "action 7" not in first
+        assert "concept 0" in first and "concept 7" in first
+        assert "concept 8" not in first
+        assert first.count("같은 날짜의 의미 있는 학습 단위") == 1
+        same_date = first.split("### 같은 날짜의 의미 있는 학습 단위", 1)[1].split(
+            "## 현재 확인된 핵심 개념", 1
+        )[0]
+        assert same_date.index("a-latest.md") < same_date.index("z-latest.md")
+        assert "Roadmap reconciliation: **pending**" in first
+        assert "dashboard 상태가 Not Started" in first
+
+        original_glob = Path.glob
+        try:
+            Path.glob = lambda self, pattern: iter(reversed(list(original_glob(self, pattern))))
+            reordered = context.build_context(root)
+        finally:
+            Path.glob = original_glob
+        assert reordered == first
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(root, "learning-logs/2026/08/system.md", note(domain="research-os"))
+        empty = context.build_context(root)
+        assert "최신 의미 있는 학습 기록: 없음" in empty
+        assert "Roadmap reconciliation: **not-needed**" in empty
+        assert "research-os" in empty
+
+    repository_root = Path(__file__).resolve().parents[1]
+    assert_workflow_contract(repository_root)
+    print("All learning context tests passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
