@@ -91,6 +91,8 @@ Promotion은 원본 이동·삭제·덮어쓰기가 아니라 `learning-log → 
 
 항상 `templates/learning-log.md`를 기준으로 전체 문서를 만든다. Metadata에는 다음을 기록한다.
 
+Learning Log section은 canonical template heading을 사용한다. Validator가 명시적으로 허용한 제한적 구조 alias만 canonical heading으로 정규화하며, 의미가 있는 학습 본문은 자동 수정하지 않는다.
+
 - Date
 - Topic
 - Document type: `learning-log`

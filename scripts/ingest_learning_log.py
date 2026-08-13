@@ -36,10 +36,17 @@ REQUIRED_HEADINGS = (
     "## 10. 자기 설명 점검",
     "## 사용자 원문",
 )
+HEADING_ALIASES = {
+    "## 1. 오늘 공부한 목표": "## 1. 오늘 공부한 목적",
+}
+FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
+MAX_ERROR_MESSAGE_LENGTH = 300
 
 
 class IngestError(RuntimeError):
-    pass
+    def __init__(self, message: str, code: str = "ingest-validation-error") -> None:
+        super().__init__(message)
+        self.code = code
 
 
 def git_blob_sha(content: bytes) -> str:
@@ -76,7 +83,7 @@ def parse_envelope(assembled: str) -> tuple[dict[str, str], str]:
         if not line:
             continue
         if ":" not in line:
-            raise IngestError(f"잘못된 메타데이터 행: {line}")
+            raise IngestError("잘못된 메타데이터 행이 있습니다.", "invalid-metadata")
         key, value = line.split(":", 1)
         metadata[key.strip()] = value.strip()
 
@@ -87,6 +94,65 @@ def parse_envelope(assembled: str) -> tuple[dict[str, str], str]:
 
     markdown = assembled[match.end() :].strip() + "\n"
     return metadata, markdown
+
+
+def markdown_heading_lines(markdown: str) -> list[str]:
+    """Return independent Markdown heading lines outside fenced code blocks."""
+    headings: list[str] = []
+    fence_char = ""
+    fence_length = 0
+
+    for line in markdown.splitlines():
+        fence_match = FENCE_RE.match(line)
+        if fence_match:
+            fence = fence_match.group("fence")
+            if not fence_char:
+                fence_char = fence[0]
+                fence_length = len(fence)
+                continue
+            if fence[0] == fence_char and len(fence) >= fence_length:
+                fence_char = ""
+                fence_length = 0
+                continue
+        if not fence_char and line.startswith("## "):
+            headings.append(line)
+
+    return headings
+
+
+def normalize_headings(markdown: str) -> str:
+    """Normalize only explicitly allowed independent heading aliases."""
+    headings = markdown_heading_lines(markdown)
+    for alias, canonical in HEADING_ALIASES.items():
+        if alias in headings and canonical in headings:
+            raise IngestError(
+                f"canonical section과 alias가 동시에 있습니다: `{canonical}`",
+                "duplicate-required-heading",
+            )
+
+    lines = markdown.splitlines(keepends=True)
+    fence_char = ""
+    fence_length = 0
+    normalized: list[str] = []
+    for line in lines:
+        content = line.rstrip("\r\n")
+        ending = line[len(content) :]
+        fence_match = FENCE_RE.match(content)
+        if fence_match:
+            fence = fence_match.group("fence")
+            if not fence_char:
+                fence_char = fence[0]
+                fence_length = len(fence)
+            elif fence[0] == fence_char and len(fence) >= fence_length:
+                fence_char = ""
+                fence_length = 0
+            normalized.append(line)
+            continue
+        if not fence_char and content in HEADING_ALIASES:
+            content = HEADING_ALIASES[content]
+        normalized.append(content + ending)
+
+    return "".join(normalized)
 
 
 def validate_target(target_path: str) -> re.Match[str]:
@@ -107,9 +173,13 @@ def validate_markdown(markdown: str) -> None:
         raise IngestError("학습 기록이 지나치게 짧습니다. 전체 Learning Log를 보내야 합니다.")
     if not markdown.startswith("# 학습 기록:"):
         raise IngestError("문서는 '# 학습 기록:' 제목으로 시작해야 합니다.")
-    missing = [heading for heading in REQUIRED_HEADINGS if heading not in markdown]
+    headings = markdown_heading_lines(markdown)
+    missing = [heading for heading in REQUIRED_HEADINGS if heading not in headings]
     if missing:
-        raise IngestError("Learning Log 필수 section 누락: " + ", ".join(missing))
+        raise IngestError(
+            "필수 section이 없습니다: " + ", ".join(f"`{item}`" for item in missing),
+            "missing-required-heading",
+        )
 
 
 def ingest(payload: dict, root: Path) -> tuple[str, str]:
@@ -122,6 +192,7 @@ def ingest(payload: dict, root: Path) -> tuple[str, str]:
         raise IngestError("Repository owner가 만든 Issue만 처리할 수 있습니다.")
 
     metadata, markdown = parse_envelope(assemble(payload))
+    markdown = normalize_headings(markdown)
     operation = metadata["operation"]
     target_path = metadata["target_path"]
     expected_sha = metadata["expected_sha"].lower()
@@ -152,7 +223,39 @@ def ingest(payload: dict, root: Path) -> tuple[str, str]:
     return target_path, operation
 
 
+def sanitize_error_message(message: str) -> str:
+    """Limit untrusted error text before it is exposed in an Issue comment."""
+    cleaned = " ".join(
+        re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", message).splitlines()
+    ).strip()
+    if len(cleaned) > MAX_ERROR_MESSAGE_LENGTH:
+        return cleaned[: MAX_ERROR_MESSAGE_LENGTH - 1] + "…"
+    return cleaned or "알 수 없는 오류가 발생했습니다."
+
+
+def failure_report(code: str, message: str) -> str:
+    return (
+        f"{RESULT_MARKER}\n"
+        "❌ Learning Log 처리 실패\n\n"
+        f"- Error code: `{code}`\n"
+        f"- 원인: {sanitize_error_message(message)}\n"
+        "- 파일 저장: 수행되지 않음\n"
+    )
+
+
+def write_report(path: str | None, report: str) -> None:
+    if path:
+        Path(path).write_text(report, encoding="utf-8")
+
+
+def configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main() -> int:
+    configure_stdio()
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload", required=True)
     parser.add_argument("--root", default=".")
@@ -169,8 +272,7 @@ def main() -> int:
             f"- Operation: `{operation}`\n"
             f"- Path: `{target_path}`\n"
         )
-        if args.report:
-            Path(args.report).write_text(report, encoding="utf-8")
+        write_report(args.report, report)
         if args.github_output:
             with open(args.github_output, "a", encoding="utf-8") as output:
                 output.write(f"target_path={target_path}\n")
@@ -178,6 +280,16 @@ def main() -> int:
         print(report)
         return 0
     except (OSError, json.JSONDecodeError, IngestError) as exc:
+        if isinstance(exc, IngestError):
+            error_code = exc.code
+        elif isinstance(exc, json.JSONDecodeError):
+            error_code = "invalid-json"
+        else:
+            error_code = "io-error"
+        try:
+            write_report(args.report, failure_report(error_code, str(exc)))
+        except OSError as report_error:
+            print(f"Learning Log 실패 report 작성 실패: {report_error}", file=sys.stderr)
         print(f"Learning Log ingest 실패: {exc}", file=sys.stderr)
         return 1
 

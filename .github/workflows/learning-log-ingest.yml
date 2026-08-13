@@ -169,14 +169,35 @@ jobs:
         uses: actions/github-script@v8
         env:
           ISSUE_NUMBER: ${{ steps.payload.outputs.issue_number }}
+          REPORT_PATH: ${{ runner.temp }}/ingest-report.md
         with:
           script: |
+            const fs = require("fs");
             const { owner, repo } = context.repo;
+            const actionsUrl =
+              `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            let body =
+              "<!-- research-os-result -->\n" +
+              "❌ Learning Log 처리 실패\n\n" +
+              "- Error code: `workflow-error`\n" +
+              "- 원인: 예상하지 못한 workflow 오류가 발생했습니다.\n" +
+              "- 파일 저장: 수행되지 않음";
+
+            if (fs.existsSync(process.env.REPORT_PATH)) {
+              const report = fs.readFileSync(process.env.REPORT_PATH, "utf8")
+                .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+                .slice(0, 4000)
+                .trim();
+              if (
+                report.startsWith("<!-- research-os-result -->") &&
+                report.includes("❌ Learning Log 처리 실패")
+              ) {
+                body = report;
+              }
+            }
+
             await github.rest.issues.createComment({
               owner, repo,
               issue_number: Number(process.env.ISSUE_NUMBER),
-              body:
-                "<!-- research-os-result -->\n" +
-                "❌ Learning Log 처리 실패\n\n" +
-                `- Actions 실행 로그: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
+              body: `${body}\n\n- Actions 실행 로그: ${actionsUrl}`,
             });

@@ -12,11 +12,11 @@ from pathlib import Path
 import ingest_learning_log as ingest
 
 
-def assert_rejected(action, message: str) -> None:
+def assert_rejected(action, message: str) -> ingest.IngestError:
     try:
         action()
-    except ingest.IngestError:
-        return
+    except ingest.IngestError as error:
+        return error
     raise AssertionError(message)
 
 
@@ -42,6 +42,11 @@ def assert_workflow_contract() -> None:
     assert '[[ ! -f "$TARGET_PATH" ]]' in workflow
     assert "git status --porcelain --untracked-files=all" in workflow
     assert 'if [[ "$HAS_CHANGES" == "true" ]]' in workflow
+    assert "REPORT_PATH: ${{ runner.temp }}/ingest-report.md" in workflow
+    assert 'fs.readFileSync(process.env.REPORT_PATH, "utf8")' in workflow
+    assert "❌ Learning Log 처리 실패" in workflow
+    assert "Error code: `workflow-error`" in workflow
+    assert "Actions 실행 로그" in workflow
 
 
 def note(extra: str = "") -> str:
@@ -121,6 +126,33 @@ def payload(operation: str, expected_sha: str, body: str) -> dict:
     }
 
 
+def run_cli(payload_data: dict, root: Path) -> tuple[subprocess.CompletedProcess, Path]:
+    payload_path = root / "payload.json"
+    report_path = root / "report.md"
+    payload_path.write_text(
+        json.dumps(payload_data, ensure_ascii=False), encoding="utf-8"
+    )
+    script_path = Path(__file__).with_name("ingest_learning_log.py")
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-B",
+            str(script_path),
+            "--payload",
+            str(payload_path),
+            "--root",
+            str(root),
+            "--report",
+            str(report_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    return completed, report_path
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
@@ -132,6 +164,9 @@ def main() -> int:
         content = target.read_text(encoding="utf-8")
         assert "악의적인 내용" not in content  # external comment filtering
         assert "bot 결과" not in content  # bot comment filtering
+        assert ingest.markdown_heading_lines(content).count(
+            "## 1. 오늘 공부한 목적"
+        ) == 1
 
         sha = ingest.git_blob_sha(target.read_bytes())
         _, operation = ingest.ingest(payload("update", sha, note("업데이트됨.")), root)
@@ -185,14 +220,62 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
-        payload_path = root / "payload.json"
+        alias = "## 1. 오늘 공부한 목표"
+        canonical = "## 1. 오늘 공부한 목적"
+        alias_note = note().replace(canonical, alias, 1)
+        alias_note += (
+            "\n일반 본문의 ## 1. 오늘 공부한 목표 표현은 유지한다.\n"
+            "> ## 1. 오늘 공부한 목표\n"
+            "```markdown\n"
+            "## 1. 오늘 공부한 목표\n"
+            "```\n"
+        )
+        path, _ = ingest.ingest(payload("create", "new", alias_note), root)
+        normalized = (root / path).read_text(encoding="utf-8")
+        assert normalized.count(canonical) == 1
+        assert "일반 본문의 ## 1. 오늘 공부한 목표 표현은 유지한다." in normalized
+        assert "> ## 1. 오늘 공부한 목표" in normalized
+        assert "```markdown\n## 1. 오늘 공부한 목표\n```" in normalized
+        independent_headings = ingest.markdown_heading_lines(normalized)
+        assert alias not in independent_headings
+        assert canonical in independent_headings
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        duplicate = note().replace(
+            "## 1. 오늘 공부한 목적",
+            "## 1. 오늘 공부한 목적\n\n## 1. 오늘 공부한 목표",
+            1,
+        )
+        error = assert_rejected(
+            lambda: ingest.ingest(payload("create", "new", duplicate), root),
+            "canonical heading과 alias의 중복이 거부되지 않았습니다.",
+        )
+        assert error.code == "duplicate-required-heading"
+        assert not (root / "learning-logs/2026/08/2026-08-09-test.md").exists()
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        unsupported = note().replace(
+            "## 1. 오늘 공부한 목적", "## 1. 오늘 학습한 목적", 1
+        )
+        error = assert_rejected(
+            lambda: ingest.ingest(payload("create", "new", unsupported), root),
+            "등록되지 않은 유사 heading이 거부되지 않았습니다.",
+        )
+        assert error.code == "missing-required-heading"
+        assert "`## 1. 오늘 공부한 목적`" in str(error)
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
         report_path = root / "report.md"
         output_path = root / "github-output.txt"
+        script_path = Path(__file__).with_name("ingest_learning_log.py")
+        payload_path = root / "payload.json"
         payload_path.write_text(
             json.dumps(payload("create", "new", note()), ensure_ascii=False),
             encoding="utf-8",
         )
-        script_path = Path(__file__).with_name("ingest_learning_log.py")
         completed = subprocess.run(
             [
                 sys.executable,
@@ -218,6 +301,33 @@ def main() -> int:
         outputs = output_path.read_text(encoding="utf-8")
         assert "target_path=learning-logs/2026/08/2026-08-09-test.md" in outputs
         assert "operation=create" in outputs
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        unsupported = note("SECRET-PAYLOAD-CONTENT").replace(
+            "## 1. 오늘 공부한 목적", "## 1. 오늘 학습한 목적", 1
+        )
+        completed, report_path = run_cli(
+            payload("create", "new", unsupported), root
+        )
+        assert completed.returncode == 1
+        assert "Learning Log ingest 실패" in completed.stderr
+        report = report_path.read_text(encoding="utf-8")
+        assert report.startswith("<!-- research-os-result -->")
+        assert "❌ Learning Log 처리 실패" in report
+        assert "Error code: `missing-required-heading`" in report
+        assert "`## 1. 오늘 공부한 목적`" in report
+        assert "파일 저장: 수행되지 않음" in report
+        assert "SECRET-PAYLOAD-CONTENT" not in report
+        assert "Traceback" not in report
+        assert not (root / "learning-logs/2026/08/2026-08-09-test.md").exists()
+
+    sanitized = ingest.failure_report(
+        "test-error", "첫 줄\n둘째 줄\x00" + ("가" * 400)
+    )
+    assert "\x00" not in sanitized
+    assert "첫 줄 둘째 줄" in sanitized
+    assert len(sanitized.split("- 원인: ", 1)[1].splitlines()[0]) <= 300
 
     assert_workflow_contract()
 
