@@ -2,7 +2,13 @@
 
 AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 
-## v0.2.0 — Current
+## v0.2.1 — Current
+
+### Fixed
+- ChatGPT Actions가 component `$ref`로 선언된 `issue_number` path parameter를 읽지 못해 Issue 관련 operation을 건너뛰던 schema 호환성 문제 수정
+- Issue 조회·댓글·종료 operation의 `issue_number`를 inline parameter로 선언하고 회귀 test 추가
+
+## v0.2.0
 
 ### Added
 - Custom GPT의 파일 직접 PUT을 제거하고 `Issue → GitHub Actions → learning-logs/**` 저장 경로 도입

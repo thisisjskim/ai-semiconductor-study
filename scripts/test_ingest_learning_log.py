@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -47,6 +48,44 @@ def assert_workflow_contract() -> None:
     assert "❌ Learning Log 처리 실패" in workflow
     assert "Error code: `workflow-error`" in workflow
     assert "Actions 실행 로그" in workflow
+
+
+def assert_action_schema_contract() -> None:
+    schema_path = (
+        Path(__file__).resolve().parents[1] / "system/ACTION_SCHEMA.yaml"
+    )
+    schema = schema_path.read_text(encoding="utf-8")
+
+    # ChatGPT Actions requires path parameter fields to be present on the
+    # operation. A reusable component parameter $ref is valid OpenAPI, but the
+    # GPT editor currently skips these operations because it does not resolve
+    # the ref before checking for a non-empty parameter name.
+    assert "#/components/parameters/" not in schema
+
+    issue_operations = (
+        "listLearningLogIssueComments",
+        "appendLearningLogChunk",
+        "getLearningLogIssue",
+        "closeLearningLogIssue",
+    )
+    for operation_id in issue_operations:
+        operation_match = re.search(
+            rf"(?ms)^      operationId: {re.escape(operation_id)}\n"
+            rf"(?P<body>.*?)(?=^    (?:get|post|put|patch|delete):|^  /|^components:)",
+            schema,
+        )
+        assert operation_match, f"Action operation을 찾을 수 없습니다: {operation_id}"
+        body = operation_match.group("body")
+        assert re.search(
+            r"(?ms)^      parameters:\n"
+            r"        - name: issue_number\n"
+            r"          in: path\n"
+            r"          required: true\n"
+            r"(?:          .*\n)*?"
+            r"          schema:\n"
+            r"            type: integer\n",
+            body,
+        ), f"{operation_id}의 issue_number path parameter가 inline 형식이 아닙니다."
 
 
 def note(extra: str = "") -> str:
@@ -330,6 +369,7 @@ def main() -> int:
     assert len(sanitized.split("- 원인: ", 1)[1].splitlines()[0]) <= 300
 
     assert_workflow_contract()
+    assert_action_schema_contract()
 
     print("All tests passed")
     return 0

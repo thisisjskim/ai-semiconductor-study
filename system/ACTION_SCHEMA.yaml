@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: AI Semiconductor Research OS GitHub API
   description: Read study records and enqueue approved Learning Logs as plain-text GitHub Issues.
-  version: 0.2.0
+  version: 0.2.1
 
 servers:
   - url: https://api.github.com
@@ -100,7 +100,12 @@ paths:
       summary: Check Learning Log processing results
       description: Lists Issue comments to verify the GitHub Actions success or failure result.
       parameters:
-        - $ref: "#/components/parameters/IssueNumber"
+        - name: issue_number
+          in: path
+          required: true
+          description: Issue number returned by createLearningLogIssue.
+          schema:
+            type: integer
       responses:
         "200":
           description: Issue comments
@@ -116,7 +121,12 @@ paths:
       description: Appends plain Markdown to an existing approved Issue. Preserve order and keep each chunk below 30000 characters.
       x-openai-isConsequential: true
       parameters:
-        - $ref: "#/components/parameters/IssueNumber"
+        - name: issue_number
+          in: path
+          required: true
+          description: Issue number returned by createLearningLogIssue.
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -142,7 +152,12 @@ paths:
       summary: Read a Learning Log submission Issue
       description: Reads the Issue state and URL before or after processing.
       parameters:
-        - $ref: "#/components/parameters/IssueNumber"
+        - name: issue_number
+          in: path
+          required: true
+          description: Issue number returned by createLearningLogIssue.
+          schema:
+            type: integer
       responses:
         "200":
           description: Issue details
@@ -156,7 +171,12 @@ paths:
       description: Closes the Issue after all chunks are appended. Closing triggers GitHub Actions to create or update the file.
       x-openai-isConsequential: true
       parameters:
-        - $ref: "#/components/parameters/IssueNumber"
+        - name: issue_number
+          in: path
+          required: true
+          description: Issue number returned by createLearningLogIssue.
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -182,15 +202,6 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-
-  parameters:
-    IssueNumber:
-      name: issue_number
-      in: path
-      required: true
-      description: Issue number returned by createLearningLogIssue.
-      schema:
-        type: integer
 
   schemas:
     ContentItem:
