@@ -5,10 +5,11 @@ on:
     branches: [main]
     paths:
       - "learning-logs/**"
+      - "roadmap/PROGRESS.md"
   # GITHUB_TOKEN pushes do not emit new push workflow runs. This preserves the
   # separate workflow boundary while refreshing after a successful ingest.
   workflow_run:
-    workflows: ["Learning Log Ingest"]
+    workflows: ["Learning Log Ingest", "Progress Update"]
     types: [completed]
   workflow_dispatch:
 
@@ -17,7 +18,7 @@ permissions:
 
 concurrency:
   # Shared with Learning Log Ingest so writes to main are serialized.
-  group: learning-log-main
+  group: research-os-main
   cancel-in-progress: false
 
 jobs:

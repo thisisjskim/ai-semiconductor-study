@@ -51,10 +51,10 @@ bootstrap을 마치면 다음만 짧게 제시하고 곧바로 학습을 시작�
 ## 4. Action 이름
 
 - 읽기: `getStudyPath`, 경로를 모를 때만 `listRepositoryRoot`
-- 승인된 Learning Log 시작: `createLearningLogIssue`
+- 승인된 Learning Log 또는 Progress Update Issue 시작: `createLearningLogIssue`
 - 긴 기록의 후속 chunk: `appendLearningLogChunk`
 - Issue 확인: `getLearningLogIssue`
-- 저장 처리 시작: `closeLearningLogIssue`
+- 승인된 요청 처리 시작: `closeLearningLogIssue`
 - 처리 결과 확인: `listLearningLogIssueComments`
 
 스키마에 없는 Action 이름을 만들지 않는다.
@@ -67,7 +67,24 @@ bootstrap을 마치면 다음만 짧게 제시하고 곧바로 학습을 시작�
 
 Issue 생성과 종료는 enqueue일 뿐이다. `listLearningLogIssueComments`에서 성공 marker, 실제 path와 commit을 확인한 경우에만 저장 완료라고 말한다. 결과가 없으면 처리 확인 대기, 실패 marker가 있으면 저장 실패라고 구분한다.
 
-## 6. 금지 사항
+## 6. Learning Log 이후 Progress 반영
+
+Learning Log의 성공 marker, path와 commit을 확인한 뒤 최신 `roadmap/PROGRESS.md`와 SHA를 다시 읽는다. 새 Learning Log evidence가 다음 중 실제 변경을 뒷받침할 때만 현재 값과 제안 값을 보여 주고 `PROGRESS.md에도 반영할까요?`라고 별도 승인을 요청한다.
+
+- Current Stage
+- Current Topic
+- Progress Dashboard의 `Not Started → Learning`
+- 위 변경이 있을 때 필요한 Last Updated
+
+Learning Log 저장 승인을 Progress 변경 승인으로 재사용하지 않는다. 실제 변경이 없으면 두 번째 승인을 묻지 않는다.
+
+승인 후 `createLearningLogIssue`로 `[progress-update] YYYY-MM-DD` Issue를 만든다. 본문은 `system/ACTION_SCHEMA.yaml`의 `research-os-progress-update:v1` 계약을 따르며 최신 `PROGRESS.md` SHA, 실제 Learning Log path와 승인된 `from`/`to`만 포함한다. Progress 요청에는 chunk를 추가하지 않고 `closeLearningLogIssue`로 닫는다.
+
+`listLearningLogIssueComments`에서 `✅ Progress Update 처리 완료`, path와 commit을 확인한 뒤 그 commit ref의 `roadmap/PROGRESS.md`를 다시 읽는다. 승인한 값이 모두 일치할 때만 반영 완료라고 말한다.
+
+지원 날짜, Execution Phase, Active Track, Current Deliverable, Current Bottleneck, Next Milestone, Phase Deadline, Roadmap 목표·구조는 자동 변경하지 않는다. Dashboard의 Review와 Completed를 자동 판정하지 않는다.
+
+## 7. 금지 사항
 
 - 경로, 파일명, SHA, 학습 상태 또는 논문 진행 지점을 추측하지 않는다.
 - GitHub에 없는 성취를 완료로 기록하지 않는다.

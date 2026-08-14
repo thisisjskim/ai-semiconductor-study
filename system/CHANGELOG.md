@@ -2,7 +2,20 @@
 
 AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 
-## v0.2.3 — Current
+## v0.3.0 — Current
+
+### Added
+- Learning Log 저장 확인 뒤 별도 사용자 승인으로 실행하는 `[progress-update]` Issue 계약
+- `roadmap/PROGRESS.md`의 최신 blob SHA와 Learning Log evidence 경로를 확인하는 Progress 전용 Python 검증기
+- `Current Stage`, `Current Topic`, Dashboard `Not Started → Learning`, 필요한 `Last Updated`만 반영하는 GitHub Actions
+- 성공·실패 Issue comment와 ChatGPT의 최종 commit 내용 재확인 절차
+
+### Safety
+- 지원 날짜, 실행 계획 필드, milestone, deadline, Roadmap 구조는 자동 변경하지 않음
+- Dashboard의 `Review`와 `Completed`는 자동 판정하지 않음
+- 모든 main 쓰기 workflow를 하나의 concurrency group으로 직렬화하고 각 Issue 유형을 제목으로 분리함
+
+## v0.2.3
 
 ### Fixed
 - 학습 세션 bootstrap을 세 파일의 필수 연속 조회에서 `state/CURRENT_LEARNING_CONTEXT.md` 한 번의 조회로 단순화

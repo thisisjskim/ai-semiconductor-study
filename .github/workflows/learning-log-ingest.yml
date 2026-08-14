@@ -16,14 +16,15 @@ permissions:
 
 concurrency:
   # Serialize writes to main so separate Issues cannot race each other.
-  group: learning-log-main
+  group: research-os-main
   cancel-in-progress: false
 
 jobs:
   ingest:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.issue.user.login == github.repository_owner
+      (github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[learning-log]'))
     runs-on: ubuntu-latest
 
     steps:

@@ -39,3 +39,16 @@
 Issue 생성과 닫기는 저장 요청을 queue에 넣는 **enqueue**다. 이것만으로 저장 완료라고 말하지 않는다. GitHub Actions가 성공하고 Issue 결과 comment에 `✅ Learning Log 처리 완료`, 실제 path, commit이 확인되어야 저장 완료다. 처리 중이면 `접수 완료, 처리 확인 대기`, 실패하면 저장 실패라고 구분한다.
 
 세부 API 필드와 요청 형식은 여기에 복사하지 않는다. `system/ACTION_SCHEMA.yaml`을 canonical storage contract로 사용하고, 학습·승인·검증 정책은 `system/RESEARCH_OS.md`를 따른다.
+
+## Learning Log 이후 Progress 반영
+
+Learning Log의 성공 comment와 commit을 확인한 뒤에만 최신 `roadmap/PROGRESS.md`와 그 SHA를 다시 읽는다. 새 학습 evidence가 다음 자동 반영 후보를 실제로 뒷받침하는지 비교한다.
+
+- Current Stage
+- Current Topic
+- Progress Dashboard의 `Not Started → Learning`
+- 위 변경이 있을 때 필요한 Last Updated
+
+실제 변경이 없으면 Progress 승인을 다시 묻지 않는다. 변경이 있으면 현재 값과 제안 값을 항목별로 보여 주고 `PROGRESS.md에도 반영할까요?`라고 별도 승인을 요청한다. Learning Log 저장 승인을 Progress 변경 승인으로 재사용하지 않는다.
+
+승인 후 `[progress-update] YYYY-MM-DD` Issue를 만들고 닫는다. 요청에는 최신 `PROGRESS.md` SHA, 근거가 된 실제 Learning Log 경로, 승인받은 `from`과 `to`만 넣는다. 결과 comment에서 `✅ Progress Update 처리 완료`, path, commit을 확인하고, 그 commit ref의 `roadmap/PROGRESS.md`를 다시 읽어 모든 제안 값이 일치할 때만 반영 완료라고 말한다. 결과가 없거나 실패하면 각각 처리 대기 또는 실패로 구분한다.

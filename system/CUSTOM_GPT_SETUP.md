@@ -59,3 +59,14 @@ getStudyPath Action으로 state/CURRENT_LEARNING_CONTEXT.md를 main에서 읽고
 - Action Test가 404: path, ref 또는 repository scope 문제
 - Action Test는 200이지만 명시적 호출 실패: GPT 업데이트/새 대화 또는 Action 등록 문제
 - 명시적 호출은 성공하지만 자연어 routing 실패: Instructions 또는 schema relevance description 문제
+
+## Progress Update end-to-end 검증
+
+실제 학습 evidence가 있는 테스트 Learning Log 저장을 먼저 완료한 뒤 새 대화에서 Progress 제안 흐름을 확인한다.
+
+- Learning Log 성공 comment와 commit 확인 전에는 Progress 승인을 묻지 않음
+- 실제 변경이 없으면 `PROGRESS.md에도 반영할까요?`를 묻지 않음
+- 실제 변경이 있으면 허용된 현재 값과 제안 값만 보여 주고 별도 승인 요청
+- 승인 후 `[progress-update] YYYY-MM-DD` Issue 생성·종료
+- 성공 comment의 path와 commit을 확인하고 해당 commit의 `roadmap/PROGRESS.md`를 다시 읽음
+- `Review`, `Completed`, deadline 또는 실행 계획 필드 변경 요청은 enqueue하지 않음
