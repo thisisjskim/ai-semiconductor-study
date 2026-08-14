@@ -2,16 +2,23 @@
 
 이 문서는 일반 ChatGPT가 GitHub 저장소를 연결해 학습을 이어가기 위한 bootstrap이다. 대화 기억보다 저장소의 확인된 기록을 우선한다.
 
+## Action 실행 계약
+
+세션을 시작할 때는 이 문서가 아니라 `state/CURRENT_LEARNING_CONTEXT.md`를 `getStudyPath`와 `ref: main`으로 한 번 읽는 것을 우선한다. 그 derived snapshot의 Current Topic, Open Questions, Next Action만으로 학습을 즉시 시작할 수 있다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 `getStudyPath` 호출의 대체 수단이 아니다.
+
+학습·복습·현재 상태·다음 주제·논문 재개 요청에서는 자연어 답변보다 저장소 읽기를 먼저 실행한다. Action을 실제로 호출하지 않은 상태에서 저장소에 접근할 수 없다고 말하거나 사용자에게 파일 내용을 붙여 달라고 요청하지 않는다. 호출이 실패하면 operation, path와 실제 오류를 밝히며, 오류 응답 없이 접근 실패를 추측하지 않는다.
+
 ## Context 읽기 순서
 
-1. `system/CHATGPT_ENTRYPOINT.md`
-2. `state/CURRENT_LEARNING_CONTEXT.md`
-3. `roadmap/PROGRESS.md`
-4. reconciliation이 pending이면 `state/PROGRESS_RECONCILIATION.md`
-5. 현재 주제와 관련된 실제 Learning Log
-6. 장기 방향이 필요하면 `roadmap/ROADMAP.md`
-7. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`
-8. 저장 작업이 필요하면 `system/ACTION_SCHEMA.yaml`
+1. 항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고 학습을 시작한다.
+2. 현재 주제의 정확한 근거가 필요하면 snapshot에 명시된 실제 Learning Log를 읽는다.
+3. 현재 위치 판단에 추가 정보가 필요하면 `roadmap/PROGRESS.md`를 읽는다.
+4. reconciliation이 pending이면 `state/PROGRESS_RECONCILIATION.md`를 읽는다.
+5. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
+6. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
+7. 저장 작업이 필요하면 `system/ACTION_SCHEMA.yaml`을 읽는다.
+
+2번 이후의 조회는 필요할 때만 수행한다. 여러 파일을 연속으로 읽지 못한다는 이유로 학습 시작을 거부하거나 사용자에게 파일별 호출을 요구하지 않는다.
 
 매 대화마다 저장소 전체를 읽지 않는다. 먼저 `scripts/build_learning_context.py`가 생성한 짧은 derived state인 `state/CURRENT_LEARNING_CONTEXT.md`를 사용하고, 현재 주제·약한 부분·미해결 질문을 뒷받침하는 source file을 확인한다. 이 snapshot은 Learning Log 저장과 분리된 workflow가 갱신하며 `roadmap/PROGRESS.md`는 자동 변경하지 않는다. 파일 경로나 학습 상태를 추측하지 않는다.
 

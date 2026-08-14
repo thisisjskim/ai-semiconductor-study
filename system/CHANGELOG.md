@@ -2,7 +2,22 @@
 
 AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 
-## v0.2.1 — Current
+## v0.2.3 — Current
+
+### Fixed
+- 학습 세션 bootstrap을 세 파일의 필수 연속 조회에서 `state/CURRENT_LEARNING_CONTEXT.md` 한 번의 조회로 단순화
+- 후속 Learning Log·Progress·Roadmap 조회를 학습 시작의 전제조건이 아닌 필요 시 근거 확인 단계로 변경
+- 연속 Action 호출 불가를 이유로 학습을 거부하거나 사용자에게 파일별 호출을 요구하는 응답을 금지
+
+## v0.2.2
+
+### Fixed
+- `이전 공부를 이어나가자` 같은 자연어 요청에서 GPT가 GitHub Action을 호출하지 않고 저장소 접근 불가를 추측하던 routing 문제 수정
+- Action의 relevance description에 학습 재개·현재 상태·논문 재개 trigger와 필수 bootstrap 경로를 명시
+- 실제 Action 오류 없이 파일 붙여넣기를 요청하거나 접근 불가를 선언하지 않도록 Custom GPT 실행 계약 추가
+- Custom GPT의 300자 제한을 넘지 않도록 모든 Action description·summary 길이 회귀 검사 추가
+
+## v0.2.1
 
 ### Fixed
 - ChatGPT Actions가 component `$ref`로 선언된 `issue_number` path parameter를 읽지 못해 Issue 관련 operation을 건너뛰던 schema 호환성 문제 수정

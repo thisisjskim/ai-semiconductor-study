@@ -56,6 +56,29 @@ def assert_action_schema_contract() -> None:
     )
     schema = schema_path.read_text(encoding="utf-8")
 
+    lines = schema.splitlines()
+    for index, line in enumerate(lines):
+        match = re.match(r"^(?P<indent>\s*)(description|summary):\s*(?P<value>.*)$", line)
+        if not match:
+            continue
+        value = match.group("value")
+        if value in {">", ">-", "|", "|-"}:
+            indent = len(match.group("indent"))
+            folded_lines = []
+            for following in lines[index + 1 :]:
+                if not following.strip():
+                    continue
+                following_indent = len(following) - len(following.lstrip())
+                if following_indent <= indent:
+                    break
+                folded_lines.append(following.strip())
+            value = " ".join(folded_lines)
+        value = value.strip("'\"")
+        assert len(value) <= 300, (
+            f"Custom GPT의 300자 제한 초과: line {index + 1} "
+            f"({len(value)}자)"
+        )
+
     # ChatGPT Actions requires path parameter fields to be present on the
     # operation. A reusable component parameter $ref is valid OpenAPI, but the
     # GPT editor currently skips these operations because it does not resolve
@@ -86,6 +109,69 @@ def assert_action_schema_contract() -> None:
             r"            type: integer\n",
             body,
         ), f"{operation_id}의 issue_number path parameter가 inline 형식이 아닙니다."
+
+
+def assert_custom_gpt_routing_contract() -> None:
+    root = Path(__file__).resolve().parents[1]
+    schema = (root / "system/ACTION_SCHEMA.yaml").read_text(encoding="utf-8")
+    instructions = (root / "system/CUSTOM_GPT_INSTRUCTIONS.md").read_text(
+        encoding="utf-8"
+    )
+    entrypoint = (root / "system/CHATGPT_ENTRYPOINT.md").read_text(
+        encoding="utf-8"
+    )
+
+    operation_ids = set(re.findall(r"^      operationId: (\w+)$", schema, re.M))
+    required_operations = {
+        "listRepositoryRoot",
+        "getStudyPath",
+        "createLearningLogIssue",
+        "listLearningLogIssueComments",
+        "appendLearningLogChunk",
+        "getLearningLogIssue",
+        "closeLearningLogIssue",
+    }
+    assert operation_ids == required_operations
+
+    for operation_id in required_operations:
+        assert f"`{operation_id}`" in instructions
+
+    assert "state/CURRENT_LEARNING_CONTEXT.md" in schema
+    assert "state/CURRENT_LEARNING_CONTEXT.md" in instructions
+    assert "system/CHATGPT_ENTRYPOINT.md" in instructions
+
+    routing_triggers = (
+        "이전 공부를 이어나가자",
+        "어디까지 공부했어?",
+        "논문을 마저 읽자",
+    )
+    for trigger in routing_triggers:
+        assert trigger in schema
+
+    assert "자연어로 답하기 전에" in instructions
+    assert 'getStudyPath(path="state/CURRENT_LEARNING_CONTEXT.md", ref="main")' in instructions
+    assert "아래 Action을 정확히 한 번 먼저 호출한다" in instructions
+    assert "세션 시작 전에 다시 읽지 않는다" in instructions
+    assert "파일별 호출 문장을 대신 작성하게 하지 않는다" in instructions
+    assert "Action을 호출하지 않은 채" in instructions
+    assert "파일을 붙여 넣기" in instructions
+    assert "Action 실행 계약" in entrypoint
+    assert "GitHub 웹 검색" in entrypoint
+    assert "항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고" in entrypoint
+    assert "사용자에게 파일별 호출을 요구하지 않는다" in entrypoint
+
+    get_study_path_description = re.search(
+        r"operationId: getStudyPath.*?description: >-\n(?P<body>.*?)\n      parameters:",
+        schema,
+        re.S,
+    )
+    assert get_study_path_description
+    description = " ".join(
+        line.strip() for line in get_study_path_description.group("body").splitlines()
+    )
+    assert "path=state/CURRENT_LEARNING_CONTEXT.md" in description
+    assert "then begin" in description
+    assert "CHATGPT_ENTRYPOINT.md" not in description
 
 
 def note(extra: str = "") -> str:
@@ -370,6 +456,7 @@ def main() -> int:
 
     assert_workflow_contract()
     assert_action_schema_contract()
+    assert_custom_gpt_routing_contract()
 
     print("All tests passed")
     return 0

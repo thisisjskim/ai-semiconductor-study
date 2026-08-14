@@ -2,8 +2,12 @@ openapi: 3.1.0
 
 info:
   title: AI Semiconductor Research OS GitHub API
-  description: Read study records and enqueue approved Learning Logs as plain-text GitHub Issues.
-  version: 0.2.1
+  description: >-
+    Reads the GitHub source of truth for study resume, progress, next topic, and
+    paper continuation. Use for "이전 공부를 이어나가자", "어디까지 공부했어?",
+    and "논문을 마저 읽자". Reads need no confirmation; Learning Log writes
+    require approval.
+  version: 0.2.3
 
 servers:
   - url: https://api.github.com
@@ -16,7 +20,9 @@ paths:
     get:
       operationId: listRepositoryRoot
       summary: List repository root
-      description: Lists root files and directories when an exact study path is unknown.
+      description: >-
+        Lists root files and directories only when an exact study path is unknown.
+        Prefer getStudyPath for the mandatory learning-session bootstrap.
       parameters:
         - name: ref
           in: query
@@ -37,8 +43,12 @@ paths:
   /repos/thisisjskim/ai-semiconductor-study/contents/{path}:
     get:
       operationId: getStudyPath
-      summary: Read a file or list a directory
-      description: Reads an existing file or lists a directory. Discover actual paths instead of guessing.
+      summary: Read the current study state or list a study directory
+      description: >-
+        For "이전 공부를 이어나가자" and every learning request, first call once
+        with path=state/CURRENT_LEARNING_CONTEXT.md and ref=main, then begin from
+        its Current Topic and Next Action. Read other files only when exact
+        evidence is needed.
       parameters:
         - name: path
           in: path
