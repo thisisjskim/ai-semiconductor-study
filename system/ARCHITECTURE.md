@@ -7,9 +7,10 @@
 | GitHub Repository | 장기 기록의 Source of Truth. 정책, 상태 근거, 코드와 변경 이력을 보존한다. |
 | 일반 ChatGPT | 학습 대화, 설명, 자기 설명 점검을 담당하는 Tutor Interface다. `system/CHATGPT_ENTRYPOINT.md`에서 시작한다. |
 | Codex | 코드, 지침, 테스트, workflow를 branch에서 개발하는 Developer Interface다. |
-| GitHub Issue | 승인된 Learning Log 저장 요청과 versioned envelope를 전달하는 queue다. Issue 생성·닫기는 저장 완료가 아니다. |
+| GitHub Issue | 승인된 Learning Log 또는 Progress Update 요청과 versioned envelope를 전달하는 queue다. Issue 생성·닫기는 처리 완료가 아니다. |
 | GitHub Actions | Issue와 comments를 payload로 만들고 검증·저장·결과 회신을 연결하는 orchestration layer다. |
 | `scripts/ingest_learning_log.py` | Learning Log 저장의 canonical validation 및 Markdown 변환 구현이다. 작성자, 제목, envelope, 경로, 문서 형식, create/update와 SHA를 검사한다. |
+| `scripts/apply_progress_update.py` | 승인된 Progress 제안의 SHA, evidence, 허용 필드, 현재 값과 상태 전이를 검증하고 `roadmap/PROGRESS.md`만 수정한다. |
 | `learning-logs/**` | 사용자의 자기 설명, 오해 수정, 질문과 다음 행동을 보존하는 학습 evidence다. |
 | `roadmap/**` | 장기 학습 방향과 명시적으로 관리되는 진행 상태다. |
 | `state/**` | 빠른 context 복구와 진행표 검토를 위해 source를 압축한 generated/derived state다. current context와 progress reconciliation proposal을 포함한다. |
@@ -33,7 +34,9 @@ GitHub context load
 
 ChatGPT는 snapshot을 먼저 읽되 관련 Learning Log와 roadmap을 확인한다. 저장 승인을 받으면 `system/ACTION_SCHEMA.yaml`의 계약으로 Issue를 enqueue한다. `.github/workflows/learning-log-ingest.yml`은 Issue와 comments를 모아 `scripts/ingest_learning_log.py`에 전달한다. Python 검증을 통과한 한 개의 `learning-logs/**` 파일만 commit하며, 결과 comment의 path와 commit까지 확인해야 저장이 끝난다.
 
-Learning Log 저장 commit 이후 `.github/workflows/learning-context-refresh.yml`이 별도로 실행되어 `state/CURRENT_LEARNING_CONTEXT.md`만 다시 생성하고 별도 commit한다. 두 workflow는 main 쓰기를 직렬화하지만 실패 경계는 분리된다. Context refresh 실패는 이미 성공한 Learning Log 저장을 되돌리지 않으며 `roadmap/PROGRESS.md`도 수정하지 않는다.
+Learning Log 저장이 확인된 뒤 ChatGPT는 실제 evidence와 최신 `roadmap/PROGRESS.md`를 비교한다. 허용된 변경이 있을 때만 별도로 제안하고 두 번째 사용자 승인을 받는다. `[progress-update]` Issue를 닫으면 `.github/workflows/progress-update.yml`이 `scripts/apply_progress_update.py`로 요청을 검증하고 `roadmap/PROGRESS.md` 한 파일만 commit한다. ChatGPT는 성공 comment의 commit을 읽어 제안한 값이 실제 반영됐는지 확인한 뒤 완료라고 말한다.
+
+Learning Log 또는 Progress Update commit 이후 `.github/workflows/learning-context-refresh.yml`이 별도로 실행되어 `state/CURRENT_LEARNING_CONTEXT.md`만 다시 생성하고 별도 commit한다. 세 main writer workflow는 쓰기를 직렬화하지만 실패 경계는 분리된다. Context refresh 실패는 이미 성공한 Learning Log 저장이나 Progress 변경을 되돌리지 않으며 `roadmap/PROGRESS.md`도 수정하지 않는다.
 
 Context refresh가 성공하면 `.github/workflows/progress-reconciliation.yml`이 `scripts/build_progress_reconciliation.py`를 실행해 `state/PROGRESS_RECONCILIATION.md`만 갱신한다. 이 파일은 dashboard 변경 후보와 근거를 보여주는 제안서이며 canonical progress가 아니다. 자동화는 `roadmap/PROGRESS.md`를 stage하거나 commit하지 않는다. 사용자가 제안을 승인한 경우에만 Codex가 별도 branch에서 승인 범위를 반영하고 Pull Request를 만든다.
 
@@ -57,7 +60,7 @@ Canonical source는 판단을 다시 만들 수 있는 원본이다.
 
 - 운영·학습 정책: `system/RESEARCH_OS.md`
 - 저장 API 계약: `system/ACTION_SCHEMA.yaml`
-- 저장 검증 구현: `scripts/ingest_learning_log.py`
+- 저장 검증 구현: `scripts/ingest_learning_log.py`, `scripts/apply_progress_update.py`
 - 장기 방향과 명시적 진행표: `roadmap/ROADMAP.md`, `roadmap/PROGRESS.md`
 - 학습 evidence: `learning-logs/**`
 - 기록 형식: `templates/**`

@@ -1,0 +1,150 @@
+name: Progress Update
+
+on:
+  issues:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "다시 처리할 Progress Update Issue 번호"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: research-os-main
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[progress-update]'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build update payload
+        id: payload
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+          PAYLOAD_PATH: ${{ runner.temp }}/progress-update-payload.json
+        with:
+          script: |
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            if (!Number.isInteger(issueNumber) || issueNumber < 1) {
+              core.setFailed("Issue 번호를 확인할 수 없습니다.");
+              return;
+            }
+            const { owner, repo } = context.repo;
+            const { data: issue } = await github.rest.issues.get({
+              owner, repo, issue_number: issueNumber,
+            });
+            require("fs").writeFileSync(process.env.PAYLOAD_PATH, JSON.stringify({
+              number: issue.number,
+              title: issue.title,
+              author: issue.user?.login || "",
+              repository_owner: owner,
+              body: issue.body || "",
+            }), "utf8");
+            core.setOutput("issue_number", String(issueNumber));
+
+      - name: Run Progress contract tests
+        run: python -B scripts/test_apply_progress_update.py
+
+      - name: Apply Progress proposal
+        id: update
+        run: |
+          python scripts/apply_progress_update.py \
+            --payload "$RUNNER_TEMP/progress-update-payload.json" \
+            --root . \
+            --report "$RUNNER_TEMP/progress-update-report.md" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Validate changed files
+        run: |
+          set -euo pipefail
+          mapfile -t changed_paths < <(
+            git status --porcelain --untracked-files=all | sed 's/^...//'
+          )
+          if (( ${#changed_paths[@]} != 1 )); then
+            printf 'Expected exactly one changed file, found:\n%s\n' "${changed_paths[@]}" >&2
+            exit 1
+          fi
+          if [[ "${changed_paths[0]}" != "roadmap/PROGRESS.md" ]]; then
+            echo "Unexpected file changed: ${changed_paths[0]}" >&2
+            exit 1
+          fi
+
+      - name: Commit Progress update
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- roadmap/PROGRESS.md
+          git commit -m "progress: apply approved learning update"
+          git push origin HEAD:main
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Comment success
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ steps.payload.outputs.issue_number }}
+          COMMIT_SHA: ${{ steps.commit.outputs.commit }}
+          CHANGE_COUNT: ${{ steps.update.outputs.change_count }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const commit = process.env.COMMIT_SHA;
+            const path = "roadmap/PROGRESS.md";
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: issueNumber,
+              body:
+                "<!-- research-os-result -->\n" +
+                "✅ Progress Update 처리 완료\n\n" +
+                `- Path: [\`${path}\`](${context.serverUrl}/${owner}/${repo}/blob/${commit}/${path})\n` +
+                `- Applied changes: ${process.env.CHANGE_COUNT}\n` +
+                `- Commit: [\`${commit.slice(0, 7)}\`](${context.serverUrl}/${owner}/${repo}/commit/${commit})`,
+            });
+
+      - name: Comment failure
+        if: failure() && steps.payload.outputs.issue_number
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ steps.payload.outputs.issue_number }}
+          REPORT_PATH: ${{ runner.temp }}/progress-update-report.md
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            let body =
+              "<!-- research-os-result -->\n" +
+              "❌ Progress Update 처리 실패\n\n" +
+              "- Error code: `workflow-error`\n" +
+              "- 원인: 예상하지 못한 workflow 오류가 발생했습니다.\n" +
+              "- 파일 변경: 수행되지 않음";
+            if (fs.existsSync(process.env.REPORT_PATH)) {
+              const report = fs.readFileSync(process.env.REPORT_PATH, "utf8")
+                .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+                .slice(0, 4000)
+                .trim();
+              if (report.startsWith("<!-- research-os-result -->") &&
+                  report.includes("❌ Progress Update 처리 실패")) {
+                body = report;
+              }
+            }
+            const actionsUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: Number(process.env.ISSUE_NUMBER),
+              body: `${body}\n\n- Actions 실행 로그: ${actionsUrl}`,
+            });

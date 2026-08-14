@@ -94,9 +94,10 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert "learning-logs/**" in workflow
     push_paths = workflow.split("paths:", 1)[1].split("workflow_run:", 1)[0]
     assert "state/CURRENT_LEARNING_CONTEXT.md" not in push_paths
-    assert 'workflows: ["Learning Log Ingest"]' in workflow
+    assert 'workflows: ["Learning Log Ingest", "Progress Update"]' in workflow
     assert "github.event.workflow_run.conclusion == 'success'" in workflow
-    assert "group: learning-log-main" in workflow
+    assert "group: research-os-main" in workflow
+    assert '- "roadmap/PROGRESS.md"' in workflow
     assert "python -B scripts/test_build_learning_context.py" in workflow
     assert "python -B scripts/build_learning_context.py" in workflow
     assert 'git add -- state/CURRENT_LEARNING_CONTEXT.md' in workflow

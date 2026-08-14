@@ -39,7 +39,8 @@ def assert_workflow_contract() -> None:
     )
     positions = [workflow.index(step) for step in required_steps]
     assert positions == sorted(positions), "Workflow 단계 순서가 계약과 다릅니다."
-    assert "group: learning-log-main" in workflow
+    assert "group: research-os-main" in workflow
+    assert "startsWith(github.event.issue.title, '[learning-log]')" in workflow
     assert '[[ ! -f "$TARGET_PATH" ]]' in workflow
     assert "git status --porcelain --untracked-files=all" in workflow
     assert 'if [[ "$HAS_CHANGES" == "true" ]]' in workflow

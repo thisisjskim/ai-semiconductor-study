@@ -5,9 +5,9 @@ info:
   description: >-
     Reads the GitHub source of truth for study resume, progress, next topic, and
     paper continuation. Use for "이전 공부를 이어나가자", "어디까지 공부했어?",
-    and "논문을 마저 읽자". Reads need no confirmation; Learning Log writes
-    require approval.
-  version: 0.2.3
+    and "논문을 마저 읽자". Reads need no confirmation; Learning Log, Paper Note,
+    and Progress Update writes require the matching user approval.
+  version: 0.3.0
 
 servers:
   - url: https://api.github.com
@@ -79,23 +79,18 @@ paths:
   /repos/thisisjskim/ai-semiconductor-study/issues:
     post:
       operationId: createLearningLogIssue
-      summary: Start an approved Learning Log submission
-      description: Creates one plain-text Issue after user approval. Put the ingest envelope and first Markdown chunk in body.
+      summary: Start an approved Research OS request
+      description: Creates one plain-text Issue after the matching user approval. Each request type uses its own title and body contract.
       x-openai-isConsequential: true
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [title, body]
-              properties:
-                title:
-                  type: string
-                  description: Must be [learning-log] YYYY-MM-DD topic-slug.
-                body:
-                  type: string
-                  description: Ingest envelope followed by the first plain Markdown chunk. Keep each chunk below 30000 characters.
+              oneOf:
+                - $ref: "#/components/schemas/LearningLogIssueRequest"
+                - $ref: "#/components/schemas/PaperNoteIssueRequest"
+                - $ref: "#/components/schemas/ProgressUpdateIssueRequest"
       responses:
         "201":
           description: Issue created
@@ -107,8 +102,8 @@ paths:
   /repos/thisisjskim/ai-semiconductor-study/issues/{issue_number}/comments:
     get:
       operationId: listLearningLogIssueComments
-      summary: Check Learning Log processing results
-      description: Lists Issue comments to verify the GitHub Actions success or failure result.
+      summary: Check Research OS processing results
+      description: Lists Issue comments to verify the Learning Log or Progress Update success or failure result.
       parameters:
         - name: issue_number
           in: path
@@ -127,8 +122,8 @@ paths:
                   $ref: "#/components/schemas/IssueComment"
     post:
       operationId: appendLearningLogChunk
-      summary: Append the next Learning Log chunk
-      description: Appends plain Markdown to an existing approved Issue. Preserve order and keep each chunk below 30000 characters.
+      summary: Append the next research record chunk
+      description: Appends plain Markdown to an existing approved Learning Log or Paper Note Issue. Progress Update requests must not use chunks.
       x-openai-isConsequential: true
       parameters:
         - name: issue_number
@@ -159,7 +154,7 @@ paths:
   /repos/thisisjskim/ai-semiconductor-study/issues/{issue_number}:
     get:
       operationId: getLearningLogIssue
-      summary: Read a Learning Log submission Issue
+      summary: Read a Research OS request Issue
       description: Reads the Issue state and URL before or after processing.
       parameters:
         - name: issue_number
@@ -177,8 +172,8 @@ paths:
                 $ref: "#/components/schemas/Issue"
     patch:
       operationId: closeLearningLogIssue
-      summary: Finish an approved Learning Log submission
-      description: Closes the Issue after all chunks are appended. Closing triggers GitHub Actions to create or update the file.
+      summary: Finish an approved Research OS request
+      description: Closes the Issue after its body and any Learning Log chunks are complete. Closing triggers the title-specific GitHub Actions workflow.
       x-openai-isConsequential: true
       parameters:
         - name: issue_number
@@ -214,6 +209,59 @@ components:
       scheme: bearer
 
   schemas:
+    LearningLogIssueRequest:
+      type: object
+      required: [title, body]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          pattern: '^\[learning-log\] \d{4}-\d{2}-\d{2} [a-z0-9]+(?:-[a-z0-9]+)*$'
+        body:
+          type: string
+          description: research-os-ingest:v1 envelope followed by the first plain Markdown chunk. Keep each chunk below 30000 characters.
+
+    ProgressUpdateIssueRequest:
+      type: object
+      required: [title, body]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          pattern: '^\[progress-update\] \d{4}-\d{2}-\d{2}$'
+          description: Must be [progress-update] YYYY-MM-DD.
+        body:
+          type: string
+          description: >-
+            research-os-progress-update:v1 envelope with roadmap/PROGRESS.md and the
+            latest expected_sha, then JSON evidence_paths and changes. Allow current_focus
+            for Current Stage, Current Topic, or Last Updated; allow dashboard_status only
+            for Not Started to Learning. Do not append chunks.
+          example: |-
+            <!-- research-os-progress-update:v1
+            target_path: roadmap/PROGRESS.md
+            expected_sha: 0123456789abcdef0123456789abcdef01234567
+            -->
+            {
+              "evidence_paths": ["learning-logs/2026/08/2026-08-13-npu-buffer.md"],
+              "changes": [
+                {"type": "current_focus", "field": "Current Stage", "from": "Stage 3 — Memory", "to": "Stage 4 — NPU Architecture"},
+                {"type": "dashboard_status", "stage": "NPU Architecture", "from": "Not Started", "to": "Learning"}
+              ]
+            }
+
+    PaperNoteIssueRequest:
+      type: object
+      required: [title, body]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          pattern: '^\[paper-note\] \d{4}-\d{2}-\d{2} [a-z0-9]+(?:-[a-z0-9]+)*$'
+        body:
+          type: string
+          description: research-os-ingest:v1 envelope followed by the first canonical Paper Note Markdown chunk. Keep each chunk below 30000 characters.
+
     ContentItem:
       type: object
       properties:
