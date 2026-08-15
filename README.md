@@ -25,9 +25,12 @@ flowchart TD
 
 | 파일 또는 경로                                                                                                                                                 | 역할                                |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| [`system/RESEARCH_OS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/RESEARCH_OS.md)                                         | Custom GPT의 학습 원칙과 행동 규칙          |
+| [`system/CHATGPT_ENTRYPOINT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/CHATGPT_ENTRYPOINT.md)                           | 일반 ChatGPT의 학습 session 시작점          |
+| [`state/CURRENT_LEARNING_CONTEXT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/state/CURRENT_LEARNING_CONTEXT.md)                 | 최소 읽기로 현재 위치를 복구하는 snapshot       |
+| [`system/RESEARCH_OS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/RESEARCH_OS.md)                                         | 학습·기록·승인 정책의 canonical source       |
 | [`roadmap/ROADMAP.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/ROADMAP.md)                                               | 장기 학습 방향과 단계                      |
 | [`roadmap/PROGRESS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/PROGRESS.md)                                             | 현재 학습 단계와 다음 목표를 보여주는 대시보드        |
+| [`system/LEARNING_LOG_ISSUE_CONTRACT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/LEARNING_LOG_ISSUE_CONTRACT.md)         | 일반 ChatGPT의 Learning Log 저장 계약      |
 | [`templates/learning-log.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/templates/learning-log.md)                                 | Learning Log 문서 형식                |
 | `learning-logs/YYYY/MM/*.md`                                                                                                                             | 실제 학습 과정과 이해 증거가 쌓이는 곳            |
 | [`.github/workflows/learning-log-ingest.yml`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/.github/workflows/learning-log-ingest.yml) | Issue 내용을 실제 Markdown 파일로 바꾸는 자동화 |
@@ -44,88 +47,24 @@ flowchart TD
 
 ## 2. 새 채팅에서 학습을 이어가는 방식
 
-새로운 Custom GPT 채팅에서는 이전 대화를 기억한다고 가정하지 않습니다. 대신 GitHub에서 현재 상태를 복구합니다.
-
-### 1단계: 현재 진행 상태 확인
-
-먼저 다음 파일을 읽습니다.
+새로운 일반 ChatGPT 채팅에서는 이전 대화를 기억한다고 가정하지 않고 GitHub에서 현재 상태를 복구합니다. 기본 bootstrap은 두 파일입니다.
 
 ```text
-roadmap/PROGRESS.md
+system/CHATGPT_ENTRYPOINT.md
+→ state/CURRENT_LEARNING_CONTEXT.md
 ```
 
-여기서 확인하는 정보는 다음과 같습니다.
+entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Current Topic, 확인된 이해, 미완료 점검, Open Questions와 Next Actions를 제공합니다. 이 두 파일만으로 작은 학습 단위 하나를 바로 시작할 수 있습니다.
 
-* 현재 학습 Stage
-* 현재 Topic
-* 다음 Milestone
-* 각 Stage의 상태
-* 기록된 학습 증거
+정확한 근거가 필요할 때만 snapshot이 가리키는 실제 Learning Log를 읽습니다. 현재 위치 판단이 더 필요하면 `roadmap/PROGRESS.md`, 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽습니다. repository 전체나 월별 파일 목록을 매번 조회하지 않습니다.
 
-예를 들어 `Current Topic: SRAM`이라면 SRAM 학습을 이어갈 후보로 판단합니다.
-
-### 2단계: 최근 Learning Log 확인
-
-그다음 해당 월의 실제 파일 목록을 조회합니다.
+사용자는 다음 정도만 말하면 됩니다.
 
 ```text
-learning-logs/YYYY/MM/
+GitHub의 ai-semiconductor-study 기반으로 공부 시작하자.
 ```
 
-파일명을 추측해서 읽지 않고, 실제 목록에서 최근 날짜와 관련 주제를 찾습니다.
-
-예:
-
-```text
-learning-logs/2026/08/
-├── 2026-08-09-sram-read.md
-├── 2026-08-10-sram-write.md
-└── 2026-08-11-sense-amplifier.md
-```
-
-이 파일들에서 다음을 복구합니다.
-
-* 사용자가 이미 이해한 내용
-* 사용자가 처음에 가졌던 직관
-* 발견된 오해
-* 수정된 이해
-* 해결되지 않은 질문
-* 자기 설명 점검 결과
-* 다음 행동
-
-### 3단계: 관련 정제 노트 확인
-
-관련 Foundation Note나 Final Note가 실제로 존재하고 정확한 경로가 확인된 경우에만 읽습니다.
-
-경로를 모르면 추측하지 않습니다. 관련 문서가 아직 없다면 Learning Log를 바탕으로 학습을 이어갑니다.
-
-### 4단계: 다음 학습 위치 결정
-
-GPT는 다음 세 가지를 비교합니다.
-
-1. `ROADMAP.md`의 장기 방향
-2. `PROGRESS.md`의 현재 상태
-3. Learning Log의 실제 이해 증거
-
-그 결과 다음 중 하나를 선택합니다.
-
-* 이전 주제의 미해결 질문 계속하기
-* 이해가 약한 개념 복습하기
-* 다음 개념으로 이동하기
-* 논문을 먼저 읽고 필요한 선수 개념으로 돌아가기
-* 자기 설명이나 퀴즈로 이해를 검증하기
-
-따라서 단순히 Stage 순서만 따라가는 것이 아니라 다음 순환 구조로 학습합니다.
-
-```text
-기초 개념 학습
-→ 자기 설명
-→ 오해 발견 및 수정
-→ 논문 또는 Architecture 연결
-→ 필요한 선수 개념 발견
-→ 해당 개념만 보충
-→ 다시 원래 주제로 복귀
-```
+일반 ChatGPT는 repository root의 이 안내에서 `system/CHATGPT_ENTRYPOINT.md`를 찾아 session protocol을 적용해야 합니다.
 
 ---
 
@@ -500,10 +439,10 @@ GPT가 다음 조건을 감지하면 승격을 제안하는 방식이 적절합�
 
 ## 12. 지금부터 실제로 사용하는 방법
 
-새 Custom GPT 채팅을 시작하면 다음과 같이 말하면 됩니다.
+GitHub plugin을 연결한 일반 ChatGPT 새 채팅에서 다음과 같이 말하면 됩니다.
 
 ```text
-GitHub에서 현재 학습 상태와 최근 Learning Log를 확인하고 공부를 계속하자.
+GitHub의 ai-semiconductor-study 기반으로 공부 시작하자.
 ```
 
 GPT는 현재 진행 상황을 복구한 후 다음을 알려줘야 합니다.
@@ -518,5 +457,5 @@ GPT는 현재 진행 상황을 복구한 후 다음을 알려줘야 합니다.
 
 학습 중에는 평소처럼 질문하고 자신의 언어로 설명하면 됩니다. 의미 있는 학습 단위가 완성되면 GPT가 저장을 제안하고, 사용자가 승인하면 Issue → Actions → Learning Log 순서로 저장됩니다.
 
-결론적으로 이제부터는 **실제 학습을 시작해도 됩니다.** 다만 첫 실제 세션에서는 Custom GPT가 Issue 생성부터 성공 댓글 확인까지 전 과정을 수행하는지 한 번 확인하고, 이후에는 학습 자체에 집중하면 됩니다.
+결론적으로 이제부터는 **실제 학습을 시작해도 됩니다.** 다만 첫 실제 세션에서는 일반 ChatGPT가 entrypoint와 snapshot을 읽고, checkpoint 제안부터 Issue 생성·성공 댓글·실제 파일 확인까지 수행하는지 한 번 확인한 뒤 학습 자체에 집중합니다.
 

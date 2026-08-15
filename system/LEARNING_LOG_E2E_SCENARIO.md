@@ -24,6 +24,21 @@ repository의 ChatGPT entrypoint를 따라 현재 상태를 복구해줘.
 
 학습 중 사용자가 개념을 자기 말로 설명하고 오해를 수정한다. ChatGPT는 원문, 초기 이해, 불확실성, 수정된 이해, 해결·미해결 질문을 분리해 유지한다. 한 번 설명한 사실만으로 mastery를 판정하지 않는다.
 
+## Tutor loop and checkpoint
+
+1. ChatGPT는 Open Question 또는 Next Action에서 작은 Learning Unit 하나를 선택한다.
+2. `Explain → Example → Ask → User explanation → Diagnose → Follow-up` loop로 진행한다.
+3. 사용자의 자기 설명이나 misconception correction으로 unit 완료 evidence를 확인한다.
+4. 다음 개념을 자동으로 시작하기 전에 저장 가치와 핵심 evidence를 한 번 제안한다.
+
+사용자가 다음처럼 답하면 저장하지 않고 다음 unit으로 진행한다.
+
+```text
+기록은 나중에 하고 계속하자.
+```
+
+같은 checkpoint의 저장 제안을 반복하지 않는다.
+
 ## Save
 
 사용자 입력:
@@ -55,3 +70,5 @@ tool 이름은 특정하지 않는다. 현재 GitHub plugin이 제공하는 repo
 - canonical heading이 빠지면 validator가 거부한다.
 - 기존 path에 `create`를 사용하거나 stale SHA로 `update`하면 validator가 거부한다.
 - success comment가 없거나 target file을 읽을 수 없으면 저장 완료라고 말하지 않는다.
+- AI 설명만 끝난 상태나 사용자의 단순 동의를 Learning Unit 완료로 판정하지 않는다.
+- 사용자가 저장을 보류하면 같은 checkpoint에서 제안을 반복하지 않는다.

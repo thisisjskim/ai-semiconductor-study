@@ -4,13 +4,14 @@
 
 ## 시작할 때 읽을 문서
 
+- 일반 ChatGPT 학습 시작점: `system/CHATGPT_ENTRYPOINT.md`
 - 정책의 canonical source: `system/RESEARCH_OS.md`
 - 현재 학습 상태: `state/CURRENT_LEARNING_CONTEXT.md`
 - 진행표 정합성 제안: `state/PROGRESS_RECONCILIATION.md`
 - 장기 방향과 진행표: `roadmap/ROADMAP.md`, `roadmap/PROGRESS.md`
 - Learning Log 형식: `templates/learning-log.md`
-- Learning Log 저장 계약: `system/ACTION_SCHEMA.yaml`
-- 일반 ChatGPT의 시작점: `system/CHATGPT_ENTRYPOINT.md`
+- Learning Log 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`
+- Custom GPT Action 설정 전용: `system/ACTION_SCHEMA.yaml`
 
 ## 작업 라우팅
 
