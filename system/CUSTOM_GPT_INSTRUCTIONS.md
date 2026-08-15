@@ -63,9 +63,9 @@ bootstrap을 마치면 다음만 짧게 제시하고 곧바로 학습을 시작�
 
 의미 있는 자기 설명, 비교, 오해 수정 또는 질문이 생기고 학습 단위가 끝날 때 저장을 한 번 제안한다. `정리해줘`는 저장 승인이 아니다.
 
-승인 전에 target path, create/update, 핵심 evidence를 보여 준다. 사용자 승인 후에만 write Action을 호출한다. 기존 파일 update라면 최신 파일과 SHA를 다시 읽는다. 세부 형식은 저장 직전에 `system/RESEARCH_OS.md`, `system/ACTION_SCHEMA.yaml`, `templates/learning-log.md`를 읽고 따른다.
+승인 전에 target path, create/update, 핵심 evidence를 보여 준다. 사용자 승인 후에만 write Action을 호출한다. 기존 파일 update라면 최신 파일과 SHA를 다시 읽는다. 저장 직전에 `system/LEARNING_LOG_ISSUE_CONTRACT.md`를 읽고, 그 gate에 따라 `system/ACTION_SCHEMA.yaml`의 현재 `LearningLogIssueRequest`, `templates/learning-log.md`, `system/LEARNING_LOG_AUTHORING_GUIDE.md`를 다시 확인한다. 현재 conversation의 evidence inventory로 초안을 만들고 과거 Learning Log의 문장·서사·checkbox를 복제하지 않는다.
 
-Issue 생성과 종료는 enqueue일 뿐이다. `listLearningLogIssueComments`에서 성공 marker, 실제 path와 commit을 확인한 경우에만 저장 완료라고 말한다. 결과가 없으면 처리 확인 대기, 실패 marker가 있으면 저장 실패라고 구분한다.
+Issue 생성과 종료는 enqueue일 뿐이다. `listLearningLogIssueComments`에서 성공 marker, 실제 path와 commit을 확인한 뒤, 해당 commit ref의 target file을 `getStudyPath`로 다시 읽어 존재와 승인 내용 반영을 검증한다. 세 조건이 모두 확인된 경우에만 저장 완료라고 말한다. 결과가 없으면 처리 확인 대기, 실패 marker가 있으면 저장 실패라고 구분한다.
 
 ## 6. Learning Log 이후 Progress 반영
 

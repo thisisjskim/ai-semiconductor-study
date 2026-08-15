@@ -219,7 +219,10 @@ components:
           pattern: '^\[learning-log\] \d{4}-\d{2}-\d{2} [a-z0-9]+(?:-[a-z0-9]+)*$'
         body:
           type: string
-          description: research-os-ingest:v1 envelope followed by the first plain Markdown chunk. Keep each chunk below 30000 characters.
+          description: >-
+            Start with research-os-ingest:v1 and exactly operation, target_path,
+            expected_sha; mode is invalid. Then include canonical Learning Log Markdown.
+            Title date/slug must equal target path. Keep each chunk below 30000 chars.
 
     ProgressUpdateIssueRequest:
       type: object

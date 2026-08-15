@@ -2,11 +2,15 @@
 
 이 문서는 일반 ChatGPT가 GitHub 저장소를 연결해 학습을 이어가기 위한 bootstrap이다. 대화 기억보다 저장소의 확인된 기록을 우선한다.
 
-## Action 실행 계약
+## GitHub 연결 실행 계약
 
-세션을 시작할 때는 이 문서가 아니라 `state/CURRENT_LEARNING_CONTEXT.md`를 `getStudyPath`와 `ref: main`으로 한 번 읽는 것을 우선한다. 그 derived snapshot의 Current Topic, Open Questions, Next Action만으로 학습을 즉시 시작할 수 있다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 `getStudyPath` 호출의 대체 수단이 아니다.
+이 문서는 일반 ChatGPT 채팅에서 연결된 GitHub plugin 또는 connector로 읽는 진입점이다. 특정 tool 이름이 항상 존재한다고 가정하지 않는다. 현재 환경이 제공하는 실제 GitHub repository file-read 기능을 사용한다.
 
-학습·복습·현재 상태·다음 주제·논문 재개 요청에서는 자연어 답변보다 저장소 읽기를 먼저 실행한다. Action을 실제로 호출하지 않은 상태에서 저장소에 접근할 수 없다고 말하거나 사용자에게 파일 내용을 붙여 달라고 요청하지 않는다. 호출이 실패하면 operation, path와 실제 오류를 밝히며, 오류 응답 없이 접근 실패를 추측하지 않는다.
+이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot의 Current Topic, Open Questions, Next Action만으로 학습을 즉시 시작할 수 있다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
+
+학습·복습·현재 상태·다음 주제·논문 재개 요청에서는 자연어 답변보다 저장소 읽기를 먼저 실행한다. GitHub tool을 실제로 호출하지 않은 상태에서 저장소에 접근할 수 없다고 말하거나 사용자에게 파일 내용을 붙여 달라고 요청하지 않는다. 호출이 실패하면 사용한 tool, repository, ref, path와 실제 오류를 밝히며, 오류 응답 없이 접근 실패를 추측하지 않는다.
+
+현재 plugin의 tool 이름이 이 저장소 문서의 예시와 다르면 의미가 같은 실제 tool을 사용한다. 예를 들어 file read, Issue create, Issue comment append, Issue close, Issue/comment read 기능을 capability 기준으로 대응시킨다. 존재하지 않는 tool 이름을 호출하거나, 이름이 다르다는 이유로 작업을 중단하지 않는다.
 
 ## Context 읽기 순서
 
@@ -16,7 +20,7 @@
 4. reconciliation이 pending이면 `state/PROGRESS_RECONCILIATION.md`를 읽는다.
 5. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
 6. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
-7. 저장 작업이 필요하면 `system/ACTION_SCHEMA.yaml`을 읽는다.
+7. 저장 작업이 필요하면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`를 먼저 읽고, 그 문서가 지정한 authoring guide와 template을 다시 확인한다.
 
 2번 이후의 조회는 필요할 때만 수행한다. 여러 파일을 연속으로 읽지 못한다는 이유로 학습 시작을 거부하거나 사용자에게 파일별 호출을 요구하지 않는다.
 
@@ -38,7 +42,9 @@
 
 Issue 생성과 닫기는 저장 요청을 queue에 넣는 **enqueue**다. 이것만으로 저장 완료라고 말하지 않는다. GitHub Actions가 성공하고 Issue 결과 comment에 `✅ Learning Log 처리 완료`, 실제 path, commit이 확인되어야 저장 완료다. 처리 중이면 `접수 완료, 처리 확인 대기`, 실패하면 저장 실패라고 구분한다.
 
-세부 API 필드와 요청 형식은 여기에 복사하지 않는다. `system/ACTION_SCHEMA.yaml`을 canonical storage contract로 사용하고, 학습·승인·검증 정책은 `system/RESEARCH_OS.md`를 따른다.
+저장 직전에는 `system/LEARNING_LOG_ISSUE_CONTRACT.md`의 gate를 처음부터 끝까지 수행한다. `templates/learning-log.md`와 `system/LEARNING_LOG_AUTHORING_GUIDE.md`를 다시 읽고 현재 conversation에서 evidence inventory를 만든다. 이후 title과 target path의 날짜·slug, 정확한 세 envelope 필드, canonical heading을 확인한다. 과거 Learning Log의 문장·서사·checkbox를 새 기록에 복제하지 않는다.
+
+성공 comment만으로 완료 처리하지 않는다. 연결된 GitHub plugin의 file-read 기능으로 comment에 적힌 commit ref의 target path를 다시 읽어 파일 존재와 승인한 내용 반영을 확인한 뒤에만 저장 완료라고 말한다.
 
 ## Learning Log 이후 Progress 반영
 
