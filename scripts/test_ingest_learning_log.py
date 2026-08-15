@@ -233,6 +233,54 @@ def assert_learning_log_guidance_contract() -> None:
     assert "register-sram-circuits" not in request_body
 
 
+def assert_general_session_protocol_contract() -> None:
+    root = Path(__file__).resolve().parents[1]
+    entrypoint = (root / "system/CHATGPT_ENTRYPOINT.md").read_text(
+        encoding="utf-8"
+    )
+    research_os = (root / "system/RESEARCH_OS.md").read_text(encoding="utf-8")
+    agents = (root / "AGENTS.md").read_text(encoding="utf-8")
+    architecture = (root / "system/ARCHITECTURE.md").read_text(encoding="utf-8")
+    readme = (root / "README.md").read_text(encoding="utf-8")
+
+    required_sections = (
+        "## Purpose",
+        "## 세션 시작",
+        "## Tutor Loop",
+        "## Learning Unit",
+        "## Checkpoint",
+        "## Continue Session",
+        "## 세션 종료와 저장",
+        "## New Chat Recovery",
+    )
+    for section in required_sections:
+        assert section in entrypoint
+
+    assert "3~6줄" in entrypoint
+    assert "Explain → Example → Ask → User explanation → Diagnose → Follow-up" in entrypoint
+    assert "작은 Learning Unit 하나" in entrypoint
+    assert "AI가 설명한 내용을 사용자가 이해했다는 evidence로 간주하지 않는다" in entrypoint
+    assert "같은 checkpoint에서 매 턴 반복해 묻지 않는다" in entrypoint
+    assert "기록은 나중에 하고 계속하자" in entrypoint
+    assert "단순한 `정리해줘`" in entrypoint
+    assert "공부 시작하자" in entrypoint
+    assert "지난번부터 이어서 하자" in entrypoint
+    assert "AI semiconductor 공부 계속하자" in entrypoint
+
+    assert "Learning Unit은" in research_os
+    assert "단순 동의나 따라 말하기만으로 완료 판정하지 않는다" in research_os
+    assert "제안 없이 나온 일반적인" in research_os
+
+    assert "일반 ChatGPT 학습 시작점" in agents
+    assert "Learning Log 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`" in agents
+    assert "Custom GPT Action 설정 전용" in agents
+    assert "Learning Unit checkpoint" in architecture
+    assert "Custom GPT Action interface에만 사용" in architecture
+    assert "일반 ChatGPT 새 채팅" in readme
+    assert "system/CHATGPT_ENTRYPOINT.md\n→ state/CURRENT_LEARNING_CONTEXT.md" in readme
+    assert "GitHub의 ai-semiconductor-study 기반으로 공부 시작하자" in readme
+
+
 def note(extra: str = "") -> str:
     return f"""# 학습 기록: 테스트 (Test)
 
@@ -594,6 +642,7 @@ def main() -> int:
     assert_action_schema_contract()
     assert_custom_gpt_routing_contract()
     assert_learning_log_guidance_contract()
+    assert_general_session_protocol_contract()
 
     print("All tests passed")
     return 0

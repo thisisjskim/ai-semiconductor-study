@@ -12,6 +12,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - Learning Log 저장 직전 gate, session-evidence 기반 authoring guide, 새 세션 end-to-end 검증 시나리오
 - 파일을 쓰지 않고 title, envelope, target, Markdown을 검사하는 Learning Log preflight mode
 - 일반 ChatGPT의 GitHub plugin tool 이름에 의존하지 않는 capability-based entrypoint
+- 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
 - `mode: create`처럼 계약에 없는 envelope 필드와 `expected_sha` 누락을 명시적으로 거부
