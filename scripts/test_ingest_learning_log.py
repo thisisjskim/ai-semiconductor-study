@@ -31,6 +31,7 @@ def assert_workflow_contract() -> None:
         "- name: Check out repository",
         "- name: Build ingest payload",
         "- name: Run contract tests",
+        "- name: Preflight Learning Log",
         "- name: Ingest Learning Log",
         "- name: Validate ingest result",
         "- name: Commit Learning Log",
@@ -156,10 +157,16 @@ def assert_custom_gpt_routing_contract() -> None:
     assert "파일별 호출 문장을 대신 작성하게 하지 않는다" in instructions
     assert "Action을 호출하지 않은 채" in instructions
     assert "파일을 붙여 넣기" in instructions
-    assert "Action 실행 계약" in entrypoint
+    assert "GitHub 연결 실행 계약" in entrypoint
     assert "GitHub 웹 검색" in entrypoint
     assert "항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고" in entrypoint
     assert "사용자에게 파일별 호출을 요구하지 않는다" in entrypoint
+    assert "system/LEARNING_LOG_ISSUE_CONTRACT.md" in entrypoint
+    assert "commit ref" in entrypoint
+    assert "특정 tool 이름이 항상 존재한다고 가정하지 않는다" in entrypoint
+    assert "capability 기준" in entrypoint
+    assert "system/LEARNING_LOG_ISSUE_CONTRACT.md" in instructions
+    assert "getStudyPath" in instructions
 
     get_study_path_description = re.search(
         r"operationId: getStudyPath.*?description: >-\n(?P<body>.*?)\n      parameters:",
@@ -173,6 +180,57 @@ def assert_custom_gpt_routing_contract() -> None:
     assert "path=state/CURRENT_LEARNING_CONTEXT.md" in description
     assert "then begin" in description
     assert "CHATGPT_ENTRYPOINT.md" not in description
+
+
+def assert_learning_log_guidance_contract() -> None:
+    root = Path(__file__).resolve().parents[1]
+    guide = (root / "system/LEARNING_LOG_ISSUE_CONTRACT.md").read_text(
+        encoding="utf-8"
+    )
+    authoring = (root / "system/LEARNING_LOG_AUTHORING_GUIDE.md").read_text(
+        encoding="utf-8"
+    )
+    scenario = (root / "system/LEARNING_LOG_E2E_SCENARIO.md").read_text(
+        encoding="utf-8"
+    )
+    schema = (root / "system/ACTION_SCHEMA.yaml").read_text(encoding="utf-8")
+
+    contract_lines = (
+        "operation: create",
+        "target_path: learning-logs/YYYY/MM/YYYY-MM-DD-topic-slug.md",
+        "expected_sha: new",
+    )
+    for line in contract_lines:
+        assert line in guide
+    assert "mode" in guide and "허용하지 않는다" in guide
+    assert "✅ Learning Log 처리 완료" in guide
+    assert "commit ref" in guide
+    assert "tool-independent" in guide
+    assert "Custom GPT Action interface only" in guide
+    assert "일반 plugin 저장의 선행 읽기 파일이 아니다" in guide
+
+    assert "evidence inventory" in authoring
+    assert "assistant-explained" in authoring
+    assert "claim-evidence" in authoring
+    assert "과거 문장" in authoring
+    assert "재사용하지 않는다" in authoring
+    assert "32bit register" not in authoring
+    assert not (root / "system/examples/GOOD_LEARNING_LOG_ISSUE.md").exists()
+
+    assert "mode: create" in scenario
+    assert "성공 comment" in scenario
+    assert "target file" in scenario
+    assert "일반 plugin에서는 `ACTION_SCHEMA.yaml`을 읽을 필요가 없다" in scenario
+    assert "capability 기준" in scenario
+
+    learning_request = re.search(
+        r"(?ms)^    LearningLogIssueRequest:\n(?P<body>.*?)(?=^    \w+IssueRequest:)",
+        schema,
+    )
+    assert learning_request
+    request_body = learning_request.group("body")
+    assert "mode is invalid" in request_body
+    assert "register-sram-circuits" not in request_body
 
 
 def note(extra: str = "") -> str:
@@ -332,6 +390,41 @@ def main() -> int:
             "잘못된 envelope가 거부되지 않았습니다.",
         )
 
+        issue_19_envelope = payload("create", "new", note())
+        issue_19_envelope["body"] = issue_19_envelope["body"].replace(
+            "operation: create\n", "mode: create\n"
+        ).replace("expected_sha: new\n", "")
+        error = assert_rejected(
+            lambda: ingest.ingest(issue_19_envelope, root),
+            "Issue #19 형식의 envelope가 거부되지 않았습니다.",
+        )
+        assert "expected_sha" in str(error)
+        assert "operation" in str(error)
+
+        unknown_field = payload("create", "new", note())
+        unknown_field["body"] = unknown_field["body"].replace(
+            "operation: create\n", "operation: create\nmode: create\n"
+        )
+        error = assert_rejected(
+            lambda: ingest.ingest(unknown_field, root),
+            "미등록 envelope 필드가 거부되지 않았습니다.",
+        )
+        assert error.code == "invalid-metadata"
+
+        mismatched_title = payload("create", "new", note())
+        mismatched_title["title"] = "[learning-log] 2026-08-09 other-slug"
+        assert_rejected(
+            lambda: ingest.ingest(mismatched_title, root),
+            "title과 target_path의 slug 불일치가 거부되지 않았습니다.",
+        )
+
+        loose_title = payload("create", "new", note())
+        loose_title["title"] = "[learning-log] test"
+        assert_rejected(
+            lambda: ingest.ingest(loose_title, root),
+            "느슨한 title 형식이 거부되지 않았습니다.",
+        )
+
         result_comment = payload(
             "update", ingest.git_blob_sha(target.read_bytes()), note("결과 댓글 필터")
         )
@@ -430,6 +523,48 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        completed, _ = run_cli(payload("create", "new", note()), root)
+        assert completed.returncode == 0, completed.stderr
+        target = root / "learning-logs/2026/08/2026-08-09-test.md"
+        assert target.exists()
+
+        payload_path = root / "preflight-payload.json"
+        payload_path.write_text(
+            json.dumps(
+                {
+                    **payload("create", "new", note()),
+                    "title": "[learning-log] 2026-08-10 preflight",
+                    "body": payload("create", "new", note())["body"]
+                    .replace("2026-08-09-test", "2026-08-10-preflight")
+                    .replace("2026/08/2026-08-09-test", "2026/08/2026-08-10-preflight"),
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        script_path = Path(__file__).with_name("ingest_learning_log.py")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-B",
+                str(script_path),
+                "--payload",
+                str(payload_path),
+                "--root",
+                str(root),
+                "--validate-only",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        assert completed.returncode == 0, completed.stderr
+        assert "Learning Log 검증 완료" in completed.stdout
+        assert not (root / "learning-logs/2026/08/2026-08-10-preflight.md").exists()
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
         unsupported = note("SECRET-PAYLOAD-CONTENT").replace(
             "## 1. 오늘 공부한 목적", "## 1. 오늘 학습한 목적", 1
         )
@@ -458,6 +593,7 @@ def main() -> int:
     assert_workflow_contract()
     assert_action_schema_contract()
     assert_custom_gpt_routing_contract()
+    assert_learning_log_guidance_contract()
 
     print("All tests passed")
     return 0

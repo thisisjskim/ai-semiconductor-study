@@ -75,6 +75,13 @@ jobs:
       - name: Run contract tests
         run: python -B scripts/test_ingest_learning_log.py
 
+      - name: Preflight Learning Log
+        run: |
+          python scripts/ingest_learning_log.py \
+            --payload "$RUNNER_TEMP/ingest-payload.json" \
+            --root . \
+            --validate-only
+
       - name: Ingest Learning Log
         id: ingest
         run: |

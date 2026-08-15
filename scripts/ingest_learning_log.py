@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
 import json
 import re
@@ -16,6 +17,10 @@ TARGET_RE = re.compile(
     r"(?P<date>\d{4}-\d{2}-\d{2})-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md$"
 )
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+TITLE_RE = re.compile(
+    r"^\[learning-log\] (?P<date>\d{4}-\d{2}-\d{2}) "
+    r"(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)$"
+)
 ENVELOPE_RE = re.compile(
     r"\A<!--\s*research-os-ingest:v1\s*\n(?P<meta>.*?)\n-->\s*\n?",
     re.DOTALL,
@@ -41,6 +46,7 @@ HEADING_ALIASES = {
 }
 FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
 MAX_ERROR_MESSAGE_LENGTH = 300
+ENVELOPE_KEYS = {"operation", "target_path", "expected_sha"}
 
 
 class IngestError(RuntimeError):
@@ -85,12 +91,20 @@ def parse_envelope(assembled: str) -> tuple[dict[str, str], str]:
         if ":" not in line:
             raise IngestError("잘못된 메타데이터 행이 있습니다.", "invalid-metadata")
         key, value = line.split(":", 1)
-        metadata[key.strip()] = value.strip()
+        key = key.strip()
+        if key in metadata:
+            raise IngestError(f"중복 메타데이터 필드: {key}", "invalid-metadata")
+        metadata[key] = value.strip()
 
-    required = {"operation", "target_path", "expected_sha"}
-    missing = sorted(required - metadata.keys())
+    missing = sorted(ENVELOPE_KEYS - metadata.keys())
     if missing:
         raise IngestError("필수 메타데이터 누락: " + ", ".join(missing))
+    unknown = sorted(metadata.keys() - ENVELOPE_KEYS)
+    if unknown:
+        raise IngestError(
+            "허용되지 않은 메타데이터 필드: " + ", ".join(unknown),
+            "invalid-metadata",
+        )
 
     markdown = assembled[match.end() :].strip() + "\n"
     return metadata, markdown
@@ -165,6 +179,10 @@ def validate_target(target_path: str) -> re.Match[str]:
         raise IngestError("파일 날짜의 연도와 상위 directory 연도가 다릅니다.")
     if match.group("date")[5:7] != match.group("month"):
         raise IngestError("파일 날짜의 월과 상위 directory 월이 다릅니다.")
+    try:
+        dt.date.fromisoformat(match.group("date"))
+    except ValueError as error:
+        raise IngestError("target_path에 유효하지 않은 날짜가 있습니다.") from error
     return match
 
 
@@ -182,12 +200,16 @@ def validate_markdown(markdown: str) -> None:
         )
 
 
-def ingest(payload: dict, root: Path) -> tuple[str, str]:
+def validate_payload(payload: dict, root: Path) -> tuple[str, str, str]:
+    """Validate an Issue payload without writing the Learning Log."""
     title = str(payload.get("title") or "")
     issue_author = str(payload.get("author") or "")
     repo_owner = str(payload.get("repository_owner") or "")
-    if not title.casefold().startswith("[learning-log]"):
-        raise IngestError("Issue 제목이 [learning-log]로 시작하지 않습니다.")
+    title_match = TITLE_RE.fullmatch(title)
+    if not title_match:
+        raise IngestError(
+            "Issue 제목은 '[learning-log] YYYY-MM-DD topic-slug' 형식이어야 합니다."
+        )
     if not issue_author or issue_author.casefold() != repo_owner.casefold():
         raise IngestError("Repository owner가 만든 Issue만 처리할 수 있습니다.")
 
@@ -196,7 +218,11 @@ def ingest(payload: dict, root: Path) -> tuple[str, str]:
     operation = metadata["operation"]
     target_path = metadata["target_path"]
     expected_sha = metadata["expected_sha"].lower()
-    validate_target(target_path)
+    target_match = validate_target(target_path)
+    if title_match.group("date") != target_match.group("date"):
+        raise IngestError("Issue 제목과 target_path의 날짜가 다릅니다.")
+    if title_match.group("slug") != target_match.group("slug"):
+        raise IngestError("Issue 제목과 target_path의 slug가 다릅니다.")
     validate_markdown(markdown)
 
     target = root / target_path
@@ -218,6 +244,13 @@ def ingest(payload: dict, root: Path) -> tuple[str, str]:
     else:
         raise IngestError("operation은 create 또는 update만 허용합니다.")
 
+    return target_path, operation, markdown
+
+
+def ingest(payload: dict, root: Path) -> tuple[str, str]:
+    target_path, operation, markdown = validate_payload(payload, root)
+
+    target = root / target_path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(markdown, encoding="utf-8")
     return target_path, operation
@@ -261,14 +294,24 @@ def main() -> int:
     parser.add_argument("--root", default=".")
     parser.add_argument("--report")
     parser.add_argument("--github-output")
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="계약을 검증하되 파일은 쓰지 않습니다.",
+    )
     args = parser.parse_args()
 
     try:
         payload = json.loads(Path(args.payload).read_text(encoding="utf-8"))
-        target_path, operation = ingest(payload, Path(args.root))
+        if args.validate_only:
+            target_path, operation, _ = validate_payload(payload, Path(args.root))
+            action = "검증 완료"
+        else:
+            target_path, operation = ingest(payload, Path(args.root))
+            action = "처리 완료"
         report = (
             f"{RESULT_MARKER}\n"
-            f"✅ Learning Log 처리 완료\n\n"
+            f"✅ Learning Log {action}\n\n"
             f"- Operation: `{operation}`\n"
             f"- Path: `{target_path}`\n"
         )

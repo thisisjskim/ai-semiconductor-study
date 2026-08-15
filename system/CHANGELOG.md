@@ -9,6 +9,14 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - `roadmap/PROGRESS.md`의 최신 blob SHA와 Learning Log evidence 경로를 확인하는 Progress 전용 Python 검증기
 - `Current Stage`, `Current Topic`, Dashboard `Not Started → Learning`, 필요한 `Last Updated`만 반영하는 GitHub Actions
 - 성공·실패 Issue comment와 ChatGPT의 최종 commit 내용 재확인 절차
+- Learning Log 저장 직전 gate, session-evidence 기반 authoring guide, 새 세션 end-to-end 검증 시나리오
+- 파일을 쓰지 않고 title, envelope, target, Markdown을 검사하는 Learning Log preflight mode
+- 일반 ChatGPT의 GitHub plugin tool 이름에 의존하지 않는 capability-based entrypoint
+
+### Fixed
+- `mode: create`처럼 계약에 없는 envelope 필드와 `expected_sha` 누락을 명시적으로 거부
+- Learning Log title의 전체 pattern과 target path의 날짜·slug 일치를 실행 코드에서 검증
+- 성공 comment뿐 아니라 결과 commit의 실제 target file까지 확인해야 저장 완료로 판정
 
 ### Safety
 - 지원 날짜, 실행 계획 필드, milestone, deadline, Roadmap 구조는 자동 변경하지 않음
