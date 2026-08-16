@@ -83,6 +83,18 @@ Learning Log의 `Roadmap stage` Metadata와 자동화는 다음 Stage 이름을 
 | Stage 7 — SSL Lab Papers | KAIST SSL Lab 논문 분석과 비교 |
 | Stage 8 — Research Portfolio | research question, 프로젝트와 지원 결과물 |
 
+### Learning Depth Boundary
+
+각 topic의 운영 가능한 depth boundary는 `roadmap/LEARNING_BOUNDARIES.json`에 둔다. 이 파일은 이 Roadmap의 목표를 대체하지 않고, 새 ChatGPT 채팅이 현재 topic에서 어디까지 학습하고 언제 다음 topic으로 이동할지 일관되게 판단하도록 다음을 구조화한다.
+
+- Learning Objective
+- Minimum Required Understanding
+- Exit Criteria
+- Optional Deep Dive
+- Next Roadmap Topic
+
+기본 원칙은 `Progression over Exhaustiveness`다. Exit Criteria를 충족하면 unresolved question이 남아 있어도 다음 topic으로 이동할 수 있다. 심화 질문은 버리지 않고 Optional Open Question으로 남기며, 이후 논문이나 architecture에서 prerequisite가 되면 spiral learning으로 다시 돌아온다.
+
 ## 4. Knowledge and Research Tracks
 
 Track은 순서대로 모두 끝내는 과목 목록이 아니다. 현재 논문과 결과물에 필요한 항목을 병행한다.

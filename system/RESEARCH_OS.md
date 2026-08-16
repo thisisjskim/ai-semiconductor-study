@@ -172,6 +172,10 @@ GitHub Actions는 repository owner, 제목, target path, SHA, evidence 존재, �
 
 Roadmap은 강제 syllabus가 아니라 navigation map이다. 기초 학습 → foundational/SSL paper 도전 → prerequisite 발견 → targeted 학습 → 논문 복귀 cycle로 bottom-up과 top-down을 함께 사용한다.
 
+다음 학습은 `Roadmap Goal + Current Progress + Learning Log Evidence`로 결정한다. 최근 Learning Log의 마지막 질문이나 Next Action은 evidence이지 단독 결정 기준이 아니다. `roadmap/LEARNING_BOUNDARIES.json`은 각 topic의 목표, 최소 이해, exit criteria, optional deep dive와 다음 topic을 `roadmap/ROADMAP.md`에 연결하는 운영 계약이다.
+
+기본 정책은 `Progression over Exhaustiveness`다. Exit Criteria를 막는 질문은 Blocking Gap, 현재 진행에 필수적이지 않은 심화 질문은 Optional Open Question으로 분류한다. Blocking Gap이 없으면 다음 topic으로 이동하고, 하나만 남으면 짧게 복습한 뒤 이동한다. Optional Deep Dive는 사용자가 명시적으로 요청하거나 장기 목표에 필요한 근거가 있을 때만 기본 경로에 넣는다. 이후 실제 논문에서 prerequisite gap이 드러나면 spiral learning으로 이전 topic에 돌아올 수 있다.
+
 `state/PROGRESS_RECONCILIATION.md`는 유효한 Learning Log와 `roadmap/PROGRESS.md`를 비교해 만든 검토용 제안서다. Learning Log가 존재한다는 이유만으로 `Review`나 `Completed`를 판단하지 않으며, 자동 제안은 최대 `Learning`까지로 제한한다. 단일 Learning Log가 증명할 수 없는 execution phase, deliverable, bottleneck, next milestone과 deadline은 자동 제안하지 않는다. Progress가 최신 Learning Log보다 새로우면 과거 evidence로 현재 focus를 되돌리지 않는다. 이 제안서는 `roadmap/PROGRESS.md`를 직접 수정하지 않는다. 실제 반영은 사용자가 stage, topic, status와 evidence를 확인해 별도로 승인한 뒤 `[progress-update]` Issue와 검증 workflow를 통해 수행한다.
 
 ## 11. Ultimate Principle

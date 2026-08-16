@@ -29,6 +29,7 @@ flowchart TD
 | [`state/CURRENT_LEARNING_CONTEXT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/state/CURRENT_LEARNING_CONTEXT.md)                 | 최소 읽기로 현재 위치를 복구하는 snapshot       |
 | [`system/RESEARCH_OS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/RESEARCH_OS.md)                                         | 학습·기록·승인 정책의 canonical source       |
 | [`roadmap/ROADMAP.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/ROADMAP.md)                                               | 장기 학습 방향과 단계                      |
+| [`roadmap/LEARNING_BOUNDARIES.json`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/LEARNING_BOUNDARIES.json)                   | topic별 최소 이해·exit criteria·다음 topic 계약 |
 | [`roadmap/PROGRESS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/PROGRESS.md)                                             | 현재 학습 단계와 다음 목표를 보여주는 대시보드        |
 | [`system/LEARNING_LOG_ISSUE_CONTRACT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/LEARNING_LOG_ISSUE_CONTRACT.md)         | 일반 ChatGPT의 Learning Log 저장 계약      |
 | [`templates/learning-log.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/templates/learning-log.md)                                 | Learning Log 문서 형식                |
@@ -54,7 +55,7 @@ system/CHATGPT_ENTRYPOINT.md
 → state/CURRENT_LEARNING_CONTEXT.md
 ```
 
-entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Current Topic, 확인된 이해, 미완료 점검, Open Questions와 Next Actions를 제공합니다. 이 두 파일만으로 작은 학습 단위 하나를 바로 시작할 수 있습니다.
+entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Roadmap Position, Exit Criteria, Blocking Gaps, Optional Open Questions와 Recommended Next Move를 제공합니다. 이 두 파일만으로 작은 학습 단위 하나를 바로 시작할 수 있습니다.
 
 정확한 근거가 필요할 때만 snapshot이 가리키는 실제 Learning Log를 읽습니다. 현재 위치 판단이 더 필요하면 `roadmap/PROGRESS.md`, 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽습니다. repository 전체나 월별 파일 목록을 매번 조회하지 않습니다.
 
@@ -405,7 +406,9 @@ Public repository에서 다른 사람이 임의로 Issue를 만들어 파일을 
 
 ### `CURRENT_LEARNING_CONTEXT.md` 자동 갱신
 
-`learning-logs/**`가 `main`에서 변경되면 별도 `learning-context-refresh.yml` workflow가 `scripts/build_learning_context.py`를 실행합니다. 이 deterministic builder는 유효한 Learning Log의 Metadata와 정해진 section만 읽어 `state/CURRENT_LEARNING_CONTEXT.md`를 갱신합니다.
+`learning-logs/**`, `roadmap/PROGRESS.md`, `roadmap/ROADMAP.md` 또는 `roadmap/LEARNING_BOUNDARIES.json`이 `main`에서 변경되면 별도 `learning-context-refresh.yml` workflow가 `scripts/build_learning_context.py`를 실행합니다. 이 deterministic builder는 Progress의 현재 위치, topic별 depth boundary와 유효한 Learning Log evidence를 순서대로 비교해 `state/CURRENT_LEARNING_CONTEXT.md`를 갱신합니다. 최근 Learning Log의 마지막 질문이나 Next Action은 더 이상 단독 추천 기준이 아닙니다.
+
+추천은 `continue`, `review_then_advance`, `advance` 중 하나입니다. `optional_deep_dive`는 사용자가 명시적으로 더 깊게 공부하겠다고 선택했을 때만 세션에서 사용합니다. 자동 evidence 판정은 질문·다음 행동 section을 제외하고 자기 설명과 수정 이해에서 필요한 keyword 묶음이 모두 발견된 경우에만 exit criterion 후보를 완료로 표시합니다.
 
 Learning Log 저장과 context refresh는 서로 다른 commit입니다. Context refresh가 실패해도 이미 저장된 Learning Log는 취소되거나 되돌아가지 않으며, workflow는 state snapshot 이외의 파일을 자동 commit하지 않습니다. `roadmap/PROGRESS.md`의 충돌은 snapshot에 reconciliation pending으로 표시하고 dashboard 자체는 자동 수정하지 않습니다.
 
