@@ -97,6 +97,7 @@ class LearningPlan:
     blocking_questions: tuple[str, ...]
     optional_questions: tuple[str, ...]
     recommended_move: str
+    grounding_paths: tuple[str, ...]
     evidence_paths: tuple[str, ...]
 
 
@@ -314,6 +315,33 @@ def criterion_is_met(criterion: ExitCriterion, corpus: str) -> bool:
     return all(any(term.casefold() in corpus for term in group) for group in criterion.evidence_groups)
 
 
+def criterion_match_count(criterion: ExitCriterion, corpus: str) -> int:
+    return sum(
+        1
+        for group in criterion.evidence_groups
+        if any(term.casefold() in corpus for term in group)
+    )
+
+
+def select_grounding_paths(
+    relevant: list[LearningLog], remaining: tuple[ExitCriterion, ...]
+) -> tuple[str, ...]:
+    if not remaining:
+        return ("roadmap/LEARNING_BOUNDARIES.json",)
+
+    criterion = remaining[0]
+    ranked = sorted(
+        relevant,
+        key=lambda log: (
+            criterion_match_count(criterion, evidence_corpus([log])),
+            log.date,
+            log.path,
+        ),
+        reverse=True,
+    )
+    return (ranked[0].path,) if ranked else ()
+
+
 def contains_keyword(text: str, keywords: Iterable[str]) -> bool:
     folded = text.casefold()
     return any(keyword.casefold() in folded for keyword in keywords)
@@ -366,6 +394,7 @@ def build_learning_plan(
         blocking_questions=tuple(blocking_questions),
         optional_questions=tuple(optional_questions),
         recommended_move=recommended_move,
+        grounding_paths=select_grounding_paths(relevant, remaining),
         evidence_paths=tuple(log.path for log in relevant),
     )
 
@@ -527,6 +556,13 @@ def build_context(root: Path) -> str:
         lines.append(f"- 우선 학습: {blocking_gaps[0]}")
     else:
         lines.append(f"- 우선 학습: {plan.boundary.next_roadmap_topic}")
+    lines.extend(["", "## Required Source Before First Learning Unit", ""])
+    lines.extend(f"- `{path}`" for path in plan.grounding_paths)
+    if plan.remaining:
+        lines.append("- 이유: 첫 Blocking Gap과 가장 가까운 저장 evidence를 확인해 사용자의 실제 설명 수준에 맞춘다.")
+    else:
+        lines.append("- 이유: 다음 topic의 depth boundary를 확인한 뒤 새 학습을 시작한다.")
+    lines.append("- 이 source를 읽기 전에는 일반 지식만으로 첫 설명이나 진단 질문을 만들지 않는다.")
     lines.extend(["", "## Next Roadmap Topic", "", f"- {plan.boundary.next_roadmap_topic}"])
     lines.extend(["", "## 현재 확인된 핵심 개념", ""])
     lines.extend(bullet_lines(concepts))

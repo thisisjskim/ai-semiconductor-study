@@ -18,6 +18,8 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
+- 새 학습 세션이 snapshot 두 파일만 읽고 사용자의 실제 Learning Log evidence를 확인하지 않은 채 첫 진단 질문을 만들 수 있던 grounding 공백
+- 첫 Blocking Gap과 가장 가까운 Learning Log를 필수 source로 지정하고, 설명·예시 없이 cold quiz부터 시작하지 않도록 session protocol 강화
 - `mode: create`처럼 계약에 없는 envelope 필드와 `expected_sha` 누락을 명시적으로 거부
 - Learning Log title의 전체 pattern과 target path의 날짜·slug 일치를 실행 코드에서 검증
 - 성공 comment뿐 아니라 결과 commit의 실제 target file까지 확인해야 저장 완료로 판정

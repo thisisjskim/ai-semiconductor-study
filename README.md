@@ -55,7 +55,7 @@ system/CHATGPT_ENTRYPOINT.md
 → state/CURRENT_LEARNING_CONTEXT.md
 ```
 
-entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Roadmap Position, Exit Criteria, Blocking Gaps, Optional Open Questions와 Recommended Next Move를 제공합니다. 이 두 파일만으로 작은 학습 단위 하나를 바로 시작할 수 있습니다.
+entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Roadmap Position, Exit Criteria, Blocking Gaps, Optional Open Questions와 Recommended Next Move를 제공합니다. 이어서 snapshot이 지정한 가장 가까운 Learning Log 또는 next-topic boundary 한 개를 읽고 사용자의 실제 설명 수준에 맞춰 작은 학습 단위를 시작합니다.
 
 아래 그림은 사용자가 이 과정을 이해하기 위한 안내도다. ChatGPT의 필수 입력은 아니며, 실제 동작 규칙은 `system/CHATGPT_ENTRYPOINT.md`와 생성된 context에 둔다.
 
@@ -63,7 +63,8 @@ entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context 
 flowchart TD
     A["사용자: 지난 학습부터 이어가자"] --> B["CHATGPT_ENTRYPOINT.md 읽기"]
     B --> C["CURRENT_LEARNING_CONTEXT.md 읽기"]
-    C --> D["Roadmap 위치와 Topic 목표 확인"]
+    C --> C2["Required Source 1개 읽기"]
+    C2 --> D["Roadmap 위치와 사용자 evidence 확인"]
     D --> E["Exit Criteria와 Learning Log evidence 비교"]
     E --> F["미해결 질문을 Blocking / Optional로 분류"]
     F --> G{"필수 학습이 얼마나 남았는가?"}
