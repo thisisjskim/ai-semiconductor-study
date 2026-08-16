@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 from dataclasses import dataclass
 from datetime import date
@@ -65,6 +66,38 @@ class LearningLog:
     domain: str
     roadmap_stage: str
     sections: dict[str, str]
+
+
+@dataclass(frozen=True)
+class ExitCriterion:
+    text: str
+    evidence_groups: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
+class LearningBoundary:
+    id: str
+    progress_topics: tuple[str, ...]
+    domains: tuple[str, ...]
+    roadmap_stage: str
+    topic_goal: str
+    minimum_required_understanding: tuple[str, ...]
+    exit_criteria: tuple[ExitCriterion, ...]
+    blocking_question_keywords: tuple[str, ...]
+    optional_question_keywords: tuple[str, ...]
+    optional_deep_dive: tuple[str, ...]
+    next_roadmap_topic: str
+
+
+@dataclass(frozen=True)
+class LearningPlan:
+    boundary: LearningBoundary
+    completed: tuple[ExitCriterion, ...]
+    remaining: tuple[ExitCriterion, ...]
+    blocking_questions: tuple[str, ...]
+    optional_questions: tuple[str, ...]
+    recommended_move: str
+    evidence_paths: tuple[str, ...]
 
 
 def repository_path(path: Path, root: Path) -> str:
@@ -197,6 +230,146 @@ def extract_unfinished(text: str, limit: int) -> list[str]:
     return items
 
 
+def load_boundaries(root: Path) -> list[LearningBoundary]:
+    path = root / "roadmap/LEARNING_BOUNDARIES.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("version") != 1 or payload.get("policy") != "progression-over-exhaustiveness":
+        raise ValueError("Unsupported learning boundary contract")
+    boundaries: list[LearningBoundary] = []
+    for raw in payload.get("boundaries", []):
+        criteria = tuple(
+            ExitCriterion(
+                text=item["text"],
+                evidence_groups=tuple(tuple(group) for group in item["evidence_groups"]),
+            )
+            for item in raw["exit_criteria"]
+        )
+        boundaries.append(
+            LearningBoundary(
+                id=raw["id"],
+                progress_topics=tuple(raw["progress_topics"]),
+                domains=tuple(raw["domains"]),
+                roadmap_stage=raw["roadmap_stage"],
+                topic_goal=raw["topic_goal"],
+                minimum_required_understanding=tuple(raw["minimum_required_understanding"]),
+                exit_criteria=criteria,
+                blocking_question_keywords=tuple(raw["blocking_question_keywords"]),
+                optional_question_keywords=tuple(raw["optional_question_keywords"]),
+                optional_deep_dive=tuple(raw["optional_deep_dive"]),
+                next_roadmap_topic=raw["next_roadmap_topic"],
+            )
+        )
+    if not boundaries:
+        raise ValueError("No learning boundaries configured")
+    return boundaries
+
+
+def progress_value(progress: str, label: str) -> str:
+    match = re.search(rf"^- {re.escape(label)}:\s*(.+)$", progress, re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
+def select_boundary(
+    boundaries: Iterable[LearningBoundary], progress: str, primary: LearningLog
+) -> LearningBoundary:
+    available = list(boundaries)
+    current_topic = progress_value(progress, "Current Topic").casefold()
+    for boundary in available:
+        if any(alias.casefold() == current_topic for alias in boundary.progress_topics):
+            return boundary
+    for boundary in available:
+        if primary.domain in boundary.domains:
+            return boundary
+    raise ValueError(
+        f"No learning boundary for Current Topic={current_topic or '없음'} / domain={primary.domain}"
+    )
+
+
+def checked_self_explanations(text: str) -> list[str]:
+    values: list[str] = []
+    for line in text.splitlines():
+        match = CHECKBOX_RE.fullmatch(line.strip())
+        if match and match.group("state").casefold() == "x":
+            values.append(match.group("text").strip())
+    return values
+
+
+def evidence_corpus(logs: Iterable[LearningLog]) -> str:
+    evidence_sections = (
+        "## 2. 오늘 이해한 내용",
+        "## 3. 핵심 개념",
+        "## 4. 내가 처음 이해한 방식",
+        "## 5. 오해 또는 불확실한 부분",
+        "## 6. 수정된 이해",
+        "## 8. AI 반도체 및 SSL 목표와의 연결",
+    )
+    chunks: list[str] = []
+    for log in logs:
+        chunks.extend(log.sections.get(section, "") for section in evidence_sections)
+        chunks.extend(checked_self_explanations(log.sections.get("## 10. 자기 설명 점검", "")))
+    return "\n".join(chunks).casefold()
+
+
+def criterion_is_met(criterion: ExitCriterion, corpus: str) -> bool:
+    return all(any(term.casefold() in corpus for term in group) for group in criterion.evidence_groups)
+
+
+def contains_keyword(text: str, keywords: Iterable[str]) -> bool:
+    folded = text.casefold()
+    return any(keyword.casefold() in folded for keyword in keywords)
+
+
+def build_learning_plan(
+    boundaries: Iterable[LearningBoundary],
+    progress: str,
+    included: Iterable[LearningLog],
+    primary: LearningLog,
+) -> LearningPlan:
+    boundary = select_boundary(boundaries, progress, primary)
+    relevant = [log for log in included if log.domain in boundary.domains]
+    corpus = evidence_corpus(relevant)
+    completed = tuple(item for item in boundary.exit_criteria if criterion_is_met(item, corpus))
+    remaining = tuple(item for item in boundary.exit_criteria if item not in completed)
+
+    latest_date = max(log.date for log in relevant)
+    latest_relevant = [log for log in relevant if log.date == latest_date]
+    questions: list[str] = []
+    for log in latest_relevant:
+        questions.extend(
+            extract_items(
+                extract_subsection(log.sections["## 7. 질문"], "### 해결되지 않은 질문"),
+                LIMITS["questions"],
+            )
+        )
+    questions = list(dict.fromkeys(questions))[: LIMITS["questions"]]
+    blocking_questions: list[str] = []
+    optional_questions: list[str] = []
+    for question in questions:
+        if contains_keyword(question, boundary.optional_question_keywords):
+            optional_questions.append(question)
+        elif remaining and contains_keyword(question, boundary.blocking_question_keywords):
+            blocking_questions.append(question)
+        else:
+            optional_questions.append(question)
+
+    blocking_count = len(remaining) + len(blocking_questions)
+    if blocking_count == 0:
+        recommended_move = "advance"
+    elif blocking_count == 1:
+        recommended_move = "review_then_advance"
+    else:
+        recommended_move = "continue"
+    return LearningPlan(
+        boundary=boundary,
+        completed=completed,
+        remaining=remaining,
+        blocking_questions=tuple(blocking_questions),
+        optional_questions=tuple(optional_questions),
+        recommended_move=recommended_move,
+        evidence_paths=tuple(log.path for log in relevant),
+    )
+
+
 def progress_reconciliation(progress: str, latest: Iterable[LearningLog]) -> tuple[str, str]:
     latest_logs = list(latest)
     if not latest_logs:
@@ -244,6 +417,7 @@ def build_context(root: Path) -> str:
     progress = progress_path.read_text(encoding="utf-8")
     roadmap_path = root / "roadmap/ROADMAP.md"
     roadmap_path.read_text(encoding="utf-8")  # Required source; validates readability.
+    boundaries = load_boundaries(root)
 
     if not included:
         status, reason = progress_reconciliation(progress, [])
@@ -271,22 +445,37 @@ def build_context(root: Path) -> str:
             "",
         ]
         lines.extend(bullet_lines([f"`{path}` — {why}" for path, why in excluded]))
-        lines.extend(["", "## 참고한 source paths", "", "- `roadmap/ROADMAP.md`", "- `roadmap/PROGRESS.md`", ""])
+        lines.extend(
+            [
+                "",
+                "## 참고한 source paths",
+                "",
+                "- `roadmap/ROADMAP.md`",
+                "- `roadmap/LEARNING_BOUNDARIES.json`",
+                "- `roadmap/PROGRESS.md`",
+                "",
+            ]
+        )
         return "\n".join(lines)
 
     latest_date = included[-1].date
     latest_logs = [item for item in included if item.date == latest_date]
     primary = latest_logs[-1]
     concepts = extract_items(primary.sections["## 3. 핵심 개념"], LIMITS["concepts"])
-    unresolved = extract_items(
-        extract_subsection(primary.sections["## 7. 질문"], "### 해결되지 않은 질문"),
-        LIMITS["questions"],
-    )
     weaknesses = extract_unfinished(
         primary.sections["## 10. 자기 설명 점검"], LIMITS["weaknesses"]
     )
     actions = extract_items(primary.sections["## 9. 다음 행동"], LIMITS["actions"])
     status, reason = progress_reconciliation(progress, latest_logs)
+    plan = build_learning_plan(boundaries, progress, included, primary)
+    current_stage = progress_value(progress, "Current Stage") or primary.roadmap_stage
+    current_topic = progress_value(progress, "Current Topic") or primary.topic
+
+    move_explanations = {
+        "continue": "현재 topic의 blocking gap이 둘 이상이므로 필요한 최소 범위만 계속 학습한다.",
+        "review_then_advance": "blocking gap 하나만 짧게 확인한 뒤 다음 Roadmap topic으로 이동한다.",
+        "advance": "현재 exit criteria를 충족했으므로 optional question을 기본 경로에 넣지 않고 다음 Roadmap topic으로 이동한다.",
+    }
 
     lines = [
         "# Current Learning Context",
@@ -296,29 +485,60 @@ def build_context(root: Path) -> str:
         f"- Last generated date: {latest_date.isoformat()}",
         f"- Roadmap reconciliation: **{status}**",
         "",
-        "## 현재 상태",
+        "## Roadmap Position",
         "",
         f"- 최신 의미 있는 학습 기록: `{primary.path}`",
-        f"- Current Topic: {primary.topic}",
+        f"- Current Stage: {current_stage}",
+        f"- Current Topic: {current_topic}",
         f"- Domain: {primary.domain}",
-        f"- Roadmap stage: {primary.roadmap_stage}",
+        f"- Depth Boundary: `{plan.boundary.id}`",
         "",
         "### 같은 날짜의 의미 있는 학습 단위",
         "",
     ]
     lines.extend(bullet_lines([f"`{item.path}` — {item.topic}" for item in latest_logs]))
+    lines.extend(["", "## Topic Goal", "", f"- {plan.boundary.topic_goal}"])
+    lines.extend(["", "## Minimum Required Understanding", ""])
+    lines.extend(bullet_lines(list(plan.boundary.minimum_required_understanding)))
+    lines.extend(["", "## Exit Criteria", ""])
+    for criterion in plan.boundary.exit_criteria:
+        marker = "x" if criterion in plan.completed else " "
+        lines.append(f"- [{marker}] {criterion.text}")
+    lines.extend(["", "## Evidence of Completion", ""])
+    lines.extend(
+        bullet_lines(
+            [criterion.text for criterion in plan.completed],
+            "Learning Log에서 자동 확인된 exit criterion이 없음",
+        )
+    )
+    lines.append("- 위 표시는 관련 Learning Log의 자기 설명·수정 이해에서 최소 evidence keyword가 모두 확인된 경우만 생성함")
+    lines.extend(["", "## Blocking Gaps", ""])
+    blocking_gaps = [criterion.text for criterion in plan.remaining]
+    blocking_gaps.extend(plan.blocking_questions)
+    lines.extend(bullet_lines(blocking_gaps))
+    lines.extend(["", "## Optional Open Questions", ""])
+    lines.extend(bullet_lines(list(plan.optional_questions)))
+    if plan.boundary.optional_deep_dive:
+        lines.append("- 명시적 deep-dive 요청 때 선택 가능한 범위: " + "; ".join(plan.boundary.optional_deep_dive))
+    lines.extend(["", "## Recommended Next Move", ""])
+    lines.append(f"- Decision: **{plan.recommended_move}**")
+    lines.append(f"- 이유: {move_explanations[plan.recommended_move]}")
+    if blocking_gaps:
+        lines.append(f"- 우선 학습: {blocking_gaps[0]}")
+    else:
+        lines.append(f"- 우선 학습: {plan.boundary.next_roadmap_topic}")
+    lines.extend(["", "## Next Roadmap Topic", "", f"- {plan.boundary.next_roadmap_topic}"])
     lines.extend(["", "## 현재 확인된 핵심 개념", ""])
     lines.extend(bullet_lines(concepts))
-    lines.extend(["", "## 아직 해결되지 않은 질문", ""])
-    lines.extend(bullet_lines(unresolved))
     lines.extend(["", "## 미완료 자기 설명 점검", ""])
     lines.extend(bullet_lines(weaknesses))
-    lines.extend(["", "## 바로 다음 행동", ""])
+    lines.extend(["", "## 최근 Learning Log의 다음 행동 (참고용)", ""])
     lines.extend(bullet_lines(actions))
+    lines.append("- 위 항목은 source evidence이며 Roadmap-aware 추천보다 우선하지 않음")
     lines.extend(["", "## Roadmap reconciliation", "", f"- {reason}", "- `roadmap/PROGRESS.md`는 자동 수정하지 않음", "", "## 제외한 기록과 이유", ""])
     lines.extend(bullet_lines([f"`{path}` — {why}" for path, why in excluded]))
-    lines.extend(["", "## 참고한 source paths", "", "- `roadmap/ROADMAP.md`", "- `roadmap/PROGRESS.md`"])
-    lines.extend(f"- `{item.path}`" for item in latest_logs)
+    lines.extend(["", "## 참고한 source paths", "", "- `roadmap/ROADMAP.md`", "- `roadmap/LEARNING_BOUNDARIES.json`", "- `roadmap/PROGRESS.md`"])
+    lines.extend(f"- `{path}`" for path in plan.evidence_paths)
     lines.append("")
     return "\n".join(lines)
 

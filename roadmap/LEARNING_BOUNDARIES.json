@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "policy": "progression-over-exhaustiveness",
+  "boundaries": [
+    {
+      "id": "ai-computation-foundations",
+      "progress_topics": ["AI Computation"],
+      "domains": ["ai-computation"],
+      "roadmap_stage": "Stage 1 — AI Computation",
+      "topic_goal": "AI workload의 연산과 데이터 이동을 hardware 관점에서 설명한다.",
+      "minimum_required_understanding": [
+        "MAC, weight, activation, partial sum의 역할",
+        "연산보다 데이터 이동이 병목이 될 수 있는 이유",
+        "precision이 hardware 비용에 미치는 영향"
+      ],
+      "exit_criteria": [
+        {
+          "text": "MAC과 weight, activation, partial sum의 관계를 설명한다.",
+          "evidence_groups": [["MAC"], ["weight"], ["activation"], ["partial sum", "psum"]]
+        },
+        {
+          "text": "AI workload에서 연산과 데이터 이동의 관계를 설명한다.",
+          "evidence_groups": [["data movement", "데이터 이동"], ["연산", "compute"]]
+        }
+      ],
+      "blocking_question_keywords": ["MAC", "weight", "activation", "partial sum", "precision"],
+      "optional_question_keywords": ["training accelerator", "sparsity encoding", "advanced quantization"],
+      "optional_deep_dive": ["희소성 인코딩", "고급 quantization 기법", "training accelerator 세부 구조"],
+      "next_roadmap_topic": "Computer Architecture의 parallelism, locality, bandwidth"
+    },
+    {
+      "id": "computer-architecture-foundations",
+      "progress_topics": ["Computer Architecture"],
+      "domains": ["computer-architecture"],
+      "roadmap_stage": "Stage 2 — Computer Architecture",
+      "topic_goal": "latency, bandwidth, locality와 memory hierarchy가 accelerator 성능을 제한하는 방식을 설명한다.",
+      "minimum_required_understanding": [
+        "latency와 bandwidth의 차이",
+        "locality와 memory hierarchy의 필요성",
+        "compute, on-chip buffer, off-chip memory의 구분"
+      ],
+      "exit_criteria": [
+        {
+          "text": "latency와 bandwidth의 차이를 자기 언어로 비교한다.",
+          "evidence_groups": [["latency"], ["bandwidth"]]
+        },
+        {
+          "text": "locality와 memory hierarchy가 data movement를 줄이는 이유를 설명한다.",
+          "evidence_groups": [["locality", "지역성"], ["memory hierarchy", "메모리 계층"], ["data movement", "데이터 이동"]]
+        }
+      ],
+      "blocking_question_keywords": ["latency", "bandwidth", "locality", "memory hierarchy"],
+      "optional_question_keywords": ["cache coherence", "replacement policy", "branch predictor"],
+      "optional_deep_dive": ["cache coherence", "세부 replacement policy", "branch predictor 구현"],
+      "next_roadmap_topic": "Register, SRAM, DRAM/HBM의 역할과 trade-off"
+    },
+    {
+      "id": "sram-foundations",
+      "progress_topics": ["Register와 SRAM 회로 기초", "SRAM", "SRAM 회로 기초"],
+      "domains": ["sram"],
+      "roadmap_stage": "Stage 3 — Memory",
+      "topic_goal": "6T SRAM의 기본 read/write 동작과 안정성을 이해하고 memory architecture에서 SRAM의 역할을 설명한다.",
+      "minimum_required_understanding": [
+        "6T SRAM과 cross-coupled inverter 구조",
+        "WL, BL/BL̅, Q/Q̅ 기준의 Hold, Write, Read",
+        "Read Disturb와 Cell Ratio의 관계",
+        "Register와 DRAM 사이에서 SRAM이 맡는 역할"
+      ],
+      "exit_criteria": [
+        {
+          "text": "6T SRAM과 cross-coupled inverter의 저장 구조를 설명한다.",
+          "evidence_groups": [["6T SRAM"], ["cross-coupled inverter", "교차 결합 인버터"]]
+        },
+        {
+          "text": "WL, BL/BL̅, Q/Q̅를 사용해 Hold, Write, Read의 기본 동작을 설명한다.",
+          "evidence_groups": [["WL", "word line"], ["BL", "bit line"], ["Hold"], ["Write"], ["Read"]]
+        },
+        {
+          "text": "Read Disturb와 Cell Ratio가 read stability에 미치는 관계를 설명한다.",
+          "evidence_groups": [["Read Disturb"], ["Cell Ratio"], ["read stability", "읽기 안정성"]]
+        },
+        {
+          "text": "Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다.",
+          "evidence_groups": [["Register"], ["SRAM"], ["DRAM"], ["on-chip", "온칩"], ["off-chip", "오프칩"]]
+        }
+      ],
+      "blocking_question_keywords": ["6T", "cross-coupled", "Hold", "Read Disturb", "Cell Ratio", "Register", "DRAM", "on-chip", "off-chip"],
+      "optional_question_keywords": ["Sense Amplifier topology", "Sense Amp Offset", "SNM extraction", "Write Path", "state flip", "Write Margin", "Write Failure", "Write Assist", "assist", "Process Variation", "Monte Carlo", "transistor sizing"],
+      "optional_deep_dive": ["상세 SNM extraction", "advanced Sense Amplifier circuit", "SRAM assist technique", "process variation과 Monte Carlo 분석"],
+      "next_roadmap_topic": "SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결"
+    },
+    {
+      "id": "memory-architecture-bridge",
+      "progress_topics": ["SRAM과 DRAM 비교", "SRAM/DRAM 비교", "Memory Architecture"],
+      "domains": ["memory-architecture", "dram"],
+      "roadmap_stage": "Stage 3 — Memory",
+      "topic_goal": "Register, SRAM, DRAM/HBM의 trade-off를 비교하고 NPU memory hierarchy에 배치한다.",
+      "minimum_required_understanding": [
+        "Register, SRAM, DRAM의 구조적 차이",
+        "capacity, latency, area, energy trade-off",
+        "NPU의 local storage, on-chip buffer, off-chip memory 역할"
+      ],
+      "exit_criteria": [
+        {
+          "text": "Register, SRAM, DRAM을 capacity, latency, area, energy로 비교한다.",
+          "evidence_groups": [["Register"], ["SRAM"], ["DRAM"], ["capacity", "용량"], ["latency", "지연"], ["area", "면적"], ["energy", "에너지"]]
+        },
+        {
+          "text": "NPU의 compute, on-chip buffer, off-chip memory를 구분한다.",
+          "evidence_groups": [["NPU"], ["compute", "연산"], ["on-chip buffer", "온칩 버퍼"], ["off-chip", "오프칩"]]
+        }
+      ],
+      "blocking_question_keywords": ["Register", "SRAM", "DRAM", "capacity", "latency", "area", "energy", "on-chip buffer", "off-chip"],
+      "optional_question_keywords": ["DRAM timing", "refresh optimization", "HBM PHY", "memory controller scheduling"],
+      "optional_deep_dive": ["DRAM timing parameter", "refresh 최적화", "HBM PHY 세부 구현"],
+      "next_roadmap_topic": "NPU PE array, buffer hierarchy와 dataflow"
+    },
+    {
+      "id": "npu-architecture-foundations",
+      "progress_topics": ["NPU Architecture", "NPU와 Dataflow"],
+      "domains": ["npu"],
+      "roadmap_stage": "Stage 4 — NPU Architecture",
+      "topic_goal": "NPU data path와 dataflow가 data movement와 utilization을 바꾸는 방식을 설명한다.",
+      "minimum_required_understanding": ["PE와 PE array", "buffer hierarchy", "대표 dataflow 한 가지", "data reuse와 utilization"],
+      "exit_criteria": [
+        {
+          "text": "입력부터 출력까지 PE array와 buffer를 지나는 data path를 설명한다.",
+          "evidence_groups": [["PE array"], ["buffer", "버퍼"], ["data path", "데이터 경로"]]
+        },
+        {
+          "text": "대표 dataflow가 어떤 data movement를 줄이는지 설명한다.",
+          "evidence_groups": [["dataflow", "데이터플로"], ["data movement", "데이터 이동"], ["reuse", "재사용"]]
+        }
+      ],
+      "blocking_question_keywords": ["PE", "buffer", "dataflow", "data movement", "reuse", "utilization"],
+      "optional_question_keywords": ["NoC routing", "compiler scheduling", "RTL", "cycle-accurate"],
+      "optional_deep_dive": ["NoC routing", "compiler scheduling", "RTL 또는 cycle-accurate 구현"],
+      "next_roadmap_topic": "Memory Wall과 PIM/CIM의 compute 위치 변화"
+    },
+    {
+      "id": "pim-cim-foundations",
+      "progress_topics": ["PIM / CIM", "PIM/CIM"],
+      "domains": ["pim-cim"],
+      "roadmap_stage": "Stage 5 — PIM / CIM",
+      "topic_goal": "기존 NPU와 PIM/CIM의 data movement 차이와 핵심 trade-off를 설명한다.",
+      "minimum_required_understanding": ["Memory Wall", "SRAM-CIM과 DRAM-PIM", "Digital CIM과 Analog CIM", "precision, energy, area trade-off"],
+      "exit_criteria": [
+        {
+          "text": "기존 NPU와 PIM/CIM의 compute 위치와 data movement 차이를 설명한다.",
+          "evidence_groups": [["NPU"], ["PIM", "CIM"], ["data movement", "데이터 이동"]]
+        },
+        {
+          "text": "SRAM-CIM 또는 DRAM-PIM의 이점과 비용을 하나 이상 비교한다.",
+          "evidence_groups": [["SRAM-CIM", "DRAM-PIM"], ["trade-off", "비용", "제약"]]
+        }
+      ],
+      "blocking_question_keywords": ["Memory Wall", "PIM", "CIM", "data movement", "precision", "energy", "area"],
+      "optional_question_keywords": ["ADC circuit", "DAC circuit", "device nonlinearity", "mapping algorithm"],
+      "optional_deep_dive": ["ADC/DAC transistor-level circuit", "device nonlinearity model", "고급 mapping algorithm"],
+      "next_roadmap_topic": "중심 Foundational Paper의 claim map과 architecture walkthrough"
+    },
+    {
+      "id": "paper-analysis-foundations",
+      "progress_topics": ["Foundational Papers", "KAIST SSL Lab Papers", "Paper Analysis"],
+      "domains": ["paper"],
+      "roadmap_stage": "Stage 6 — Foundational Papers",
+      "topic_goal": "중심 논문의 problem, claim, architecture, evidence와 limitation을 연결해 설명한다.",
+      "minimum_required_understanding": ["problem과 prior-work gap", "key claim", "architecture와 data path", "baseline, result, limitation"],
+      "exit_criteria": [
+        {
+          "text": "논문의 problem, prior-work gap과 key claim을 자기 언어로 설명한다.",
+          "evidence_groups": [["problem", "문제"], ["gap", "한계"], ["claim", "주장"]]
+        },
+        {
+          "text": "핵심 architecture와 result를 연결하고 limitation을 하나 이상 제시한다.",
+          "evidence_groups": [["architecture", "구조"], ["result", "결과"], ["limitation", "제약"]]
+        }
+      ],
+      "blocking_question_keywords": ["problem", "gap", "claim", "architecture", "baseline", "result", "limitation"],
+      "optional_question_keywords": ["full reproduction", "모든 수식", "전체 번역"],
+      "optional_deep_dive": ["논문 전체 재현", "모든 수식 유도", "전문 전체 번역"],
+      "next_roadmap_topic": "관련 논문 비교와 Research Portfolio"
+    }
+  ]
+}

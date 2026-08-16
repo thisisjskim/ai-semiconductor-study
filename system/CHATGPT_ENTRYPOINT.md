@@ -10,7 +10,7 @@
 
 이 문서는 일반 ChatGPT 채팅에서 연결된 GitHub plugin 또는 connector로 읽는 진입점이다. 특정 tool 이름이 항상 존재한다고 가정하지 않는다. 현재 환경이 제공하는 실제 GitHub repository file-read 기능을 사용한다.
 
-이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot의 Current Topic, Open Questions, Next Action만으로 학습을 즉시 시작할 수 있다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
+이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot의 Roadmap Position, Exit Criteria, Blocking Gaps, Recommended Next Move만으로 학습을 즉시 시작할 수 있다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
 
 학습·복습·현재 상태·다음 주제·논문 재개 요청에서는 자연어 답변보다 저장소 읽기를 먼저 실행한다. GitHub tool을 실제로 호출하지 않은 상태에서 저장소에 접근할 수 없다고 말하거나 사용자에게 파일 내용을 붙여 달라고 요청하지 않는다. 호출이 실패하면 사용한 tool, repository, ref, path와 실제 오류를 밝히며, 오류 응답 없이 접근 실패를 추측하지 않는다.
 
@@ -34,11 +34,20 @@
 
 ## 세션 시작
 
-1. snapshot의 Current Topic, Roadmap stage, 확인된 이해, 미완료 점검, Open Questions, Next Actions를 구분한다.
-2. 현재 위치를 3~6줄로 짧게 요약한다.
-3. 우선순위가 가장 높은 미해결 질문 또는 Next Action에서 작은 Learning Unit 하나를 제안한다.
-4. 사용자가 다른 주제를 요청하지 않았다면 선택 질문을 길게 늘어놓지 말고 그 unit의 첫 설명이나 짧은 점검 질문으로 바로 시작한다.
-5. 저장소 기록과 사용자의 현재 설명이 다르면 차이를 알리고 현재 설명을 새 evidence로 취급하되 기존 기록을 몰래 고치지 않는다.
+1. snapshot의 Roadmap Position, Topic Goal, Exit Criteria와 Evidence of Completion을 확인한다.
+2. Blocking Gaps와 Optional Open Questions를 구분하고 최근 Learning Log의 Next Action을 자동으로 최우선시하지 않는다.
+3. Recommended Next Move에 따라 다음 중 하나를 고른다.
+   - `continue`: 현재 topic의 blocking gap 중 가장 작은 Learning Unit을 계속한다.
+   - `review_then_advance`: 남은 한 가지를 짧게 확인한 뒤 Next Roadmap Topic으로 이동한다.
+   - `advance`: 현재 topic을 더 파고들지 않고 Next Roadmap Topic을 시작한다.
+   - `optional_deep_dive`: 사용자가 명시적으로 더 깊게 학습하길 요청한 경우에만 고른다.
+4. 현재 위치와 선택 이유를 3~6줄로 짧게 요약한다.
+5. 사용자가 다른 주제를 요청하지 않았다면 선택 질문을 길게 늘어놓지 말고 선택한 작은 Learning Unit 하나의 첫 설명이나 짧은 점검 질문으로 바로 시작한다.
+6. 저장소 기록과 사용자의 현재 설명이 다르면 차이를 알리고 현재 설명을 새 evidence로 취급하되 기존 기록을 몰래 고치지 않는다.
+
+기본 정책은 `Progression over Exhaustiveness`다. 모든 open question을 해결하거나 100% mastery를 달성할 때까지 한 topic에 머물지 않는다. Exit Criteria를 충족하면 다음 Roadmap topic으로 진행하고, 더 깊은 circuit·device 질문은 Optional Open Questions에 보존한다. 이후 논문이나 architecture에서 실제 prerequisite gap으로 다시 나타나면 spiral learning으로 돌아온다.
+
+`roadmap/LEARNING_BOUNDARIES.json`은 `roadmap/ROADMAP.md`의 운영용 companion이다. snapshot에 boundary 누락·파싱 오류·evidence 충돌이 표시되면 추측해 진행하지 말고 해당 두 roadmap 파일과 실제 Learning Log를 확인한다. keyword 기반 Evidence of Completion은 보수적인 자동 후보 판정이지 사용자의 완전한 숙련 보장이 아니다.
 
 `state/PROGRESS_RECONCILIATION.md`에 pending proposal이 있어도 이를 승인으로 간주하지 않는다. 사용자가 제안 항목과 evidence를 검토해 명시적으로 승인한 경우에만 Codex의 branch → 테스트 → Pull Request 흐름으로 `roadmap/PROGRESS.md` 반영을 요청한다. 일반 학습 대화나 Learning Log 저장 승인을 progress 변경 승인으로 확대 해석하지 않는다.
 

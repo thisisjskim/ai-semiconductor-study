@@ -5,6 +5,9 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 ## v0.3.0 — Current
 
 ### Added
+- Roadmap topic별 Learning Objective, Minimum Required Understanding, Exit Criteria, Optional Deep Dive와 Next Topic을 정의하는 boundary 계약
+- Progress와 Learning Log evidence를 함께 비교해 `continue`, `review_then_advance`, `advance`를 만드는 Roadmap-aware planner
+- Blocking Gap과 Optional Open Question 분리 및 progression-over-exhaustiveness / spiral learning 세션 규칙
 - Learning Log 저장 확인 뒤 별도 사용자 승인으로 실행하는 `[progress-update]` Issue 계약
 - `roadmap/PROGRESS.md`의 최신 blob SHA와 Learning Log evidence 경로를 확인하는 Progress 전용 Python 검증기
 - `Current Stage`, `Current Topic`, Dashboard `Not Started → Learning`, 필요한 `Last Updated`만 반영하는 GitHub Actions

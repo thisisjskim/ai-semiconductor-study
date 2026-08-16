@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 from pathlib import Path
 
@@ -15,9 +16,12 @@ def note(
     date: str = "2026-08-12",
     stage: str = "Stage 3 — Memory",
     concepts: int = 10,
+    understanding: str = "기본 이해",
+    questions: tuple[str, ...] = ("unresolved one", "unresolved two"),
 ) -> str:
     concept_lines = "\n".join(f"- concept {index}" for index in range(concepts))
     action_lines = "\n".join(f"{index}. action {index}" for index in range(1, 9))
+    question_lines = "\n".join(f"- {item}" for item in questions)
     return f"""# 학습 기록: {topic}
 
 ## Metadata
@@ -31,7 +35,7 @@ def note(
 목적
 
 ## 2. 오늘 이해한 내용
-내용
+{understanding}
 
 ## 3. 핵심 개념
 {concept_lines}
@@ -47,8 +51,7 @@ def note(
 
 ## 7. 질문
 ### 해결되지 않은 질문
-- unresolved one
-- unresolved two
+{question_lines}
 ### 해결된 질문
 - resolved must not appear
 
@@ -76,6 +79,39 @@ def write_fixture(root: Path, relative: str, content: str) -> None:
 
 def setup_root(root: Path) -> None:
     write_fixture(root, "roadmap/ROADMAP.md", "# Roadmap\n")
+    boundary = {
+        "version": 1,
+        "policy": "progression-over-exhaustiveness",
+        "boundaries": [
+            {
+                "id": "sram-foundations",
+                "progress_topics": ["SRAM"],
+                "domains": ["sram"],
+                "roadmap_stage": "Stage 3 — Memory",
+                "topic_goal": "SRAM 기본 동작을 설명한다.",
+                "minimum_required_understanding": ["Read Disturb", "Cell Ratio"],
+                "exit_criteria": [
+                    {
+                        "text": "Read Disturb를 설명한다.",
+                        "evidence_groups": [["Read Disturb"]],
+                    },
+                    {
+                        "text": "Cell Ratio와 read stability 관계를 설명한다.",
+                        "evidence_groups": [["Cell Ratio"], ["read stability"]],
+                    },
+                ],
+                "blocking_question_keywords": ["Read Disturb", "Cell Ratio"],
+                "optional_question_keywords": ["Sense Amplifier topology"],
+                "optional_deep_dive": ["advanced Sense Amplifier topology"],
+                "next_roadmap_topic": "SRAM/DRAM 비교",
+            }
+        ],
+    }
+    write_fixture(
+        root,
+        "roadmap/LEARNING_BOUNDARIES.json",
+        json.dumps(boundary, ensure_ascii=False),
+    )
     write_fixture(
         root,
         "roadmap/PROGRESS.md",
@@ -83,7 +119,7 @@ def setup_root(root: Path) -> None:
         "|---|---|\n"
         "| SRAM / DRAM / eDRAM | Not Started |\n"
         "- Current Stage: Not Started\n"
-        "- Current Topic: 아직 지정되지 않음\n",
+        "- Current Topic: SRAM\n",
     )
 
 
@@ -98,6 +134,8 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert "github.event.workflow_run.conclusion == 'success'" in workflow
     assert "group: research-os-main" in workflow
     assert '- "roadmap/PROGRESS.md"' in workflow
+    assert '- "roadmap/ROADMAP.md"' in workflow
+    assert '- "roadmap/LEARNING_BOUNDARIES.json"' in workflow
     assert "python -B scripts/test_build_learning_context.py" in workflow
     assert "python -B scripts/build_learning_context.py" in workflow
     assert 'git add -- state/CURRENT_LEARNING_CONTEXT.md' in workflow
@@ -160,7 +198,7 @@ def main() -> int:
         second = context.build_context(root)
         assert first == second
         assert "`learning-logs/2026/08/z-latest.md`" in first
-        assert "Current Topic: Latest Z" in first
+        assert "Current Topic: SRAM" in first
         assert "unresolved one" in first and "unresolved two" in first
         assert "resolved must not appear" not in first
         assert "weak one" in first and "weak two" in first
@@ -174,6 +212,14 @@ def main() -> int:
             "## 현재 확인된 핵심 개념", 1
         )[0]
         assert same_date.index("a-latest.md") < same_date.index("z-latest.md")
+        assert "## Roadmap Position" in first
+        assert "## Topic Goal" in first
+        assert "## Exit Criteria" in first
+        assert "## Blocking Gaps" in first
+        assert "## Optional Open Questions" in first
+        assert "## Recommended Next Move" in first
+        assert "## Next Roadmap Topic" in first
+        assert "Decision: **continue**" in first
         assert "Roadmap reconciliation: **pending**" in first
         assert "dashboard 상태가 Not Started" in first
 
@@ -185,6 +231,58 @@ def main() -> int:
             Path.glob = original_glob
         assert reordered == first
 
+    # Scenario A: a roadmap-required Cell Ratio gap remains.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "learning-logs/2026/08/a.md",
+            note(
+                understanding="Read Disturb를 설명했다.",
+                questions=("Cell Ratio는 read stability와 어떤 관계인가?",),
+            ),
+        )
+        plan = context.build_context(root)
+        assert "- [x] Read Disturb를 설명한다." in plan
+        assert "- [ ] Cell Ratio와 read stability 관계를 설명한다." in plan
+        assert "우선 학습: Cell Ratio와 read stability 관계를 설명한다." in plan
+
+    # Scenario B/C: optional depth does not block advancement after all exit criteria.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "learning-logs/2026/08/a.md",
+            note(
+                understanding="Read Disturb와 Cell Ratio가 read stability를 좌우한다.",
+                questions=("advanced Sense Amplifier topology는 무엇인가?",),
+            ),
+        )
+        plan = context.build_context(root)
+        assert "Decision: **advance**" in plan
+        assert "advanced Sense Amplifier topology는 무엇인가?" in plan
+        assert "우선 학습: SRAM/DRAM 비교" in plan
+
+    # Scenario D: one remaining criterion produces a brief review then advance.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "learning-logs/2026/08/a.md",
+            note(understanding="Read Disturb를 설명했다.", questions=()),
+        )
+        plan = context.build_context(root)
+        assert "Decision: **review_then_advance**" in plan
+
+    # Scenario E is a session policy: deep dive is selectable only on explicit request.
+    repository_root = Path(__file__).resolve().parents[1]
+    entrypoint = (repository_root / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
+    assert "optional_deep_dive" in entrypoint
+    assert "명시적으로" in entrypoint
+
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
         setup_root(root)
@@ -194,7 +292,6 @@ def main() -> int:
         assert "Roadmap reconciliation: **not-needed**" in empty
         assert "research-os" in empty
 
-    repository_root = Path(__file__).resolve().parents[1]
     assert_workflow_contract(repository_root)
     print("All learning context tests passed")
     return 0
