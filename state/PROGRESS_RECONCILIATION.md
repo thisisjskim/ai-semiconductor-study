@@ -3,7 +3,7 @@
 > 이 문서는 Learning Log evidence와 `roadmap/PROGRESS.md`를 비교해 자동 생성한 검토용 제안서다. `roadmap/PROGRESS.md`를 수정하지 않으며, 아래 변경은 사용자 승인 후 별도 branch와 Pull Request에서만 적용한다.
 
 - Proposal status: **pending-approval**
-- Latest evidence date: 2026-08-14
+- Latest evidence date: 2026-08-15
 - Maximum automatic status proposal: **Learning**
 
 ## 현재 포커스 변경 제안
@@ -11,13 +11,13 @@
 | Field | 현재 값 | 제안 값 |
 | --- | --- | --- |
 | Current Stage | Stage 3 — Memory | Stage 3 — Memory |
-| Current Topic | Register와 SRAM 회로 기초 | SRAM Read Disturb와 Cell Stability |
+| Current Topic | Register와 SRAM 회로 기초 | SRAM Cell Ratio와 SNM |
 
 ## Dashboard 변경 제안
 
 | Stage | 상태 제안 | 근거 Learning Log |
 | --- | --- | --- |
-| SRAM / DRAM / eDRAM | `Learning` 유지 | `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`, `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md` |
+| SRAM / DRAM / eDRAM | `Learning` 유지 | `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`, `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`, `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md` |
 
 ## 판단 제한
 
@@ -34,6 +34,7 @@
 - `roadmap/PROGRESS.md`
 - `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`
 - `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`
+- `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`
 
 ## 제외한 기록과 이유
 
