@@ -57,12 +57,36 @@ system/CHATGPT_ENTRYPOINT.md
 
 entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Roadmap Position, Exit Criteria, Blocking Gaps, Optional Open Questions와 Recommended Next Move를 제공합니다. 이 두 파일만으로 작은 학습 단위 하나를 바로 시작할 수 있습니다.
 
+아래 그림은 사용자가 이 과정을 이해하기 위한 안내도다. ChatGPT의 필수 입력은 아니며, 실제 동작 규칙은 `system/CHATGPT_ENTRYPOINT.md`와 생성된 context에 둔다.
+
+```mermaid
+flowchart TD
+    A["사용자: 지난 학습부터 이어가자"] --> B["CHATGPT_ENTRYPOINT.md 읽기"]
+    B --> C["CURRENT_LEARNING_CONTEXT.md 읽기"]
+    C --> D["Roadmap 위치와 Topic 목표 확인"]
+    D --> E["Exit Criteria와 Learning Log evidence 비교"]
+    E --> F["미해결 질문을 Blocking / Optional로 분류"]
+    F --> G{"필수 학습이 얼마나 남았는가?"}
+    G -- "2개 이상" --> H["continue: 현재 Topic 계속"]
+    G -- "1개" --> I["review_then_advance: 짧게 확인 후 이동"]
+    G -- "없음" --> J["advance: 다음 Roadmap Topic으로 이동"]
+    F --> K{"사용자가 심화 학습을 명시적으로 요청했는가?"}
+    K -- "예" --> L["optional_deep_dive"]
+    K -- "아니요" --> M["Optional 질문은 보존하고 기본 Roadmap 진행"]
+    H --> N["작은 Learning Unit 시작"]
+    I --> N
+    J --> N
+    L --> N
+    M --> N
+```
+
 정확한 근거가 필요할 때만 snapshot이 가리키는 실제 Learning Log를 읽습니다. 현재 위치 판단이 더 필요하면 `roadmap/PROGRESS.md`, 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽습니다. repository 전체나 월별 파일 목록을 매번 조회하지 않습니다.
 
-사용자는 다음 정도만 말하면 됩니다.
+PR이 `main`에 반영된 뒤 사용자는 다음 정도만 말하면 됩니다.
 
 ```text
-GitHub의 ai-semiconductor-study 기반으로 공부 시작하자.
+GitHub의 thisisjskim/ai-semiconductor-study main branch에서
+system/CHATGPT_ENTRYPOINT.md를 읽고 그 규칙대로 지난 학습부터 이어가자.
 ```
 
 일반 ChatGPT는 repository root의 이 안내에서 `system/CHATGPT_ENTRYPOINT.md`를 찾아 session protocol을 적용해야 합니다.
