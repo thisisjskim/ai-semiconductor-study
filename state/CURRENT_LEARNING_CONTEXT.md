@@ -2,19 +2,20 @@
 
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
-- Last generated date: 2026-08-16
+- Last generated date: 2026-08-15
 - Roadmap reconciliation: **aligned**
 
 ## 현재 상태
 
-- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-16-sram-read-path-fundamentals.md`
+- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
 - Current Topic: SRAM Read Path Fundamentals
 - Domain: sram
 - Roadmap stage: Stage 3 — Memory
 
 ### 같은 날짜의 의미 있는 학습 단위
 
-- `learning-logs/2026/08/2026-08-16-sram-read-path-fundamentals.md` — SRAM Read Path Fundamentals
+- `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md` — SRAM Cell Ratio와 SNM
+- `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md` — SRAM Read Path Fundamentals
 
 ## 현재 확인된 핵심 개념
 
@@ -57,4 +58,5 @@
 
 - `roadmap/ROADMAP.md`
 - `roadmap/PROGRESS.md`
-- `learning-logs/2026/08/2026-08-16-sram-read-path-fundamentals.md`
+- `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`
+- `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
