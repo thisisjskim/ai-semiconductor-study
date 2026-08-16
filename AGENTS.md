@@ -19,6 +19,8 @@
 - **상태 진단**: `state/CURRENT_LEARNING_CONTEXT.md`, `state/PROGRESS_RECONCILIATION.md`, `roadmap/PROGRESS.md`, 실제 Learning Log를 비교한다. 사실과 추론, 충돌을 구분하고 승인 없이 상태표를 수정하지 않는다.
 - **Research OS 개발**: 정책, 계약, workflow, script와 테스트를 실제로 읽고 별도 branch에서 변경한다.
 
+Pull Request의 제목, 본문과 사용자에게 제공하는 변경 설명은 사용자가 달리 요청하지 않는 한 한국어로 작성한다.
+
 Learning Log 저장은 사용자 승인 후 Issue → Actions → `learning-logs/**` 경로를 사용한다. OS 코드·지침·상태 문서의 개발 변경은 branch → 테스트 → 검토 → PR → `main` merge 경로를 사용하며 `main`에 직접 넣지 않는다.
 
 기존 기록이나 상태를 근거 없이 수정하지 말고, 경로와 파일 존재 여부를 확인한다. 이 파일에는 정책을 길게 복사하지 않는다. 세부 규칙은 위 canonical 문서를 참조한다.
