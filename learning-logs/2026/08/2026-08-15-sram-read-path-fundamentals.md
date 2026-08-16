@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- Date: 2026-08-16
+- Date: 2026-08-15
 - Topic: SRAM Read Path Fundamentals
 - Document type: learning-log
 - Domain: sram
