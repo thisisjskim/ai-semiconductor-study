@@ -63,6 +63,12 @@
 - 이유: blocking gap 하나만 짧게 확인한 뒤 다음 Roadmap topic으로 이동한다.
 - 우선 학습: Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다.
 
+## Required Source Before First Learning Unit
+
+- `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`
+- 이유: 첫 Blocking Gap과 가장 가까운 저장 evidence를 확인해 사용자의 실제 설명 수준에 맞춘다.
+- 이 source를 읽기 전에는 일반 지식만으로 첫 설명이나 진단 질문을 만들지 않는다.
+
 ## Next Roadmap Topic
 
 - SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결

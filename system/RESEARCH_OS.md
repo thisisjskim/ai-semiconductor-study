@@ -176,6 +176,8 @@ Roadmap은 강제 syllabus가 아니라 navigation map이다. 기초 학습 → 
 
 기본 정책은 `Progression over Exhaustiveness`다. Exit Criteria를 막는 질문은 Blocking Gap, 현재 진행에 필수적이지 않은 심화 질문은 Optional Open Question으로 분류한다. Blocking Gap이 없으면 다음 topic으로 이동하고, 하나만 남으면 짧게 복습한 뒤 이동한다. Optional Deep Dive는 사용자가 명시적으로 요청하거나 장기 목표에 필요한 근거가 있을 때만 기본 경로에 넣는다. 이후 실제 논문에서 prerequisite gap이 드러나면 spiral learning으로 이전 topic에 돌아올 수 있다.
 
+새 채팅의 snapshot은 위치와 방향을 정하는 index이지 사용자의 실제 설명을 대체하는 source가 아니다. 첫 Learning Unit 전에는 snapshot이 지정한 가장 가까운 Learning Log 또는 next-topic boundary를 한 번 더 읽는다. 사용자의 기존 설명 수준을 확인하지 않은 채 모델의 일반 지식만으로 진단 질문을 만들지 않으며, 사용자가 퀴즈를 요청하지 않았다면 짧은 연결 설명과 예시 뒤에 자기 설명을 요청한다.
+
 `state/PROGRESS_RECONCILIATION.md`는 유효한 Learning Log와 `roadmap/PROGRESS.md`를 비교해 만든 검토용 제안서다. Learning Log가 존재한다는 이유만으로 `Review`나 `Completed`를 판단하지 않으며, 자동 제안은 최대 `Learning`까지로 제한한다. 단일 Learning Log가 증명할 수 없는 execution phase, deliverable, bottleneck, next milestone과 deadline은 자동 제안하지 않는다. Progress가 최신 Learning Log보다 새로우면 과거 evidence로 현재 focus를 되돌리지 않는다. 이 제안서는 `roadmap/PROGRESS.md`를 직접 수정하지 않는다. 실제 반영은 사용자가 stage, topic, status와 evidence를 확인해 별도로 승인한 뒤 `[progress-update]` Issue와 검증 workflow를 통해 수행한다.
 
 ## 11. Ultimate Principle

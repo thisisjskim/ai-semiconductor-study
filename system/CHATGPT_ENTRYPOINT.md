@@ -10,7 +10,7 @@
 
 이 문서는 일반 ChatGPT 채팅에서 연결된 GitHub plugin 또는 connector로 읽는 진입점이다. 특정 tool 이름이 항상 존재한다고 가정하지 않는다. 현재 환경이 제공하는 실제 GitHub repository file-read 기능을 사용한다.
 
-이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot의 Roadmap Position, Exit Criteria, Blocking Gaps, Recommended Next Move만으로 학습을 즉시 시작할 수 있다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
+이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot으로 Roadmap Position, Exit Criteria, Blocking Gaps와 Recommended Next Move를 정한다. 첫 Learning Unit을 시작하기 전에는 snapshot의 `Required Source Before First Learning Unit`에 적힌 source를 추가로 읽는다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
 
 학습·복습·현재 상태·다음 주제·논문 재개 요청에서는 자연어 답변보다 저장소 읽기를 먼저 실행한다. GitHub tool을 실제로 호출하지 않은 상태에서 저장소에 접근할 수 없다고 말하거나 사용자에게 파일 내용을 붙여 달라고 요청하지 않는다. 호출이 실패하면 사용한 tool, repository, ref, path와 실제 오류를 밝히며, 오류 응답 없이 접근 실패를 추측하지 않는다.
 
@@ -18,15 +18,16 @@
 
 ## Context 읽기 순서
 
-1. 항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고 학습을 시작한다.
-2. 현재 주제의 정확한 근거가 필요하면 snapshot에 명시된 실제 Learning Log를 읽는다.
-3. 현재 위치 판단에 추가 정보가 필요하면 `roadmap/PROGRESS.md`를 읽는다.
-4. reconciliation이 pending이면 `state/PROGRESS_RECONCILIATION.md`를 읽는다.
-5. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
-6. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
-7. 저장 작업이 필요하면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`를 먼저 읽고, 그 문서가 지정한 authoring guide와 template을 다시 확인한다.
+1. 항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고 현재 위치와 추천 방향을 정한다.
+2. 첫 Learning Unit의 설명이나 질문을 만들기 전에 snapshot의 `Required Source Before First Learning Unit`에 적힌 source를 반드시 읽는다.
+3. 현재 주제의 다른 정확한 근거가 필요하면 snapshot에 명시된 추가 Learning Log를 읽는다.
+4. 현재 위치 판단에 추가 정보가 필요하면 `roadmap/PROGRESS.md`를 읽는다.
+5. reconciliation이 pending이면 `state/PROGRESS_RECONCILIATION.md`를 읽는다.
+6. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
+7. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
+8. 저장 작업이 필요하면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`를 먼저 읽고, 그 문서가 지정한 authoring guide와 template을 다시 확인한다.
 
-2번 이후의 조회는 필요할 때만 수행한다. 여러 파일을 연속으로 읽지 못한다는 이유로 학습 시작을 거부하거나 사용자에게 파일별 호출을 요구하지 않는다.
+2번은 첫 학습 단위의 grounding을 위한 필수 조회다. 3번 이후는 필요할 때만 수행한다. 여러 파일을 연속으로 읽지 못한다는 이유로 학습 시작을 거부하거나 사용자에게 파일별 호출을 요구하지 않는다.
 
 매 대화마다 저장소 전체를 읽지 않는다. 먼저 `scripts/build_learning_context.py`가 생성한 짧은 derived state인 `state/CURRENT_LEARNING_CONTEXT.md`를 사용하고, 현재 주제·약한 부분·미해결 질문을 뒷받침하는 source file을 확인한다. 이 snapshot은 Learning Log 저장과 분리된 workflow가 갱신하며 `roadmap/PROGRESS.md`는 자동 변경하지 않는다. 파일 경로나 학습 상태를 추측하지 않는다.
 
@@ -36,14 +37,15 @@
 
 1. snapshot의 Roadmap Position, Topic Goal, Exit Criteria와 Evidence of Completion을 확인한다.
 2. Blocking Gaps와 Optional Open Questions를 구분하고 최근 Learning Log의 Next Action을 자동으로 최우선시하지 않는다.
-3. Recommended Next Move에 따라 다음 중 하나를 고른다.
+3. `Required Source Before First Learning Unit`을 실제로 읽고, 사용자가 이미 설명한 내용·수정된 오해·아직 설명하지 못한 부분을 구분한다. 이 source를 읽지 않은 채 모델의 일반 지식만으로 첫 질문을 만들지 않는다.
+4. Recommended Next Move에 따라 다음 중 하나를 고른다.
    - `continue`: 현재 topic의 blocking gap 중 가장 작은 Learning Unit을 계속한다.
    - `review_then_advance`: 남은 한 가지를 짧게 확인한 뒤 Next Roadmap Topic으로 이동한다.
    - `advance`: 현재 topic을 더 파고들지 않고 Next Roadmap Topic을 시작한다.
    - `optional_deep_dive`: 사용자가 명시적으로 더 깊게 학습하길 요청한 경우에만 고른다.
-4. 현재 위치와 선택 이유를 3~6줄로 짧게 요약한다.
-5. 사용자가 다른 주제를 요청하지 않았다면 선택 질문을 길게 늘어놓지 말고 선택한 작은 Learning Unit 하나의 첫 설명이나 짧은 점검 질문으로 바로 시작한다.
-6. 저장소 기록과 사용자의 현재 설명이 다르면 차이를 알리고 현재 설명을 새 evidence로 취급하되 기존 기록을 몰래 고치지 않는다.
+5. 현재 위치, source에서 확인한 사용자 evidence와 선택 이유를 3~6줄로 짧게 요약한다.
+6. 선택한 작은 Learning Unit 하나를 시작할 때, 사용자가 퀴즈나 테스트부터 요청하지 않았다면 짧은 연결 설명과 쉬운 예시를 먼저 제공한 뒤 자기 설명 질문을 하나만 한다. 저장된 evidence로 이미 설명한 내용을 그대로 다시 강의하지 않는다.
+7. 저장소 기록과 사용자의 현재 설명이 다르면 차이를 알리고 현재 설명을 새 evidence로 취급하되 기존 기록을 몰래 고치지 않는다.
 
 기본 정책은 `Progression over Exhaustiveness`다. 모든 open question을 해결하거나 100% mastery를 달성할 때까지 한 topic에 머물지 않는다. Exit Criteria를 충족하면 다음 Roadmap topic으로 진행하고, 더 깊은 circuit·device 질문은 Optional Open Questions에 보존한다. 이후 논문이나 architecture에서 실제 prerequisite gap으로 다시 나타나면 spiral learning으로 돌아온다.
 

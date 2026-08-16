@@ -218,8 +218,13 @@ def main() -> int:
         assert "## Blocking Gaps" in first
         assert "## Optional Open Questions" in first
         assert "## Recommended Next Move" in first
+        assert "## Required Source Before First Learning Unit" in first
         assert "## Next Roadmap Topic" in first
         assert "Decision: **continue**" in first
+        required_source = first.split(
+            "## Required Source Before First Learning Unit", 1
+        )[1].split("## Next Roadmap Topic", 1)[0]
+        assert "z-latest.md" in required_source
         assert "Roadmap reconciliation: **pending**" in first
         assert "dashboard 상태가 Not Started" in first
 
@@ -264,6 +269,9 @@ def main() -> int:
         assert "Decision: **advance**" in plan
         assert "advanced Sense Amplifier topology는 무엇인가?" in plan
         assert "우선 학습: SRAM/DRAM 비교" in plan
+        assert "`roadmap/LEARNING_BOUNDARIES.json`" in plan.split(
+            "## Required Source Before First Learning Unit", 1
+        )[1].split("## Next Roadmap Topic", 1)[0]
 
     # Scenario D: one remaining criterion produces a brief review then advance.
     with tempfile.TemporaryDirectory() as temp:
@@ -276,12 +284,24 @@ def main() -> int:
         )
         plan = context.build_context(root)
         assert "Decision: **review_then_advance**" in plan
+        assert "`learning-logs/2026/08/a.md`" in plan.split(
+            "## Required Source Before First Learning Unit", 1
+        )[1].split("## Next Roadmap Topic", 1)[0]
 
     # Scenario E is a session policy: deep dive is selectable only on explicit request.
     repository_root = Path(__file__).resolve().parents[1]
     entrypoint = (repository_root / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
     assert "optional_deep_dive" in entrypoint
     assert "명시적으로" in entrypoint
+    assert "Required Source Before First Learning Unit" in entrypoint
+    assert "모델의 일반 지식만으로 첫 질문을 만들지 않는다" in entrypoint
+    assert "짧은 연결 설명과 쉬운 예시를 먼저 제공한 뒤" in entrypoint
+
+    actual = context.build_context(repository_root)
+    actual_required_source = actual.split(
+        "## Required Source Before First Learning Unit", 1
+    )[1].split("## Next Roadmap Topic", 1)[0]
+    assert "2026-08-12-register-sram-circuits.md" in actual_required_source
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
