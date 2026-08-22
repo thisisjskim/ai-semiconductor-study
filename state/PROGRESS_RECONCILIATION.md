@@ -5,7 +5,7 @@
 - Proposal status: **pending-approval**
 - Latest evidence date: 2026-08-22
 - Maximum automatic status proposal: **Learning**
-- Decision basis: 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
+- Decision basis: 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함; NPU Architecture에 학습 evidence가 있지만 dashboard 상태가 Not Started임
 
 ## 현재 포커스 변경 제안
 
@@ -19,6 +19,7 @@
 | --- | --- | --- |
 | Memory Architecture | `Learning` 유지 | `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`, `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` |
 | SRAM / DRAM / eDRAM | `Learning` 유지 | `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`, `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`, `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md` |
+| NPU Architecture | `Not Started` → `Learning` | `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` |
 
 ## 판단 제한
 
@@ -38,6 +39,7 @@
 - `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`
 - `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`
 - `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
+- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
 - `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`
 - `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`
 
