@@ -77,7 +77,7 @@ jobs:
 
       - name: Preflight Learning Log
         run: |
-          python scripts/ingest_learning_log.py \
+          python -B scripts/ingest_learning_log.py \
             --payload "$RUNNER_TEMP/ingest-payload.json" \
             --root . \
             --validate-only
@@ -85,7 +85,7 @@ jobs:
       - name: Ingest Learning Log
         id: ingest
         run: |
-          python scripts/ingest_learning_log.py \
+          python -B scripts/ingest_learning_log.py \
             --payload "$RUNNER_TEMP/ingest-payload.json" \
             --root . \
             --report "$RUNNER_TEMP/ingest-report.md" \
