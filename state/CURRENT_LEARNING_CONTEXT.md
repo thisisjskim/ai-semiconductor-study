@@ -15,6 +15,7 @@
 
 ### 같은 날짜의 의미 있는 학습 단위
 
+- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` — NPU PE Array, Systolic Array와 Matrix Tiling
 - `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md` — NPU SRAM Data Reuse와 Dataflow
 - `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` — SRAM-DRAM 구조 비교와 DRAM Sense Amplifier
 
@@ -96,7 +97,7 @@
 
 ## Roadmap reconciliation
 
-- 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
+- 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함; NPU Architecture에 학습 evidence가 있지만 dashboard 상태가 Not Started임
 - `roadmap/PROGRESS.md`는 자동 수정하지 않음
 
 ## 제외한 기록과 이유
