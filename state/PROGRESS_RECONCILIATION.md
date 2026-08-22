@@ -40,6 +40,7 @@
 ## 제외한 기록과 이유
 
 - `learning-logs/2026/08/2026-08-09-memory-hierarchy-data-reuse.md` — 필수 Metadata 누락: Document type, Domain, Roadmap stage
+- `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` — AI semiconductor 학습 domain이 아님: memory
 
 ## 승인 후 적용 절차
 
