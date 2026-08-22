@@ -11,6 +11,8 @@ import re
 import sys
 from pathlib import Path
 
+from learning_log_metadata import load_domain_policy
+
 
 TARGET_RE = re.compile(
     r"^learning-logs/(?P<year>\d{4})/(?P<month>\d{2})/"
@@ -47,6 +49,7 @@ HEADING_ALIASES = {
 FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
 MAX_ERROR_MESSAGE_LENGTH = 300
 ENVELOPE_KEYS = {"operation", "target_path", "expected_sha"}
+METADATA_RE = re.compile(r"^- (?P<key>[^:]+):\s*(?P<value>.*)$")
 
 
 class IngestError(RuntimeError):
@@ -134,6 +137,29 @@ def markdown_heading_lines(markdown: str) -> list[str]:
     return headings
 
 
+def markdown_metadata(markdown: str) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    in_metadata = False
+    for line in markdown.splitlines():
+        if line == "## Metadata":
+            in_metadata = True
+            continue
+        if in_metadata and line.startswith("## "):
+            break
+        if not in_metadata:
+            continue
+        match = METADATA_RE.fullmatch(line.strip())
+        if match:
+            key = match.group("key").strip()
+            if key in metadata:
+                raise IngestError(
+                    f"Learning Log Metadata에 중복 필드가 있습니다: {key}",
+                    "invalid-document-metadata",
+                )
+            metadata[key] = match.group("value").strip()
+    return metadata
+
+
 def normalize_headings(markdown: str) -> str:
     """Normalize only explicitly allowed independent heading aliases."""
     headings = markdown_heading_lines(markdown)
@@ -186,7 +212,7 @@ def validate_target(target_path: str) -> re.Match[str]:
     return match
 
 
-def validate_markdown(markdown: str) -> None:
+def validate_markdown(markdown: str, root: Path) -> None:
     if len(markdown) < 300:
         raise IngestError("학습 기록이 지나치게 짧습니다. 전체 Learning Log를 보내야 합니다.")
     if not markdown.startswith("# 학습 기록:"):
@@ -197,6 +223,23 @@ def validate_markdown(markdown: str) -> None:
         raise IngestError(
             "필수 section이 없습니다: " + ", ".join(f"`{item}`" for item in missing),
             "missing-required-heading",
+        )
+    metadata = markdown_metadata(markdown)
+    domain = metadata.get("Domain", "")
+    if not domain:
+        raise IngestError(
+            "Learning Log Metadata에 Domain이 필요합니다.",
+            "invalid-domain",
+        )
+    try:
+        domain_policy = load_domain_policy(root)
+    except ValueError as error:
+        raise IngestError(str(error), "invalid-metadata-schema") from error
+    if domain not in domain_policy.allowed_domains:
+        allowed = ", ".join(sorted(domain_policy.allowed_domains))
+        raise IngestError(
+            f"지원되지 않는 Domain metadata입니다: {domain}. 허용값: {allowed}",
+            "invalid-domain",
         )
 
 
@@ -223,7 +266,7 @@ def validate_payload(payload: dict, root: Path) -> tuple[str, str, str]:
         raise IngestError("Issue 제목과 target_path의 날짜가 다릅니다.")
     if title_match.group("slug") != target_match.group("slug"):
         raise IngestError("Issue 제목과 target_path의 slug가 다릅니다.")
-    validate_markdown(markdown)
+    validate_markdown(markdown, root)
 
     target = root / target_path
     if operation == "create":

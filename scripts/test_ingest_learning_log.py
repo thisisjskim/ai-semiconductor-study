@@ -21,6 +21,14 @@ def assert_rejected(action, message: str) -> ingest.IngestError:
     raise AssertionError(message)
 
 
+def install_metadata_schema(root: Path) -> None:
+    repository_root = Path(__file__).resolve().parents[1]
+    source = repository_root / "system/LEARNING_LOG_METADATA_SCHEMA.json"
+    target = root / "system/LEARNING_LOG_METADATA_SCHEMA.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+
 def assert_workflow_contract() -> None:
     workflow_path = (
         Path(__file__).resolve().parents[1]
@@ -208,12 +216,14 @@ def assert_learning_log_guidance_contract() -> None:
     assert "tool-independent" in guide
     assert "Custom GPT Action interface only" in guide
     assert "일반 plugin 저장의 선행 읽기 파일이 아니다" in guide
+    assert "system/LEARNING_LOG_METADATA_SCHEMA.json" in guide
 
     assert "evidence inventory" in authoring
     assert "assistant-explained" in authoring
     assert "claim-evidence" in authoring
     assert "과거 문장" in authoring
     assert "재사용하지 않는다" in authoring
+    assert "system/LEARNING_LOG_METADATA_SCHEMA.json" in authoring
     assert "32bit register" not in authoring
     assert not (root / "system/examples/GOOD_LEARNING_LOG_ISSUE.md").exists()
 
@@ -388,6 +398,21 @@ def run_cli(payload_data: dict, root: Path) -> tuple[subprocess.CompletedProcess
 def main() -> int:
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        install_metadata_schema(root)
+
+        invalid_domain = note().replace(
+            "- Domain: research-os", "- Domain: memory", 1
+        )
+        error = assert_rejected(
+            lambda: ingest.ingest(
+                payload("create", "new", invalid_domain), root
+            ),
+            "허용 목록에 없는 Domain이 거부되지 않았습니다.",
+        )
+        assert error.code == "invalid-domain"
+        assert "지원되지 않는 Domain metadata" in str(error)
+        assert "memory-architecture" in str(error)
+        assert not (root / "learning-logs/2026/08/2026-08-09-test.md").exists()
 
         path, operation = ingest.ingest(payload("create", "new", note()), root)
         assert operation == "create"
@@ -487,6 +512,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        install_metadata_schema(root)
         alias = "## 1. 오늘 공부한 목표"
         canonical = "## 1. 오늘 공부한 목적"
         alias_note = note().replace(canonical, alias, 1)
@@ -509,6 +535,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        install_metadata_schema(root)
         duplicate = note().replace(
             "## 1. 오늘 공부한 목적",
             "## 1. 오늘 공부한 목적\n\n## 1. 오늘 공부한 목표",
@@ -523,6 +550,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        install_metadata_schema(root)
         unsupported = note().replace(
             "## 1. 오늘 공부한 목적", "## 1. 오늘 학습한 목적", 1
         )
@@ -535,6 +563,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        install_metadata_schema(root)
         report_path = root / "report.md"
         output_path = root / "github-output.txt"
         script_path = Path(__file__).with_name("ingest_learning_log.py")
@@ -571,6 +600,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        install_metadata_schema(root)
         completed, _ = run_cli(payload("create", "new", note()), root)
         assert completed.returncode == 0, completed.stderr
         target = root / "learning-logs/2026/08/2026-08-09-test.md"
@@ -613,6 +643,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
+        install_metadata_schema(root)
         unsupported = note("SECRET-PAYLOAD-CONTENT").replace(
             "## 1. 오늘 공부한 목적", "## 1. 오늘 학습한 목적", 1
         )

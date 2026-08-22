@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 import build_learning_context as context
+from learning_log_metadata import load_domain_policy
 
 
 def note(
@@ -78,6 +79,11 @@ def write_fixture(root: Path, relative: str, content: str) -> None:
 
 
 def setup_root(root: Path) -> None:
+    repository_root = Path(__file__).resolve().parents[1]
+    schema = (
+        repository_root / "system/LEARNING_LOG_METADATA_SCHEMA.json"
+    ).read_text(encoding="utf-8")
+    write_fixture(root, "system/LEARNING_LOG_METADATA_SCHEMA.json", schema)
     write_fixture(root, "roadmap/ROADMAP.md", "# Roadmap\n")
     boundary = {
         "version": 1,
@@ -136,6 +142,7 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert '- "roadmap/PROGRESS.md"' in workflow
     assert '- "roadmap/ROADMAP.md"' in workflow
     assert '- "roadmap/LEARNING_BOUNDARIES.json"' in workflow
+    assert '- "system/LEARNING_LOG_METADATA_SCHEMA.json"' in workflow
     assert "python -B scripts/test_build_learning_context.py" in workflow
     assert "python -B scripts/build_learning_context.py" in workflow
     assert 'git add -- state/CURRENT_LEARNING_CONTEXT.md' in workflow
@@ -172,6 +179,11 @@ def main() -> int:
             "learning-logs/2026/08/invalid-structure.md",
             note(topic="Invalid Structure").replace("# 학습 기록:", "# 메모:", 1),
         )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/invalid-domain.md",
+            note(topic="Invalid Domain", domain="memory"),
+        )
 
         included, excluded = context.discover_logs(root)
         assert [item.topic for item in included] == ["Older", "Latest A", "Latest Z"]
@@ -191,6 +203,11 @@ def main() -> int:
         )
         assert any(
             path.endswith("invalid-structure.md") and "canonical" in reason
+            for path, reason in excluded
+        )
+        assert any(
+            path.endswith("invalid-domain.md")
+            and "지원되지 않는 Domain metadata" in reason
             for path, reason in excluded
         )
 
@@ -312,6 +329,13 @@ def main() -> int:
 
     # Scenario E is a session policy: deep dive is selectable only on explicit request.
     repository_root = Path(__file__).resolve().parents[1]
+    domain_policy = load_domain_policy(repository_root)
+    boundaries = context.load_boundaries(repository_root)
+    boundary_domains = {
+        domain for boundary in boundaries for domain in boundary.domains
+    }
+    assert domain_policy.learning_domains == boundary_domains
+    assert domain_policy.learning_domains == frozenset(context.DASHBOARD_LABELS)
     entrypoint = (repository_root / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
     assert "optional_deep_dive" in entrypoint
     assert "명시적으로" in entrypoint

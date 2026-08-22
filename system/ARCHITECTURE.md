@@ -10,6 +10,7 @@
 | GitHub Issue | 승인된 Learning Log 또는 Progress Update 요청과 versioned envelope를 전달하는 queue다. Issue 생성·닫기는 처리 완료가 아니다. |
 | GitHub Actions | Issue와 comments를 payload로 만들고 검증·저장·결과 회신을 연결하는 orchestration layer다. |
 | `scripts/ingest_learning_log.py` | Learning Log 저장의 canonical validation 및 Markdown 변환 구현이다. 작성자, 제목, envelope, 경로, 문서 형식, create/update와 SHA를 검사한다. |
+| `system/LEARNING_LOG_METADATA_SCHEMA.json` | Learning Log Domain의 단일 canonical enum이다. 작성 지침, 저장 validator와 context builder가 같은 값을 사용한다. |
 | `scripts/apply_progress_update.py` | 승인된 Progress 제안의 SHA, evidence, 허용 필드, 현재 값과 상태 전이를 검증하고 `roadmap/PROGRESS.md`만 수정한다. |
 | `scripts/progress_policy.py` | Current Learning Context와 Progress Reconciliation이 공유하는 stage/topic/dashboard 판정 규칙이다. Learning Log 제목은 evidence로만 취급하고 공식 topic 이동은 boundary 계약으로 결정한다. |
 | `learning-logs/**` | 사용자의 자기 설명, 오해 수정, 질문과 다음 행동을 보존하는 학습 evidence다. |
@@ -64,6 +65,7 @@ Canonical source는 판단을 다시 만들 수 있는 원본이다.
 - 일반 ChatGPT 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`
 - Custom GPT Action API schema: `system/ACTION_SCHEMA.yaml`
 - 저장 검증 구현: `scripts/ingest_learning_log.py`, `scripts/apply_progress_update.py`
+- Learning Log metadata enum: `system/LEARNING_LOG_METADATA_SCHEMA.json`
 - 장기 방향, topic depth boundary와 명시적 진행표: `roadmap/ROADMAP.md`, `roadmap/LEARNING_BOUNDARIES.json`, `roadmap/PROGRESS.md`
 - 학습 evidence: `learning-logs/**`
 - 기록 형식: `templates/**`

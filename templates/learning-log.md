@@ -5,7 +5,7 @@
 - Date:
 - Topic:
 - Document type: learning-log
-- Domain:
+- Domain: {system/LEARNING_LOG_METADATA_SCHEMA.json의 허용값 중 하나}
 - Roadmap stage:
 - Status: working
 - Source: conversation

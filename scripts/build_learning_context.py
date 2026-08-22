@@ -11,19 +11,10 @@ from datetime import date
 from pathlib import Path
 from typing import Iterable
 
+from learning_log_metadata import DomainPolicy, load_domain_policy
 from progress_policy import ProgressDecision, decide_progress
 
 
-AI_LEARNING_DOMAINS = {
-    "ai-computation",
-    "computer-architecture",
-    "memory-architecture",
-    "sram",
-    "dram",
-    "npu",
-    "pim-cim",
-    "paper",
-}
 REQUIRED_SECTIONS = (
     "## 1. 오늘 공부한 목적",
     "## 2. 오늘 이해한 내용",
@@ -128,7 +119,9 @@ def parse_metadata(sections: dict[str, str]) -> dict[str, str]:
     return metadata
 
 
-def classify_log(path: Path, root: Path) -> tuple[LearningLog | None, str | None]:
+def classify_log(
+    path: Path, root: Path, domain_policy: DomainPolicy
+) -> tuple[LearningLog | None, str | None]:
     relative = repository_path(path, root)
     try:
         markdown = path.read_text(encoding="utf-8")
@@ -152,10 +145,11 @@ def classify_log(path: Path, root: Path) -> tuple[LearningLog | None, str | None
     except ValueError:
         return None, "Date가 유효한 YYYY-MM-DD 형식이 아님"
     domain = metadata["Domain"]
-    if domain == "research-os":
-        return None, "Domain이 research-os인 시스템 개발·운영 기록"
-    if domain not in AI_LEARNING_DOMAINS:
-        return None, f"AI semiconductor 학습 domain이 아님: {domain}"
+    if domain in domain_policy.non_learning_domains:
+        return None, f"Domain이 {domain}인 시스템 개발·운영 기록"
+    if domain not in domain_policy.learning_domains:
+        allowed = ", ".join(sorted(domain_policy.allowed_domains))
+        return None, f"지원되지 않는 Domain metadata: {domain} (허용값: {allowed})"
     if metadata["Roadmap stage"].casefold() == "system-development":
         return None, "Roadmap stage가 system-development인 시스템 개발 기록"
     missing_sections = [heading for heading in REQUIRED_SECTIONS if heading not in sections]
@@ -178,11 +172,12 @@ def classify_log(path: Path, root: Path) -> tuple[LearningLog | None, str | None
 def discover_logs(root: Path) -> tuple[list[LearningLog], list[tuple[str, str]]]:
     included: list[LearningLog] = []
     excluded: list[tuple[str, str]] = []
+    domain_policy = load_domain_policy(root)
     paths = sorted(
         (root / "learning-logs").glob("**/*.md"), key=lambda item: item.as_posix()
     )
     for path in paths:
-        log, reason = classify_log(path, root)
+        log, reason = classify_log(path, root, domain_policy)
         if log:
             included.append(log)
         else:
