@@ -17,7 +17,7 @@
 
 | Stage | 상태 제안 | 근거 Learning Log |
 | --- | --- | --- |
-| Memory Architecture | `Learning` 유지 | `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` |
+| Memory Architecture | `Learning` 유지 | `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`, `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` |
 | SRAM / DRAM / eDRAM | `Learning` 유지 | `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`, `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`, `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md` |
 
 ## 판단 제한
@@ -38,6 +38,7 @@
 - `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`
 - `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`
 - `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
+- `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`
 - `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`
 
 ## 제외한 기록과 이유
