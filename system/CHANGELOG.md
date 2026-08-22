@@ -18,6 +18,8 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
+- Current Learning Context와 Progress Reconciliation이 서로 다른 규칙으로 `aligned`와 `pending-approval`을 동시에 표시하던 정합성 충돌
+- 최신 Learning Log의 세부 Topic 제목을 공식 Current Topic으로 자동 승격하던 오류; 공식 변경은 boundary의 exit criteria와 `next_roadmap_topic`만 사용
 - 새 학습 세션이 snapshot 두 파일만 읽고 사용자의 실제 Learning Log evidence를 확인하지 않은 채 첫 진단 질문을 만들 수 있던 grounding 공백
 - 첫 Blocking Gap과 가장 가까운 Learning Log를 필수 source로 지정하고, 설명·예시 없이 cold quiz부터 시작하지 않도록 session protocol 강화
 - `mode: create`처럼 계약에 없는 envelope 필드와 `expected_sha` 누락을 명시적으로 거부

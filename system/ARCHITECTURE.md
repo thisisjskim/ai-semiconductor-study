@@ -11,6 +11,7 @@
 | GitHub Actions | Issue와 comments를 payload로 만들고 검증·저장·결과 회신을 연결하는 orchestration layer다. |
 | `scripts/ingest_learning_log.py` | Learning Log 저장의 canonical validation 및 Markdown 변환 구현이다. 작성자, 제목, envelope, 경로, 문서 형식, create/update와 SHA를 검사한다. |
 | `scripts/apply_progress_update.py` | 승인된 Progress 제안의 SHA, evidence, 허용 필드, 현재 값과 상태 전이를 검증하고 `roadmap/PROGRESS.md`만 수정한다. |
+| `scripts/progress_policy.py` | Current Learning Context와 Progress Reconciliation이 공유하는 stage/topic/dashboard 판정 규칙이다. Learning Log 제목은 evidence로만 취급하고 공식 topic 이동은 boundary 계약으로 결정한다. |
 | `learning-logs/**` | 사용자의 자기 설명, 오해 수정, 질문과 다음 행동을 보존하는 학습 evidence다. |
 | `roadmap/**` | 장기 학습 방향과 명시적으로 관리되는 진행 상태다. |
 | `roadmap/LEARNING_BOUNDARIES.json` | Roadmap topic별 목표, 최소 이해, exit criteria, optional depth와 다음 topic을 기계적으로 읽을 수 있게 연결하는 운영 계약이다. |
@@ -39,7 +40,7 @@ Learning Log 저장이 확인된 뒤 ChatGPT는 실제 evidence와 최신 `roadm
 
 Learning Log 또는 Progress Update commit 이후 `.github/workflows/learning-context-refresh.yml`이 별도로 실행되어 `state/CURRENT_LEARNING_CONTEXT.md`만 다시 생성하고 별도 commit한다. Roadmap 또는 learning boundary가 변경되어도 같은 refresh를 실행한다. builder는 Progress에서 현재 위치를 정하고, boundary의 exit criteria를 관련 Learning Log evidence와 비교한 뒤 Blocking Gap과 Optional Open Question을 분리한다. 첫 Blocking Gap과 keyword overlap이 가장 큰 Learning Log 한 개도 `Required Source Before First Learning Unit`으로 지정한다. 일반 ChatGPT는 snapshot으로 방향을 정한 뒤 이 source를 읽어야 첫 설명이나 질문을 만들 수 있다. 세 main writer workflow는 쓰기를 직렬화하지만 실패 경계는 분리된다. Context refresh 실패는 이미 성공한 Learning Log 저장이나 Progress 변경을 되돌리지 않으며 `roadmap/PROGRESS.md`도 수정하지 않는다.
 
-Context refresh가 성공하면 `.github/workflows/progress-reconciliation.yml`이 `scripts/build_progress_reconciliation.py`를 실행해 `state/PROGRESS_RECONCILIATION.md`만 갱신한다. 이 파일은 dashboard 변경 후보와 근거를 보여주는 제안서이며 canonical progress가 아니다. 자동화는 `roadmap/PROGRESS.md`를 stage하거나 commit하지 않는다. 사용자가 제안을 승인한 경우에만 Codex가 별도 branch에서 승인 범위를 반영하고 Pull Request를 만든다.
+Context refresh가 성공하면 `.github/workflows/progress-reconciliation.yml`이 `scripts/build_progress_reconciliation.py`를 실행해 `state/PROGRESS_RECONCILIATION.md`만 갱신한다. 두 state builder는 `scripts/progress_policy.py`의 동일한 판정을 사용하므로 같은 evidence에 서로 다른 정합성 상태를 표시하지 않는다. 이 파일은 dashboard 변경 후보와 근거를 보여주는 제안서이며 canonical progress가 아니다. 자동화는 `roadmap/PROGRESS.md`를 stage하거나 commit하지 않는다. 사용자가 제안을 승인한 경우에만 Codex가 별도 branch에서 승인 범위를 반영하고 Pull Request를 만든다.
 
 ## B. Research OS 개발 흐름
 

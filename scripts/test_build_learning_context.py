@@ -225,7 +225,7 @@ def main() -> int:
             "## Required Source Before First Learning Unit", 1
         )[1].split("## Next Roadmap Topic", 1)[0]
         assert "z-latest.md" in required_source
-        assert "Roadmap reconciliation: **pending**" in first
+        assert "Roadmap reconciliation: **pending-approval**" in first
         assert "dashboard 상태가 Not Started" in first
 
         original_glob = Path.glob
@@ -284,9 +284,31 @@ def main() -> int:
         )
         plan = context.build_context(root)
         assert "Decision: **review_then_advance**" in plan
+        assert "Roadmap reconciliation: **pending-approval**" in plan
         assert "`learning-logs/2026/08/a.md`" in plan.split(
             "## Required Source Before First Learning Unit", 1
         )[1].split("## Next Roadmap Topic", 1)[0]
+
+    # A fully aligned review does not rename the roadmap topic after the latest log.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "roadmap/PROGRESS.md",
+            (root / "roadmap/PROGRESS.md").read_text(encoding="utf-8")
+            .replace("- Current Stage: Not Started", "- Current Stage: Stage 3 — Memory")
+            .replace("| SRAM / DRAM / eDRAM | Not Started |", "| SRAM / DRAM / eDRAM | Learning |"),
+        )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/narrow.md",
+            note(topic="SRAM Read Path Fundamentals", understanding="Read Disturb를 설명했다.", questions=()),
+        )
+        aligned_review = context.build_context(root)
+        assert "Decision: **review_then_advance**" in aligned_review
+        assert "Roadmap reconciliation: **aligned**" in aligned_review
+        assert "Current Topic: SRAM" in aligned_review
 
     # Scenario E is a session policy: deep dive is selectable only on explicit request.
     repository_root = Path(__file__).resolve().parents[1]

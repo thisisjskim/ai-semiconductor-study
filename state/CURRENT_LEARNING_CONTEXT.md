@@ -97,7 +97,7 @@
 
 ## Roadmap reconciliation
 
-- 최신 Learning Log와 dashboard의 현재 stage/topic에 명백한 충돌이 없음
+- 현재 stage/topic과 dashboard가 Roadmap boundary 및 Learning Log evidence와 일치함; 학습 이동 판단은 review_then_advance이며 공식 topic 변경은 아직 필요하지 않음
 - `roadmap/PROGRESS.md`는 자동 수정하지 않음
 
 ## 제외한 기록과 이유
