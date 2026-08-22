@@ -2,16 +2,16 @@
 
 > 이 문서는 Learning Log evidence와 `roadmap/PROGRESS.md`를 비교해 자동 생성한 검토용 제안서다. `roadmap/PROGRESS.md`를 수정하지 않으며, 아래 변경은 사용자 승인 후 별도 branch와 Pull Request에서만 적용한다.
 
-- Proposal status: **pending-approval**
+- Proposal status: **aligned**
 - Latest evidence date: 2026-08-15
 - Maximum automatic status proposal: **Learning**
+- Decision basis: 현재 stage/topic과 dashboard가 Roadmap boundary 및 Learning Log evidence와 일치함; 학습 이동 판단은 review_then_advance이며 공식 topic 변경은 아직 필요하지 않음
 
 ## 현재 포커스 변경 제안
 
 | Field | 현재 값 | 제안 값 |
 | --- | --- | --- |
-| Current Stage | Stage 3 — Memory | Stage 3 — Memory |
-| Current Topic | Register와 SRAM 회로 기초 | SRAM Read Path Fundamentals |
+| 없음 | 변경 제안 없음 | 현재 학습 이동 판단상 공식 stage/topic 변경이 필요하지 않음 |
 
 ## Dashboard 변경 제안
 
@@ -24,7 +24,8 @@
 - Learning Log가 존재한다는 사실만으로 `Review` 또는 `Completed`를 제안하지 않음
 - 기존 `Review` 또는 `Completed` 상태를 자동으로 낮추지 않음
 - `Execution Phase`, `Active Track`, `Current Deliverable`, `Current Bottleneck`, `Next Milestone`, `Phase Deadline`은 phase-level 계획이므로 자동 제안하지 않음
-- Progress가 최신 Learning Log보다 새로우면 과거 evidence로 현재 focus를 되돌리지 않음
+- 최신 Learning Log의 세부 Topic 제목을 공식 Current Topic으로 자동 승격하지 않음
+- 공식 Current Topic 변경은 exit criteria 충족 후 `next_roadmap_topic`으로 이동할 때만 제안함
 - Metadata로 dashboard row를 안전하게 특정할 수 없는 기록은 상태 변경 근거로 사용하지 않음
 - 실제 반영 전 사용자가 stage, topic, status와 evidence를 검토해야 함
 

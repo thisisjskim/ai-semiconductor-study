@@ -11,6 +11,8 @@ from datetime import date
 from pathlib import Path
 from typing import Iterable
 
+from progress_policy import ProgressDecision, decide_progress
+
 
 AI_LEARNING_DOMAINS = {
     "ai-computation",
@@ -399,41 +401,41 @@ def build_learning_plan(
     )
 
 
-def progress_reconciliation(progress: str, latest: Iterable[LearningLog]) -> tuple[str, str]:
-    latest_logs = list(latest)
-    if not latest_logs:
-        return "not-needed", "의미 있는 Learning Log가 없어 dashboard와 비교할 학습 evidence가 없음"
+def dashboard_labels_for_log(log: LearningLog) -> tuple[str, ...]:
+    if log.domain != "paper":
+        return DASHBOARD_LABELS.get(log.domain, ())
+    stage = log.roadmap_stage.casefold()
+    if "stage 6" in stage or "foundational" in stage:
+        return ("Foundational Papers",)
+    if "stage 7" in stage or "ssl" in stage:
+        return ("KAIST SSL Lab Papers",)
+    return ()
 
-    current_stage = re.search(r"^- Current Stage:\s*(.+)$", progress, re.MULTILINE)
-    current_topic = re.search(r"^- Current Topic:\s*(.+)$", progress, re.MULTILINE)
-    stage_value = current_stage.group(1).strip() if current_stage else ""
-    topic_value = current_topic.group(1).strip() if current_topic else ""
-    pending_reasons: list[str] = []
-    if not stage_value or stage_value.casefold() == "not started":
-        pending_reasons.append("의미 있는 Learning Log가 있지만 Current Stage가 Not Started")
-    if not topic_value or topic_value in {"아직 지정되지 않음", "없음", "Not Started"}:
-        pending_reasons.append("의미 있는 Learning Log가 있지만 Current Topic이 지정되지 않음")
-    latest_stages = {item.roadmap_stage for item in latest_logs}
-    if stage_value and stage_value.casefold() != "not started" and stage_value not in latest_stages:
-        pending_reasons.append("최신 Learning Log stage와 dashboard Current Stage가 일치하지 않음")
-    dashboard_rows: dict[str, str] = {}
-    for line in progress.splitlines():
-        if not line.startswith("|"):
-            continue
-        cells = [cell.strip() for cell in line.strip("|").split("|")]
-        if len(cells) >= 2:
-            dashboard_rows[cells[0]] = cells[1]
-    for item in latest_logs:
-        for label in DASHBOARD_LABELS.get(item.domain, ()):
-            if dashboard_rows.get(label) == "Not Started":
-                pending_reasons.append(
-                    f"최신 Learning Log domain({item.domain})의 dashboard 상태가 Not Started"
-                )
-                break
-    pending_reasons = list(dict.fromkeys(pending_reasons))
-    if pending_reasons:
-        return "pending", "; ".join(pending_reasons)
-    return "aligned", "최신 Learning Log와 dashboard의 현재 stage/topic에 명백한 충돌이 없음"
+
+def progress_decision(
+    progress: str, included: Iterable[LearningLog], plan: LearningPlan | None
+) -> ProgressDecision:
+    logs = list(included)
+    if not logs or plan is None:
+        return decide_progress(
+            progress,
+            has_evidence=False,
+            canonical_stage="",
+            canonical_topic="",
+            next_roadmap_topic="",
+            recommended_move="continue",
+            evidence_dashboard_labels=(),
+        )
+    labels = [label for log in logs for label in dashboard_labels_for_log(log)]
+    return decide_progress(
+        progress,
+        has_evidence=True,
+        canonical_stage=plan.boundary.roadmap_stage,
+        canonical_topic=plan.boundary.progress_topics[0],
+        next_roadmap_topic=plan.boundary.next_roadmap_topic,
+        recommended_move=plan.recommended_move,
+        evidence_dashboard_labels=labels,
+    )
 
 
 def bullet_lines(items: list[str], empty: str = "없음") -> list[str]:
@@ -449,14 +451,14 @@ def build_context(root: Path) -> str:
     boundaries = load_boundaries(root)
 
     if not included:
-        status, reason = progress_reconciliation(progress, [])
+        decision = progress_decision(progress, [], None)
         lines = [
             "# Current Learning Context",
             "",
             "> 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
             "",
             "- Last generated date: 없음",
-            f"- Roadmap reconciliation: **{status}**",
+            f"- Roadmap reconciliation: **{decision.status}**",
             "",
             "## 현재 상태",
             "",
@@ -467,7 +469,7 @@ def build_context(root: Path) -> str:
             "",
             "## Roadmap reconciliation",
             "",
-            f"- {reason}",
+            f"- {decision.reason}",
             "- `roadmap/PROGRESS.md`는 자동 수정하지 않음",
             "",
             "## 제외한 기록과 이유",
@@ -495,8 +497,8 @@ def build_context(root: Path) -> str:
         primary.sections["## 10. 자기 설명 점검"], LIMITS["weaknesses"]
     )
     actions = extract_items(primary.sections["## 9. 다음 행동"], LIMITS["actions"])
-    status, reason = progress_reconciliation(progress, latest_logs)
     plan = build_learning_plan(boundaries, progress, included, primary)
+    decision = progress_decision(progress, included, plan)
     current_stage = progress_value(progress, "Current Stage") or primary.roadmap_stage
     current_topic = progress_value(progress, "Current Topic") or primary.topic
 
@@ -512,7 +514,7 @@ def build_context(root: Path) -> str:
         "> 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
         "",
         f"- Last generated date: {latest_date.isoformat()}",
-        f"- Roadmap reconciliation: **{status}**",
+        f"- Roadmap reconciliation: **{decision.status}**",
         "",
         "## Roadmap Position",
         "",
@@ -571,7 +573,7 @@ def build_context(root: Path) -> str:
     lines.extend(["", "## 최근 Learning Log의 다음 행동 (참고용)", ""])
     lines.extend(bullet_lines(actions))
     lines.append("- 위 항목은 source evidence이며 Roadmap-aware 추천보다 우선하지 않음")
-    lines.extend(["", "## Roadmap reconciliation", "", f"- {reason}", "- `roadmap/PROGRESS.md`는 자동 수정하지 않음", "", "## 제외한 기록과 이유", ""])
+    lines.extend(["", "## Roadmap reconciliation", "", f"- {decision.reason}", "- `roadmap/PROGRESS.md`는 자동 수정하지 않음", "", "## 제외한 기록과 이유", ""])
     lines.extend(bullet_lines([f"`{path}` — {why}" for path, why in excluded]))
     lines.extend(["", "## 참고한 source paths", "", "- `roadmap/ROADMAP.md`", "- `roadmap/LEARNING_BOUNDARIES.json`", "- `roadmap/PROGRESS.md`"])
     lines.extend(f"- `{path}`" for path in plan.evidence_paths)
