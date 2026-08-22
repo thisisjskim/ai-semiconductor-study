@@ -2,16 +2,16 @@
 
 > 이 문서는 Learning Log evidence와 `roadmap/PROGRESS.md`를 비교해 자동 생성한 검토용 제안서다. `roadmap/PROGRESS.md`를 수정하지 않으며, 아래 변경은 사용자 승인 후 별도 branch와 Pull Request에서만 적용한다.
 
-- Proposal status: **aligned**
+- Proposal status: **pending-approval**
 - Latest evidence date: 2026-08-22
 - Maximum automatic status proposal: **Learning**
-- Decision basis: 현재 stage/topic과 dashboard가 Roadmap boundary 및 Learning Log evidence와 일치함; 학습 이동 판단은 review_then_advance이며 공식 topic 변경은 아직 필요하지 않음
+- Decision basis: 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
 
 ## 현재 포커스 변경 제안
 
 | Field | 현재 값 | 제안 값 |
 | --- | --- | --- |
-| 없음 | 변경 제안 없음 | 현재 학습 이동 판단상 공식 stage/topic 변경이 필요하지 않음 |
+| Current Topic | Register와 SRAM 회로 기초 | SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결 |
 
 ## Dashboard 변경 제안
 

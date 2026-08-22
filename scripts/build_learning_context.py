@@ -72,6 +72,7 @@ class LearningBoundary:
     id: str
     progress_topics: tuple[str, ...]
     domains: tuple[str, ...]
+    evidence_domains: tuple[str, ...]
     roadmap_stage: str
     topic_goal: str
     minimum_required_understanding: tuple[str, ...]
@@ -247,6 +248,7 @@ def load_boundaries(root: Path) -> list[LearningBoundary]:
                 id=raw["id"],
                 progress_topics=tuple(raw["progress_topics"]),
                 domains=tuple(raw["domains"]),
+                evidence_domains=tuple(raw.get("evidence_domains", raw["domains"])),
                 roadmap_stage=raw["roadmap_stage"],
                 topic_goal=raw["topic_goal"],
                 minimum_required_understanding=tuple(raw["minimum_required_understanding"]),
@@ -351,7 +353,7 @@ def build_learning_plan(
     primary: LearningLog,
 ) -> LearningPlan:
     boundary = select_boundary(boundaries, progress, primary)
-    relevant = [log for log in included if log.domain in boundary.domains]
+    relevant = [log for log in included if log.domain in boundary.evidence_domains]
     corpus = evidence_corpus(relevant)
     completed = tuple(item for item in boundary.exit_criteria if criterion_is_met(item, corpus))
     remaining = tuple(item for item in boundary.exit_criteria if item not in completed)

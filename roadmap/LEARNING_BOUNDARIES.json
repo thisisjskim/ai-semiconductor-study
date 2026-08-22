@@ -30,7 +30,7 @@
     },
     {
       "id": "computer-architecture-foundations",
-      "progress_topics": ["Computer Architecture"],
+      "progress_topics": ["Computer Architecture", "Computer Architecture의 parallelism, locality, bandwidth"],
       "domains": ["computer-architecture"],
       "roadmap_stage": "Stage 2 — Computer Architecture",
       "topic_goal": "latency, bandwidth, locality와 memory hierarchy가 accelerator 성능을 제한하는 방식을 설명한다.",
@@ -58,6 +58,7 @@
       "id": "sram-foundations",
       "progress_topics": ["Register와 SRAM 회로 기초", "SRAM", "SRAM 회로 기초"],
       "domains": ["sram"],
+      "evidence_domains": ["sram", "memory-architecture"],
       "roadmap_stage": "Stage 3 — Memory",
       "topic_goal": "6T SRAM의 기본 read/write 동작과 안정성을 이해하고 memory architecture에서 SRAM의 역할을 설명한다.",
       "minimum_required_understanding": [
@@ -91,7 +92,7 @@
     },
     {
       "id": "memory-architecture-bridge",
-      "progress_topics": ["SRAM과 DRAM 비교", "SRAM/DRAM 비교", "Memory Architecture"],
+      "progress_topics": ["SRAM과 DRAM 비교", "SRAM/DRAM 비교", "Memory Architecture", "Register, SRAM, DRAM/HBM의 역할과 trade-off", "SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결"],
       "domains": ["memory-architecture", "dram"],
       "roadmap_stage": "Stage 3 — Memory",
       "topic_goal": "Register, SRAM, DRAM/HBM의 trade-off를 비교하고 NPU memory hierarchy에 배치한다.",
@@ -117,7 +118,7 @@
     },
     {
       "id": "npu-architecture-foundations",
-      "progress_topics": ["NPU Architecture", "NPU와 Dataflow"],
+      "progress_topics": ["NPU Architecture", "NPU와 Dataflow", "NPU PE array, buffer hierarchy와 dataflow"],
       "domains": ["npu"],
       "roadmap_stage": "Stage 4 — NPU Architecture",
       "topic_goal": "NPU data path와 dataflow가 data movement와 utilization을 바꾸는 방식을 설명한다.",
@@ -139,7 +140,7 @@
     },
     {
       "id": "pim-cim-foundations",
-      "progress_topics": ["PIM / CIM", "PIM/CIM"],
+      "progress_topics": ["PIM / CIM", "PIM/CIM", "Memory Wall과 PIM/CIM의 compute 위치 변화"],
       "domains": ["pim-cim"],
       "roadmap_stage": "Stage 5 — PIM / CIM",
       "topic_goal": "기존 NPU와 PIM/CIM의 data movement 차이와 핵심 trade-off를 설명한다.",
@@ -161,7 +162,7 @@
     },
     {
       "id": "paper-analysis-foundations",
-      "progress_topics": ["Foundational Papers", "KAIST SSL Lab Papers", "Paper Analysis"],
+      "progress_topics": ["Foundational Papers", "KAIST SSL Lab Papers", "Paper Analysis", "중심 Foundational Paper의 claim map과 architecture walkthrough"],
       "domains": ["paper"],
       "roadmap_stage": "Stage 6 — Foundational Papers",
       "topic_goal": "중심 논문의 problem, claim, architecture, evidence와 limitation을 연결해 설명한다.",
