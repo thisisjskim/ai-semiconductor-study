@@ -5,6 +5,7 @@
 - Human-readable Issue wire contract: 이 문서
 - Markdown structure: `templates/learning-log.md`
 - Executable validation: `scripts/ingest_learning_log.py`
+- Metadata enum: `system/LEARNING_LOG_METADATA_SCHEMA.json`
 - Approval and verification policy: `system/RESEARCH_OS.md`
 - Evidence-based authoring: `system/LEARNING_LOG_AUTHORING_GUIDE.md`
 - Custom GPT Action interface only: `system/ACTION_SCHEMA.yaml`
@@ -14,11 +15,11 @@
 ## 저장 전 필수 순서
 
 1. 이 문서의 wire contract와 성공 판정 기준을 확인한다.
-2. `templates/learning-log.md`와 `system/LEARNING_LOG_AUTHORING_GUIDE.md`를 다시 읽는다.
+2. `templates/learning-log.md`, `system/LEARNING_LOG_AUTHORING_GUIDE.md`, `system/LEARNING_LOG_METADATA_SCHEMA.json`을 다시 읽고 Domain은 schema의 허용값 중 하나만 선택한다.
 3. 현재 conversation만으로 evidence inventory를 만들고, 과거 로그의 문장이나 서사를 복제하지 않는다.
 4. 같은 날짜·slug의 실제 target path가 존재하는지 조회한다.
 5. 없으면 `create`와 `expected_sha: new`, 있으면 `update`와 방금 읽은 40자리 SHA를 선택한다.
-6. 전체 Markdown이 canonical heading과 evidence 품질 기준을 충족하는지 확인한다.
+6. 전체 Markdown이 canonical heading, metadata enum과 evidence 품질 기준을 충족하는지 확인한다.
 7. 사용자에게 target path, create/update, 핵심 evidence를 보여 주고 승인을 받는다.
 8. 정확한 title과 envelope로 Issue를 만들고 필요한 chunk를 모두 추가한 뒤 닫는다.
 9. 결과 comment에서 성공 marker, path, commit을 확인한다.

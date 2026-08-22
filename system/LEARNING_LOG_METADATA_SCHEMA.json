@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "learning_domains": [
+    "ai-computation",
+    "computer-architecture",
+    "memory-architecture",
+    "sram",
+    "dram",
+    "npu",
+    "pim-cim",
+    "paper"
+  ],
+  "non_learning_domains": [
+    "research-os"
+  ]
+}

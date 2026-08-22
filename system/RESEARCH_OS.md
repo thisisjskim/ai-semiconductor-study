@@ -98,7 +98,7 @@ Learning Log section은 canonical template heading을 사용한다. Validator가
 - Date
 - Topic
 - Document type: `learning-log`
-- Domain: `ai-computation`, `computer-architecture`, `memory-architecture`, `sram`, `dram`, `npu`, `pim-cim`, `paper`, `research-os` 중 가장 가까운 값
+- Domain: `system/LEARNING_LOG_METADATA_SCHEMA.json`의 허용값 중 가장 가까운 값. 저장 직전에 schema를 실제로 읽고 목록에 없는 값을 만들지 않는다.
 - Roadmap stage: `roadmap/ROADMAP.md`의 실제 단계
 - Status: `working`
 - Source: `conversation`

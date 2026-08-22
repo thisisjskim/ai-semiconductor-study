@@ -90,6 +90,7 @@ checkbox 하나를 완료하려면 같은 세션 또는 확인된 관련 기록�
 
 ## 7. 저장 전 quality review
 
+- `system/LEARNING_LOG_METADATA_SCHEMA.json`을 실제로 읽고 Domain을 허용값 중 하나로 정확히 선택했는가?
 - 각 주요 이해가 실제 사용자 evidence에 근거하는가?
 - AI가 설명한 내용을 사용자의 mastery로 바꾸지 않았는가?
 - 초기 이해, 불확실성, 수정된 이해가 서로 대응하는가?

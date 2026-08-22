@@ -37,6 +37,11 @@ PROGRESS = """# Progress
 
 
 def setup_root(root: Path) -> None:
+    repository_root = Path(__file__).resolve().parents[1]
+    schema = (
+        repository_root / "system/LEARNING_LOG_METADATA_SCHEMA.json"
+    ).read_text(encoding="utf-8")
+    write_fixture(root, "system/LEARNING_LOG_METADATA_SCHEMA.json", schema)
     write_fixture(root, "roadmap/ROADMAP.md", "# Roadmap\n")
     write_fixture(root, "roadmap/PROGRESS.md", PROGRESS)
     boundary = {
