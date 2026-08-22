@@ -2,21 +2,20 @@
 
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
-- Last generated date: 2026-08-15
+- Last generated date: 2026-08-22
 - Roadmap reconciliation: **aligned**
 
 ## Roadmap Position
 
-- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
+- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`
 - Current Stage: Stage 3 — Memory
 - Current Topic: Register와 SRAM 회로 기초
-- Domain: sram
+- Domain: memory-architecture
 - Depth Boundary: `sram-foundations`
 
 ### 같은 날짜의 의미 있는 학습 단위
 
-- `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md` — SRAM Cell Ratio와 SNM
-- `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md` — SRAM Read Path Fundamentals
+- `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` — SRAM-DRAM 구조 비교와 DRAM Sense Amplifier
 
 ## Topic Goal
 
@@ -75,24 +74,24 @@
 
 ## 현재 확인된 핵심 개념
 
-- 6T SRAM Read Disturb
-- Cell Ratio와 transistor sizing
-- Pull-down NMOS vs Access NMOS
-- Access NMOS vs Pull-up PMOS
-- MOSFET threshold voltage (Vth)
-- CMOS inverter switching threshold (VM)
-- Static Noise Margin (SNM)
-- Hold SNM vs Read SNM
+- Register → SRAM → DRAM memory hierarchy와 capacity/latency/area trade-off
+- SRAM 6T와 DRAM 1T1C
+- DRAM charge leakage, retention, refresh
+- Charge sharing과 destructive read
+- VDD/2 precharge와 differential sensing
+- Cross-coupled regenerative sense amplifier
+- Sense → Amplify → Restore
+- Sense amplifier mismatch/offset과 sensing margin
 
 ## 미완료 자기 설명 점검
 
-- AI 반도체에서 왜 중요한지 설명할 수 있다.
+- 없음
 
 ## 최근 Learning Log의 다음 행동 (참고용)
 
-- SRAM Write Path를 학습하고 1→0 pull-down과 positive feedback에 의한 state flip 과정을 설명한다.
-- Write Margin과 Write Failure를 transistor strength 관점에서 이해한다.
-- 이후 Process Variation, Monte Carlo, SNM/Offset distribution과 SRAM yield로 확장한다.
+- NPU on-chip SRAM buffer가 activation, weight, partial sum의 data reuse를 어떻게 지원하는지 학습한다.
+- SRAM capacity와 tiling이 DRAM traffic 및 memory bandwidth 요구량에 미치는 영향을 연결한다.
+- 이후 data movement energy와 compute utilization 관점에서 memory hierarchy를 분석한다.
 - 위 항목은 source evidence이며 Roadmap-aware 추천보다 우선하지 않음
 
 ## Roadmap reconciliation
@@ -103,7 +102,6 @@
 ## 제외한 기록과 이유
 
 - `learning-logs/2026/08/2026-08-09-memory-hierarchy-data-reuse.md` — 필수 Metadata 누락: Document type, Domain, Roadmap stage
-- `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` — 지원되지 않는 Domain metadata: memory (허용값: ai-computation, computer-architecture, dram, memory-architecture, npu, paper, pim-cim, research-os, sram)
 
 ## 참고한 source paths
 
