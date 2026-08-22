@@ -3,7 +3,7 @@
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
 - Last generated date: 2026-08-22
-- Roadmap reconciliation: **aligned**
+- Roadmap reconciliation: **pending-approval**
 
 ## Roadmap Position
 
@@ -33,39 +33,36 @@
 - [x] 6T SRAM과 cross-coupled inverter의 저장 구조를 설명한다.
 - [x] WL, BL/BL̅, Q/Q̅를 사용해 Hold, Write, Read의 기본 동작을 설명한다.
 - [x] Read Disturb와 Cell Ratio가 read stability에 미치는 관계를 설명한다.
-- [ ] Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다.
+- [x] Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다.
 
 ## Evidence of Completion
 
 - 6T SRAM과 cross-coupled inverter의 저장 구조를 설명한다.
 - WL, BL/BL̅, Q/Q̅를 사용해 Hold, Write, Read의 기본 동작을 설명한다.
 - Read Disturb와 Cell Ratio가 read stability에 미치는 관계를 설명한다.
+- Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다.
 - 위 표시는 관련 Learning Log의 자기 설명·수정 이해에서 최소 evidence keyword가 모두 확인된 경우만 생성함
 
 ## Blocking Gaps
 
-- Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다.
+- 없음
 
 ## Optional Open Questions
 
-- Sense Amplifier는 BL과 BL̅ 사이의 작은 differential voltage를 어떻게 증폭하는가?
-- Differential sensing은 single-ended sensing에 비해 왜 유리한가?
-- Read Margin과 SNM은 실제 회로 시뮬레이션과 측정에서 어떻게 구분되고 연결되는가?
-- Process Variation과 Monte Carlo 분석은 SNM 분포를 어떻게 변화시키는가?
-- SRAM Write Path에서 실제 state flip은 어떤 node의 pull-down을 기점으로 시작되는가?
-- Write Margin은 어떤 방식으로 정의하고 측정하는가?
+- 지금까지의 SRAM/DRAM circuit-level 차이가 NPU on-chip SRAM buffer의 data reuse, memory bandwidth, energy와 구체적으로 어떻게 연결되는가?
+- NPU의 실제 SRAM buffer hierarchy와 tiling/dataflow는 DRAM traffic을 어떻게 줄이는가?
 - 명시적 deep-dive 요청 때 선택 가능한 범위: 상세 SNM extraction; advanced Sense Amplifier circuit; SRAM assist technique; process variation과 Monte Carlo 분석
 
 ## Recommended Next Move
 
-- Decision: **review_then_advance**
-- 이유: blocking gap 하나만 짧게 확인한 뒤 다음 Roadmap topic으로 이동한다.
-- 우선 학습: Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다.
+- Decision: **advance**
+- 이유: 현재 exit criteria를 충족했으므로 optional question을 기본 경로에 넣지 않고 다음 Roadmap topic으로 이동한다.
+- 우선 학습: SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결
 
 ## Required Source Before First Learning Unit
 
-- `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`
-- 이유: 첫 Blocking Gap과 가장 가까운 저장 evidence를 확인해 사용자의 실제 설명 수준에 맞춘다.
+- `roadmap/LEARNING_BOUNDARIES.json`
+- 이유: 다음 topic의 depth boundary를 확인한 뒤 새 학습을 시작한다.
 - 이 source를 읽기 전에는 일반 지식만으로 첫 설명이나 진단 질문을 만들지 않는다.
 
 ## Next Roadmap Topic
@@ -96,7 +93,7 @@
 
 ## Roadmap reconciliation
 
-- 현재 stage/topic과 dashboard가 Roadmap boundary 및 Learning Log evidence와 일치함; 학습 이동 판단은 review_then_advance이며 공식 topic 변경은 아직 필요하지 않음
+- 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
 - `roadmap/PROGRESS.md`는 자동 수정하지 않음
 
 ## 제외한 기록과 이유
@@ -112,3 +109,4 @@
 - `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`
 - `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`
 - `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
+- `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`

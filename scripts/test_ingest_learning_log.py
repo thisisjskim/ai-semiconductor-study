@@ -280,6 +280,10 @@ def assert_general_session_protocol_contract() -> None:
     assert "Learning Unit은" in research_os
     assert "단순 동의나 따라 말하기만으로 완료 판정하지 않는다" in research_os
     assert "제안 없이 나온 일반적인" in research_os
+    assert "작은 Learning Unit의 완료는 다음 unit으로 이동할 수 있다는 뜻" in research_os
+    assert "단일 질문과 답변" in research_os
+    assert "prerequisite를 건너뛴다는 뜻이 아니다" in research_os
+    assert "새로운 topic·topology·physical mechanism" in research_os
 
     assert "일반 ChatGPT 학습 시작점" in agents
     assert "Learning Log 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`" in agents

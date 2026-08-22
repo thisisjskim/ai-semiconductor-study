@@ -336,18 +336,33 @@ def main() -> int:
     }
     assert domain_policy.learning_domains == boundary_domains
     assert domain_policy.learning_domains == frozenset(context.DASHBOARD_LABELS)
+    progress_topics = {
+        topic for boundary in boundaries for topic in boundary.progress_topics
+    }
+    for boundary in boundaries[:-1]:
+        assert boundary.next_roadmap_topic in progress_topics
+    sram_boundary = next(item for item in boundaries if item.id == "sram-foundations")
+    assert "memory-architecture" in sram_boundary.evidence_domains
     entrypoint = (repository_root / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
     assert "optional_deep_dive" in entrypoint
     assert "명시적으로" in entrypoint
     assert "Required Source Before First Learning Unit" in entrypoint
     assert "모델의 일반 지식만으로 첫 질문을 만들지 않는다" in entrypoint
     assert "짧은 연결 설명과 쉬운 예시를 먼저 제공한 뒤" in entrypoint
+    assert "Checkpoint 발생은 Learning Log 저장 제안을 의미하지 않는다" in entrypoint
+    assert "단일 질문과 답변" in entrypoint
+    assert "prerequisite가 저장 evidence 또는 현재 conversation에서 확인되었는지" in entrypoint
+    assert "추론 질문은 최소한 하나의 관련 seed fact" in entrypoint
+    assert "현재 세션의 Tutor 운영 제약" in entrypoint
 
     actual = context.build_context(repository_root)
     actual_required_source = actual.split(
         "## Required Source Before First Learning Unit", 1
     )[1].split("## Next Roadmap Topic", 1)[0]
-    assert "2026-08-12-register-sram-circuits.md" in actual_required_source
+    assert "`roadmap/LEARNING_BOUNDARIES.json`" in actual_required_source
+    assert "- [x] Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다." in actual
+    assert "Decision: **advance**" in actual
+    assert "2026-08-22-sram-dram-sense-amplifier.md" in actual
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
