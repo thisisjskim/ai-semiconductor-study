@@ -21,6 +21,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
+- 실제 학습 진도가 다음 boundary로 이동해도 과거 SRAM 문구를 고정 검사해 Context Refresh가 실패하던 저장소 상태 테스트
 - Progress 반영 성공과 후속 `CURRENT_LEARNING_CONTEXT.md` 갱신 완료를 구분하지 않아 stale snapshot으로 다음 학습을 제안할 수 있던 실행 경로
 - 새 학습 세션에서 `pending-approval` reconciliation을 읽기만 하고 공식 Progress 반영 여부를 묻지 않을 수 있던 승인 checkpoint 누락
 - 단일 질문·답변 또는 Exit Criterion 하나의 충족 직후 Learning Log 저장을 너무 일찍 제안할 수 있던 Checkpoint 모호성

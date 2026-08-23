@@ -148,6 +148,8 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert '- "system/LEARNING_LOG_METADATA_SCHEMA.json"' in workflow
     assert '- "scripts/build_learning_context.py"' in workflow
     assert '- "scripts/progress_policy.py"' in workflow
+    assert '- "scripts/test_build_learning_context.py"' in workflow
+    assert '- ".github/workflows/learning-context-refresh.yml"' in workflow
     assert "python -B scripts/test_build_learning_context.py" in workflow
     assert "python -B scripts/build_learning_context.py" in workflow
     assert 'git add -- state/CURRENT_LEARNING_CONTEXT.md' in workflow
@@ -409,13 +411,29 @@ def main() -> int:
     assert "현재 세션의 Tutor 운영 제약" in entrypoint
 
     actual = context.build_context(repository_root)
+    actual_progress = (repository_root / "roadmap/PROGRESS.md").read_text(
+        encoding="utf-8"
+    )
+    expected_stage = context.progress_value(actual_progress, "Current Stage")
+    expected_topic = context.progress_value(actual_progress, "Current Topic")
+    expected_progress_sha = context.git_blob_sha(
+        repository_root / "roadmap/PROGRESS.md"
+    )
+    expected_boundary = next(
+        boundary
+        for boundary in boundaries
+        if expected_topic in boundary.progress_topics
+    )
     actual_required_source = actual.split(
         "## Required Source Before First Learning Unit", 1
     )[1].split("## Next Roadmap Topic", 1)[0]
-    assert "`roadmap/LEARNING_BOUNDARIES.json`" in actual_required_source
-    assert "- [x] Register와 DRAM 사이에서 SRAM이 맡는 memory 역할을 설명한다." in actual
-    assert "Decision: **advance**" in actual
-    assert "2026-08-22-sram-dram-sense-amplifier.md" in actual
+    assert f"- Current Stage: {expected_stage}" in actual
+    assert f"- Current Topic: {expected_topic}" in actual
+    assert f"- Depth Boundary: `{expected_boundary.id}`" in actual
+    assert f"- Progress source SHA: `{expected_progress_sha}`" in actual
+    assert actual_required_source.strip()
+    for criterion in expected_boundary.exit_criteria:
+        assert criterion.text in actual
 
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
