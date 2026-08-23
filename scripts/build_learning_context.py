@@ -7,7 +7,7 @@ import argparse
 import json
 import re
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
@@ -39,6 +39,7 @@ HEADING_RE = re.compile(r"^(?P<level>#{2,3})\s+.+$")
 CHECKBOX_RE = re.compile(r"^- \[(?P<state>[ xX])\]\s*(?P<text>.+)$")
 LIST_RE = re.compile(r"^(?:[-*+] |\d+[.)]\s+)(?P<text>.+)$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+RECORDED_AT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 DASHBOARD_LABELS = {
     "ai-computation": ("AI Computation",),
     "computer-architecture": ("Computer Architecture",),
@@ -55,6 +56,7 @@ DASHBOARD_LABELS = {
 class LearningLog:
     path: str
     date: date
+    recorded_at: datetime | None
     topic: str
     domain: str
     roadmap_stage: str
@@ -93,6 +95,14 @@ class LearningPlan:
     recommended_move: str
     grounding_paths: tuple[str, ...]
     evidence_paths: tuple[str, ...]
+
+
+def learning_log_order(log: LearningLog) -> tuple[date, datetime, str]:
+    return (
+        log.date,
+        log.recorded_at or datetime.min.replace(tzinfo=timezone.utc),
+        log.path,
+    )
 
 
 def repository_path(path: Path, root: Path) -> str:
@@ -145,6 +155,16 @@ def classify_log(
         parsed_date = date.fromisoformat(metadata["Date"])
     except ValueError:
         return None, "Date가 유효한 YYYY-MM-DD 형식이 아님"
+    recorded_at = None
+    if metadata.get("Recorded at"):
+        if not RECORDED_AT_RE.fullmatch(metadata["Recorded at"]):
+            return None, "Recorded at이 유효한 YYYY-MM-DDTHH:MM:SSZ 형식이 아님"
+        try:
+            recorded_at = datetime.fromisoformat(
+                metadata["Recorded at"].removesuffix("Z") + "+00:00"
+            )
+        except ValueError:
+            return None, "Recorded at이 유효한 YYYY-MM-DDTHH:MM:SSZ 형식이 아님"
     domain = metadata["Domain"]
     if domain in domain_policy.non_learning_domains:
         return None, f"Domain이 {domain}인 시스템 개발·운영 기록"
@@ -161,6 +181,7 @@ def classify_log(
         LearningLog(
             path=relative,
             date=parsed_date,
+            recorded_at=recorded_at,
             topic=metadata["Topic"],
             domain=domain,
             roadmap_stage=metadata["Roadmap stage"],
@@ -183,7 +204,7 @@ def discover_logs(root: Path) -> tuple[list[LearningLog], list[tuple[str, str]]]
             included.append(log)
         else:
             excluded.append((repository_path(path, root), reason or "분류할 수 없음"))
-    included.sort(key=lambda item: (item.date, item.path))
+    included.sort(key=learning_log_order)
     excluded.sort()
     return included, excluded
 
@@ -333,8 +354,7 @@ def select_grounding_paths(
         relevant,
         key=lambda log: (
             criterion_match_count(criterion, evidence_corpus([log])),
-            log.date,
-            log.path,
+            learning_log_order(log),
         ),
         reverse=True,
     )

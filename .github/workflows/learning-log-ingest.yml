@@ -58,6 +58,7 @@ jobs:
             const payload = {
               number: issue.number,
               title: issue.title,
+              issue_created_at: issue.created_at,
               author: issue.user?.login || "",
               repository_owner: owner,
               body: issue.body || "",

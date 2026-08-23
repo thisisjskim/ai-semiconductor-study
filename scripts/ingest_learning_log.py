@@ -50,6 +50,7 @@ FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
 MAX_ERROR_MESSAGE_LENGTH = 300
 ENVELOPE_KEYS = {"operation", "target_path", "expected_sha"}
 METADATA_RE = re.compile(r"^- (?P<key>[^:]+):\s*(?P<value>.*)$")
+RECORDED_AT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 class IngestError(RuntimeError):
@@ -160,6 +161,62 @@ def markdown_metadata(markdown: str) -> dict[str, str]:
     return metadata
 
 
+def normalize_recorded_at(value: object) -> str:
+    raw = str(value or "").strip()
+    if not RECORDED_AT_RE.fullmatch(raw):
+        raise IngestError(
+            "Issue created_at은 YYYY-MM-DDTHH:MM:SSZ 형식이어야 합니다.",
+            "invalid-recorded-at",
+        )
+    try:
+        parsed = dt.datetime.fromisoformat(raw.removesuffix("Z") + "+00:00")
+    except ValueError as error:
+        raise IngestError(
+            "Issue created_at에 유효하지 않은 시각이 있습니다.",
+            "invalid-recorded-at",
+        ) from error
+    return parsed.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def set_recorded_at(markdown: str, recorded_at: str) -> str:
+    """Insert the workflow-owned timestamp directly after Date metadata."""
+    lines = markdown.splitlines()
+    metadata_start = next(
+        (index for index, line in enumerate(lines) if line == "## Metadata"), None
+    )
+    if metadata_start is None:
+        return markdown
+
+    metadata_end = next(
+        (
+            index
+            for index in range(metadata_start + 1, len(lines))
+            if lines[index].startswith("## ")
+        ),
+        len(lines),
+    )
+    recorded_lines = []
+    date_index = None
+    for index in range(metadata_start + 1, metadata_end):
+        match = METADATA_RE.fullmatch(lines[index].strip())
+        if not match:
+            continue
+        key = match.group("key").strip()
+        if key == "Recorded at":
+            recorded_lines.append(index)
+        elif key == "Date":
+            date_index = index
+
+    for index in reversed(recorded_lines):
+        del lines[index]
+        metadata_end -= 1
+        if date_index is not None and index < date_index:
+            date_index -= 1
+    insert_at = (date_index + 1) if date_index is not None else metadata_start + 1
+    lines.insert(insert_at, f"- Recorded at: {recorded_at}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def normalize_headings(markdown: str) -> str:
     """Normalize only explicitly allowed independent heading aliases."""
     headings = markdown_heading_lines(markdown)
@@ -225,6 +282,12 @@ def validate_markdown(markdown: str, root: Path) -> None:
             "missing-required-heading",
         )
     metadata = markdown_metadata(markdown)
+    recorded_at = metadata.get("Recorded at", "")
+    if not recorded_at or normalize_recorded_at(recorded_at) != recorded_at:
+        raise IngestError(
+            "Learning Log Metadata에 workflow가 생성한 유효한 Recorded at이 필요합니다.",
+            "invalid-recorded-at",
+        )
     domain = metadata.get("Domain", "")
     if not domain:
         raise IngestError(
@@ -255,6 +318,7 @@ def validate_payload(payload: dict, root: Path) -> tuple[str, str, str]:
         )
     if not issue_author or issue_author.casefold() != repo_owner.casefold():
         raise IngestError("Repository owner가 만든 Issue만 처리할 수 있습니다.")
+    issue_created_at = normalize_recorded_at(payload.get("issue_created_at"))
 
     metadata, markdown = parse_envelope(assemble(payload))
     markdown = normalize_headings(markdown)
@@ -266,8 +330,6 @@ def validate_payload(payload: dict, root: Path) -> tuple[str, str, str]:
         raise IngestError("Issue 제목과 target_path의 날짜가 다릅니다.")
     if title_match.group("slug") != target_match.group("slug"):
         raise IngestError("Issue 제목과 target_path의 slug가 다릅니다.")
-    validate_markdown(markdown, root)
-
     target = root / target_path
     if operation == "create":
         if expected_sha != "new":
@@ -286,6 +348,19 @@ def validate_payload(payload: dict, root: Path) -> tuple[str, str, str]:
             )
     else:
         raise IngestError("operation은 create 또는 update만 허용합니다.")
+
+    recorded_at = issue_created_at
+    if operation == "update":
+        existing_metadata = markdown_metadata(target.read_text(encoding="utf-8"))
+        recorded_at = existing_metadata.get("Recorded at", "")
+        if not recorded_at:
+            raise IngestError(
+                "기존 Learning Log에 Recorded at이 없습니다. 검증된 과거 시각을 먼저 보완해야 합니다.",
+                "missing-recorded-at",
+            )
+        recorded_at = normalize_recorded_at(recorded_at)
+    markdown = set_recorded_at(markdown, recorded_at)
+    validate_markdown(markdown, root)
 
     return target_path, operation, markdown
 

@@ -50,6 +50,7 @@ def assert_workflow_contract() -> None:
     assert positions == sorted(positions), "Workflow 단계 순서가 계약과 다릅니다."
     assert "group: research-os-main" in workflow
     assert "startsWith(github.event.issue.title, '[learning-log]')" in workflow
+    assert "issue_created_at: issue.created_at" in workflow
     assert workflow.count("python -B scripts/ingest_learning_log.py") == 2
     assert '[[ ! -f "$TARGET_PATH" ]]' in workflow
     assert "git status --porcelain --untracked-files=all" in workflow
@@ -193,6 +194,7 @@ def assert_custom_gpt_routing_contract() -> None:
 
 def assert_learning_log_guidance_contract() -> None:
     root = Path(__file__).resolve().parents[1]
+    template = (root / "templates/learning-log.md").read_text(encoding="utf-8")
     guide = (root / "system/LEARNING_LOG_ISSUE_CONTRACT.md").read_text(
         encoding="utf-8"
     )
@@ -218,6 +220,8 @@ def assert_learning_log_guidance_contract() -> None:
     assert "Custom GPT Action interface only" in guide
     assert "일반 plugin 저장의 선행 읽기 파일이 아니다" in guide
     assert "system/LEARNING_LOG_METADATA_SCHEMA.json" in guide
+    assert "Issue의 변경되지 않는 `created_at`" in guide
+    assert "- Recorded at: {GitHub Actions가 Issue created_at으로 자동 설정}" in template
 
     assert "evidence inventory" in authoring
     assert "assistant-explained" in authoring
@@ -363,6 +367,7 @@ def payload(operation: str, expected_sha: str, body: str) -> dict:
     return {
         "number": 1,
         "title": "[learning-log] 2026-08-09 test",
+        "issue_created_at": "2026-08-09T12:34:56Z",
         "author": "thisisjskim",
         "repository_owner": "thisisjskim",
         "body": envelope + body,
@@ -424,6 +429,7 @@ def main() -> int:
         target = root / path
         assert target.exists()
         content = target.read_text(encoding="utf-8")
+        assert "- Recorded at: 2026-08-09T12:34:56Z" in content
         assert "악의적인 내용" not in content  # external comment filtering
         assert "bot 결과" not in content  # bot comment filtering
         assert ingest.markdown_heading_lines(content).count(
@@ -431,9 +437,40 @@ def main() -> int:
         ) == 1
 
         sha = ingest.git_blob_sha(target.read_bytes())
-        _, operation = ingest.ingest(payload("update", sha, note("업데이트됨.")), root)
+        update_payload = payload("update", sha, note("업데이트됨."))
+        update_payload["issue_created_at"] = "2026-08-10T00:00:00Z"
+        _, operation = ingest.ingest(update_payload, root)
         assert operation == "update"
-        assert "업데이트됨." in target.read_text(encoding="utf-8")
+        updated_content = target.read_text(encoding="utf-8")
+        assert "업데이트됨." in updated_content
+        assert "- Recorded at: 2026-08-09T12:34:56Z" in updated_content
+
+        invalid_recorded_at = payload("update", ingest.git_blob_sha(target.read_bytes()), note())
+        invalid_recorded_at["issue_created_at"] = "2026-08-09 12:34:56"
+        error = assert_rejected(
+            lambda: ingest.ingest(invalid_recorded_at, root),
+            "잘못된 Issue created_at이 거부되지 않았습니다.",
+        )
+        assert error.code == "invalid-recorded-at"
+
+        legacy_target = root / "learning-logs/2026/08/2026-08-09-legacy.md"
+        legacy_target.write_text(note(), encoding="utf-8")
+        legacy_payload = payload(
+            "update", ingest.git_blob_sha(legacy_target.read_bytes()), note()
+        )
+        legacy_payload["title"] = "[learning-log] 2026-08-09 legacy"
+        legacy_payload["body"] = legacy_payload["body"].replace(
+            "2026-08-09-test.md", "2026-08-09-legacy.md"
+        ).replace(
+            "- Date: 2026-08-09",
+            "- Date: 2026-08-09\n- Recorded at: 2099-01-01T00:00:00Z",
+        )
+        error = assert_rejected(
+            lambda: ingest.ingest(legacy_payload, root),
+            "본문 시각으로 legacy Learning Log를 갱신했습니다.",
+        )
+        assert error.code == "missing-recorded-at"
+        assert "Recorded at" not in legacy_target.read_text(encoding="utf-8")
 
         mixed_case = payload(
             "update", ingest.git_blob_sha(target.read_bytes()), note("대소문자")
