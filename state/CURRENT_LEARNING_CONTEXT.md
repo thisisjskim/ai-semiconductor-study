@@ -62,7 +62,10 @@
 ## Required Source Before First Learning Unit
 
 - `roadmap/LEARNING_BOUNDARIES.json`
+- `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`
+- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
 - 이유: 다음 topic의 depth boundary를 확인한 뒤 새 학습을 시작한다.
+- 이유: 최신 의미 있는 Learning Log를 최대 2개 읽어 최근 이해·오해 수정·다음 행동을 실제 evidence로 확인한다.
 - 이 source를 읽기 전에는 일반 지식만으로 첫 설명이나 진단 질문을 만들지 않는다.
 
 ## Next Roadmap Topic
