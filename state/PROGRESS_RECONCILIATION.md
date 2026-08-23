@@ -39,9 +39,9 @@
 - `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`
 - `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`
 - `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
-- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
 - `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`
 - `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`
+- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
 
 ## 제외한 기록과 이유
 
