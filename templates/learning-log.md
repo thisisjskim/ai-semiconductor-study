@@ -3,6 +3,7 @@
 ## Metadata
 
 - Date:
+- Recorded at: {GitHub Actions가 Issue created_at으로 자동 설정}
 - Topic:
 - Document type: learning-log
 - Domain: {system/LEARNING_LOG_METADATA_SCHEMA.json의 허용값 중 하나}

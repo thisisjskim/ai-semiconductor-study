@@ -25,6 +25,10 @@
 9. 결과 comment에서 성공 marker, path, commit을 확인한다.
 10. 결과 commit ref에서 target file을 다시 읽고 실제 존재와 내용 반영을 확인한다.
 
+`Recorded at`은 사용자가 입력하는 wire field가 아니다. GitHub Actions가 Issue의 변경되지 않는 `created_at`을 읽어 Learning Log Metadata에 UTC `YYYY-MM-DDTHH:MM:SSZ` 형식으로 자동 기록한다. 같은 `Date`의 Learning Log가 여러 개이면 context builder는 이 값을 실제 저장 요청 순서로 사용한다. 파일명과 target path 형식은 바뀌지 않는다.
+
+Update에서는 기존 파일의 `Recorded at`을 그대로 보존하며 Issue 본문에 적힌 값은 사용하지 않는다. 기존 파일에 이 값이 없으면 임의 시각으로 채우지 않고 검증된 과거 Issue 시각을 별도 보완할 때까지 update를 거부한다.
+
 일반 GitHub plugin에서는 현재 환경이 제공하는 Issue create, comment append, Issue close, Issue/comment read, repository file-read 기능을 사용한다. tool 이름은 plugin마다 다를 수 있으므로 capability를 기준으로 대응시킨다. `system/ACTION_SCHEMA.yaml`은 Custom GPT Action을 직접 설정할 때만 필요하며 일반 plugin 저장의 선행 읽기 파일이 아니다.
 
 ## 정확한 wire contract

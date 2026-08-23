@@ -15,6 +15,7 @@ def note(
     topic: str = "SRAM",
     domain: str = "sram",
     date: str = "2026-08-12",
+    recorded_at: str | None = None,
     stage: str = "Stage 3 — Memory",
     concepts: int = 10,
     understanding: str = "기본 이해",
@@ -23,11 +24,12 @@ def note(
     concept_lines = "\n".join(f"- concept {index}" for index in range(concepts))
     action_lines = "\n".join(f"{index}. action {index}" for index in range(1, 9))
     question_lines = "\n".join(f"- {item}" for item in questions)
+    recorded_at_line = f"- Recorded at: {recorded_at}\n" if recorded_at else ""
     return f"""# 학습 기록: {topic}
 
 ## Metadata
 - Date: {date}
-- Topic: {topic}
+{recorded_at_line}- Topic: {topic}
 - Document type: learning-log
 - Domain: {domain}
 - Roadmap stage: {stage}
@@ -155,8 +157,16 @@ def main() -> int:
         root = Path(temp)
         setup_root(root)
         write_fixture(root, "learning-logs/2026/08/older.md", note(topic="Older", date="2026-08-11"))
-        write_fixture(root, "learning-logs/2026/08/z-latest.md", note(topic="Latest Z"))
-        write_fixture(root, "learning-logs/2026/08/a-latest.md", note(topic="Latest A"))
+        write_fixture(
+            root,
+            "learning-logs/2026/08/z-latest.md",
+            note(topic="Latest Z", recorded_at="2026-08-12T09:00:00Z"),
+        )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/a-latest.md",
+            note(topic="Latest A", recorded_at="2026-08-12T15:00:00Z"),
+        )
         write_fixture(root, "learning-logs/2026/08/research-os.md", note(topic="System", domain="research-os"))
         write_fixture(
             root,
@@ -176,6 +186,11 @@ def main() -> int:
         )
         write_fixture(
             root,
+            "learning-logs/2026/08/invalid-recorded-at.md",
+            note(topic="Invalid Recorded At", recorded_at="2026-08-12 15:00"),
+        )
+        write_fixture(
+            root,
             "learning-logs/2026/08/invalid-structure.md",
             note(topic="Invalid Structure").replace("# 학습 기록:", "# 메모:", 1),
         )
@@ -186,7 +201,7 @@ def main() -> int:
         )
 
         included, excluded = context.discover_logs(root)
-        assert [item.topic for item in included] == ["Older", "Latest A", "Latest Z"]
+        assert [item.topic for item in included] == ["Older", "Latest Z", "Latest A"]
         assert any(path.endswith("research-os.md") and "research-os" in reason for path, reason in excluded)
         assert any(
             path.endswith("ingest-smoke-test.md") and "research-os" in reason
@@ -202,6 +217,10 @@ def main() -> int:
             for path, reason in excluded
         )
         assert any(
+            path.endswith("invalid-recorded-at.md") and "Recorded at" in reason
+            for path, reason in excluded
+        )
+        assert any(
             path.endswith("invalid-structure.md") and "canonical" in reason
             for path, reason in excluded
         )
@@ -214,7 +233,7 @@ def main() -> int:
         first = context.build_context(root)
         second = context.build_context(root)
         assert first == second
-        assert "`learning-logs/2026/08/z-latest.md`" in first
+        assert "최신 의미 있는 학습 기록: `learning-logs/2026/08/a-latest.md`" in first
         assert "Current Topic: SRAM" in first
         assert "unresolved one" in first and "unresolved two" in first
         assert "resolved must not appear" not in first
@@ -228,7 +247,7 @@ def main() -> int:
         same_date = first.split("### 같은 날짜의 의미 있는 학습 단위", 1)[1].split(
             "## 현재 확인된 핵심 개념", 1
         )[0]
-        assert same_date.index("a-latest.md") < same_date.index("z-latest.md")
+        assert same_date.index("z-latest.md") < same_date.index("a-latest.md")
         assert "## Roadmap Position" in first
         assert "## Topic Goal" in first
         assert "## Exit Criteria" in first
@@ -241,7 +260,7 @@ def main() -> int:
         required_source = first.split(
             "## Required Source Before First Learning Unit", 1
         )[1].split("## Next Roadmap Topic", 1)[0]
-        assert "z-latest.md" in required_source
+        assert "a-latest.md" in required_source
         assert "Roadmap reconciliation: **pending-approval**" in first
         assert "dashboard 상태가 Not Started" in first
 
@@ -252,6 +271,32 @@ def main() -> int:
         finally:
             Path.glob = original_glob
         assert reordered == first
+
+    # Regression: three logs on one date follow Issue time, not filename order.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md",
+            note(date="2026-08-22", recorded_at="2026-08-22T05:09:33Z"),
+        )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md",
+            note(date="2026-08-22", recorded_at="2026-08-22T09:54:52Z"),
+        )
+        write_fixture(
+            root,
+            "learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md",
+            note(date="2026-08-22", recorded_at="2026-08-22T14:58:51Z"),
+        )
+        same_day = context.build_context(root)
+        assert (
+            "최신 의미 있는 학습 기록: "
+            "`learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`"
+            in same_day
+        )
 
     # Scenario A: a roadmap-required Cell Ratio gap remains.
     with tempfile.TemporaryDirectory() as temp:

@@ -96,6 +96,7 @@ Learning Unit은 `Cell Ratio의 의미`처럼 자기 설명으로 확인할 수 
 Learning Log section은 canonical template heading을 사용한다. Validator가 명시적으로 허용한 제한적 구조 alias만 canonical heading으로 정규화하며, 의미가 있는 학습 본문은 자동 수정하지 않는다.
 
 - Date
+- Recorded at: GitHub Actions가 Issue의 `created_at`으로 자동 기록하며 GPT나 사용자가 임의로 정하지 않는다.
 - Topic
 - Document type: `learning-log`
 - Domain: `system/LEARNING_LOG_METADATA_SCHEMA.json`의 허용값 중 가장 가까운 값. 저장 직전에 schema를 실제로 읽고 목록에 없는 값을 만들지 않는다.
