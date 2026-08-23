@@ -25,7 +25,7 @@
 - Execution Phase: Phase 1 — Memory Bridge and Paper Scouting
 - Active Track: Track A — Essential Foundations
 - Current Stage: Stage 3 — Memory
-- Current Topic: SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결
+- Current Topic: NPU PE array, buffer hierarchy와 dataflow
 - Current Deliverable: 6T SRAM Hold/Write/Read 자기 설명이 포함된 후속 Learning Log
 - Current Bottleneck: CMOS inverter의 charge/discharge와 6T SRAM 동작을 current, charge, node capacitance 관점으로 연결하기
 - Next Milestone: SRAM 회로 핵심을 마치고 SRAM/DRAM 비교와 NPU on-chip buffer로 연결하기
