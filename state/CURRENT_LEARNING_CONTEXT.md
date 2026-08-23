@@ -7,17 +7,17 @@
 
 ## Roadmap Position
 
-- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`
+- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
 - Current Stage: Stage 3 — Memory
 - Current Topic: Register와 SRAM 회로 기초
-- Domain: memory-architecture
+- Domain: npu
 - Depth Boundary: `sram-foundations`
 
 ### 같은 날짜의 의미 있는 학습 단위
 
-- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` — NPU PE Array, Systolic Array와 Matrix Tiling
-- `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md` — NPU SRAM Data Reuse와 Dataflow
 - `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md` — SRAM-DRAM 구조 비교와 DRAM Sense Amplifier
+- `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md` — NPU SRAM Data Reuse와 Dataflow
+- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` — NPU PE Array, Systolic Array와 Matrix Tiling
 
 ## Topic Goal
 
@@ -51,10 +51,10 @@
 
 ## Optional Open Questions
 
-- Stage 4에서 실제 NPU PE array와 buffer hierarchy를 통해 Weight/Output/Activation reuse가 어떻게 mapping되는가?
-- 대표 dataflow가 실제 tensor/matrix tile을 PE array에 어떻게 배치하는가?
 - 지금까지의 SRAM/DRAM circuit-level 차이가 NPU on-chip SRAM buffer의 data reuse, memory bandwidth, energy와 구체적으로 어떻게 연결되는가?
 - NPU의 실제 SRAM buffer hierarchy와 tiling/dataflow는 DRAM traffic을 어떻게 줄이는가?
+- Stage 4에서 실제 NPU PE array와 buffer hierarchy를 통해 Weight/Output/Activation reuse가 어떻게 mapping되는가?
+- 대표 dataflow가 실제 tensor/matrix tile을 PE array에 어떻게 배치하는가?
 - 명시적 deep-dive 요청 때 선택 가능한 범위: 상세 SNM extraction; advanced Sense Amplifier circuit; SRAM assist technique; process variation과 Monte Carlo 분석
 
 ## Recommended Next Move
@@ -75,14 +75,14 @@
 
 ## 현재 확인된 핵심 개념
 
-- Register → SRAM → DRAM memory hierarchy와 capacity/latency/area trade-off
-- SRAM 6T와 DRAM 1T1C
-- DRAM charge leakage, retention, refresh
-- Charge sharing과 destructive read
-- VDD/2 precharge와 differential sensing
-- Cross-coupled regenerative sense amplifier
-- Sense → Amplify → Restore
-- Sense amplifier mismatch/offset과 sensing margin
+- PE와 PE array
+- Global SRAM buffer와 PE local register
+- SRAM bandwidth와 PE-to-PE interconnect
+- Pipeline과 parallelism
+- Latency와 throughput
+- PE utilization과 memory-bound
+- Systolic array와 local data reuse
+- CPU/GPU/NPU specialization
 
 ## 미완료 자기 설명 점검
 
@@ -90,9 +90,9 @@
 
 ## 최근 Learning Log의 다음 행동 (참고용)
 
-- NPU on-chip SRAM buffer가 activation, weight, partial sum의 data reuse를 어떻게 지원하는지 학습한다.
-- SRAM capacity와 tiling이 DRAM traffic 및 memory bandwidth 요구량에 미치는 영향을 연결한다.
-- 이후 data movement energy와 compute utilization 관점에서 memory hierarchy를 분석한다.
+- Stage 5에서 memory wall을 NPU의 off-chip data movement와 연결해 학습한다.
+- 기존 NPU의 compute-centric data movement와 PIM/CIM의 compute-location 변화를 비교한다.
+- PIM/CIM이 줄이는 movement와 새로 만드는 circuit/architecture trade-off를 자기 설명으로 검증한다.
 - 위 항목은 source evidence이며 Roadmap-aware 추천보다 우선하지 않음
 
 ## Roadmap reconciliation
@@ -113,5 +113,5 @@
 - `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`
 - `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`
 - `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md`
-- `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`
 - `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`
+- `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`
