@@ -25,7 +25,7 @@
 - Execution Phase: Phase 1 — Memory Bridge and Paper Scouting
 - Active Track: Track A — Essential Foundations
 - Current Stage: Stage 3 — Memory
-- Current Topic: Register와 SRAM 회로 기초
+- Current Topic: SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결
 - Current Deliverable: 6T SRAM Hold/Write/Read 자기 설명이 포함된 후속 Learning Log
 - Current Bottleneck: CMOS inverter의 charge/discharge와 6T SRAM 동작을 current, charge, node capacitance 관점으로 연결하기
 - Next Milestone: SRAM 회로 핵심을 마치고 SRAM/DRAM 비교와 NPU on-chip buffer로 연결하기
@@ -41,7 +41,7 @@
 | Computer Architecture | Not Started | latency, throughput, parallelism, locality의 핵심 이해 | Phase 2에서 필요한 범위 우선 학습 |
 | Memory Architecture | Learning | hierarchy, data movement와 Register/SRAM/DRAM 연결 | `learning-logs/2026/08/2026-08-12-register-sram-circuits.md` |
 | SRAM / DRAM / eDRAM | Learning | 6T SRAM 동작을 설명하고 SRAM과 DRAM 비교 | `learning-logs/2026/08/2026-08-12-register-sram-circuits.md` |
-| NPU Architecture | Not Started | PE array, buffer hierarchy와 dataflow 설명 | Phase 2 핵심 목표 |
+| NPU Architecture | Learning | PE array, buffer hierarchy와 dataflow 설명 | `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` |
 | PIM / CIM | Not Started | 기존 NPU와 PIM/CIM의 data movement 차이 분석 | Phase 3 핵심 목표; 관심 동기는 확인됐지만 repository 학습 evidence는 아직 없음 |
 | Foundational Papers | Not Started | 중심 논문의 claim과 architecture 분석 훈련 | 중심 논문 선정 후 시작 |
 | KAIST SSL Lab Papers | Not Started | SSL Lab 중심 논문 1편과 관련 논문 1~2편 분석 | Phase 1에서 후보 조사, Phase 2~4에서 분석 |
