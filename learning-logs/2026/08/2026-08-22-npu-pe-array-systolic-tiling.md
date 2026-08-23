@@ -3,6 +3,7 @@
 ## Metadata
 
 - Date: 2026-08-22
+- Recorded at: 2026-08-22T14:58:51Z
 - Topic: NPU PE Array, Systolic Array와 Matrix Tiling
 - Document type: learning-log
 - Domain: npu
