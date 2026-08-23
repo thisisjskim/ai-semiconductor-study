@@ -352,21 +352,31 @@ def criterion_match_count(criterion: ExitCriterion, corpus: str) -> int:
 
 
 def select_grounding_paths(
-    relevant: list[LearningLog], remaining: tuple[ExitCriterion, ...]
+    relevant: list[LearningLog],
+    all_logs: Iterable[LearningLog],
+    remaining: tuple[ExitCriterion, ...],
 ) -> tuple[str, ...]:
-    if not remaining:
-        return ("roadmap/LEARNING_BOUNDARIES.json",)
+    logs = list(all_logs)
+    latest_paths = [log.path for log in logs[-2:]]
+    paths: list[str] = []
 
-    criterion = remaining[0]
-    ranked = sorted(
-        relevant,
-        key=lambda log: (
-            criterion_match_count(criterion, evidence_corpus([log])),
-            learning_log_order(log),
-        ),
-        reverse=True,
-    )
-    return (ranked[0].path,) if ranked else ()
+    if not remaining:
+        paths.append("roadmap/LEARNING_BOUNDARIES.json")
+    else:
+        criterion = remaining[0]
+        ranked = sorted(
+            relevant,
+            key=lambda log: (
+                criterion_match_count(criterion, evidence_corpus([log])),
+                learning_log_order(log),
+            ),
+            reverse=True,
+        )
+        if ranked:
+            paths.append(ranked[0].path)
+
+    paths.extend(latest_paths)
+    return tuple(dict.fromkeys(paths))
 
 
 def contains_keyword(text: str, keywords: Iterable[str]) -> bool:
@@ -381,7 +391,8 @@ def build_learning_plan(
     primary: LearningLog,
 ) -> LearningPlan:
     boundary = select_boundary(boundaries, progress, primary)
-    relevant = [log for log in included if log.domain in boundary.evidence_domains]
+    logs = list(included)
+    relevant = [log for log in logs if log.domain in boundary.evidence_domains]
     corpus = evidence_corpus(relevant)
     completed = tuple(item for item in boundary.exit_criteria if criterion_is_met(item, corpus))
     remaining = tuple(item for item in boundary.exit_criteria if item not in completed)
@@ -421,7 +432,7 @@ def build_learning_plan(
         blocking_questions=tuple(blocking_questions),
         optional_questions=tuple(optional_questions),
         recommended_move=recommended_move,
-        grounding_paths=select_grounding_paths(relevant, remaining),
+        grounding_paths=select_grounding_paths(relevant, logs, remaining),
         evidence_paths=tuple(log.path for log in relevant),
     )
 
@@ -592,6 +603,7 @@ def build_context(root: Path) -> str:
         lines.append("- 이유: 첫 Blocking Gap과 가장 가까운 저장 evidence를 확인해 사용자의 실제 설명 수준에 맞춘다.")
     else:
         lines.append("- 이유: 다음 topic의 depth boundary를 확인한 뒤 새 학습을 시작한다.")
+    lines.append("- 이유: 최신 의미 있는 Learning Log를 최대 2개 읽어 최근 이해·오해 수정·다음 행동을 실제 evidence로 확인한다.")
     lines.append("- 이 source를 읽기 전에는 일반 지식만으로 첫 설명이나 진단 질문을 만들지 않는다.")
     lines.extend(["", "## Next Roadmap Topic", "", f"- {plan.boundary.next_roadmap_topic}"])
     lines.extend(["", "## 현재 확인된 핵심 개념", ""])

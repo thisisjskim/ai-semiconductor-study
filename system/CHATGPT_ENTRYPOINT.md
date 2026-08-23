@@ -10,7 +10,7 @@
 
 이 문서는 일반 ChatGPT 채팅에서 연결된 GitHub plugin 또는 connector로 읽는 진입점이다. 특정 tool 이름이 항상 존재한다고 가정하지 않는다. 현재 환경이 제공하는 실제 GitHub repository file-read 기능을 사용한다.
 
-이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot으로 Roadmap Position, Exit Criteria, Blocking Gaps와 Recommended Next Move를 정한다. 첫 Learning Unit을 시작하기 전에는 snapshot의 `Required Source Before First Learning Unit`에 적힌 source를 추가로 읽는다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
+이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot으로 Roadmap Position, Exit Criteria, Blocking Gaps와 Recommended Next Move를 정한다. 첫 Learning Unit을 시작하기 전에는 snapshot의 `Required Source Before First Learning Unit`에 적힌 boundary 또는 gap source와 최신 의미 있는 Learning Log 최대 2개를 추가로 읽는다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
 
 학습·복습·현재 상태·다음 주제·논문 재개 요청에서는 자연어 답변보다 저장소 읽기를 먼저 실행한다. GitHub tool을 실제로 호출하지 않은 상태에서 저장소에 접근할 수 없다고 말하거나 사용자에게 파일 내용을 붙여 달라고 요청하지 않는다. 호출이 실패하면 사용한 tool, repository, ref, path와 실제 오류를 밝히며, 오류 응답 없이 접근 실패를 추측하지 않는다.
 
