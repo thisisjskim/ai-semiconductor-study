@@ -5,13 +5,14 @@
 - Proposal status: **pending-approval**
 - Latest evidence date: 2026-08-22
 - Maximum automatic status proposal: **Learning**
-- Decision basis: 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
+- Decision basis: Current Stage가 현재 depth boundary의 공식 stage와 일치하지 않음; 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
 
 ## 현재 포커스 변경 제안
 
 | Field | 현재 값 | 제안 값 |
 | --- | --- | --- |
-| Current Topic | SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결 | NPU PE array, buffer hierarchy와 dataflow |
+| Current Stage | Stage 3 — Memory | Stage 4 — NPU Architecture |
+| Current Topic | NPU PE array, buffer hierarchy와 dataflow | Memory Wall과 PIM/CIM의 compute 위치 변화 |
 
 ## Dashboard 변경 제안
 
