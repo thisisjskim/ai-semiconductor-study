@@ -10,6 +10,8 @@ import tempfile
 from pathlib import Path
 
 import apply_progress_update as progress
+import build_learning_context as learning_context
+from test_build_learning_context import note, setup_root, write_fixture
 
 
 PROGRESS = """# AI Semiconductor Research Progress
@@ -48,21 +50,24 @@ def make_root(temp: str) -> Path:
     return root
 
 
-def proposal(changes: list[dict]) -> dict:
+def proposal(changes: list[dict], evidence_paths: list[str] | None = None) -> dict:
     return {
-        "evidence_paths": ["learning-logs/2026/08/2026-08-13-npu-buffer.md"],
+        "evidence_paths": evidence_paths
+        or ["learning-logs/2026/08/2026-08-13-npu-buffer.md"],
         "changes": changes,
     }
 
 
-def payload(root: Path, changes: list[dict]) -> dict:
+def payload(
+    root: Path, changes: list[dict], evidence_paths: list[str] | None = None
+) -> dict:
     sha = progress.git_blob_sha((root / progress.TARGET_PATH).read_bytes())
     body = (
         "<!-- research-os-progress-update:v1\n"
         "target_path: roadmap/PROGRESS.md\n"
         f"expected_sha: {sha}\n"
         "-->\n"
-        + json.dumps(proposal(changes), ensure_ascii=False)
+        + json.dumps(proposal(changes, evidence_paths), ensure_ascii=False)
     )
     return {
         "title": "[progress-update] 2026-08-14",
@@ -109,6 +114,48 @@ def main() -> int:
         assert "- Current Topic: NPU PE와 Buffer" in updated
         assert "| NPU Architecture | Learning |" in updated
         assert "- Execution Phase: Phase 1 — Memory Bridge and Paper Scouting" in updated
+
+    # End-to-end regression: an approved Progress update produces a context whose
+    # provenance SHA matches the updated Progress and whose reconciliation is aligned.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "roadmap/PROGRESS.md",
+            "# Progress\n\n"
+            "## 3. Current Focus\n\n"
+            "- Current Stage: Not Started\n"
+            "- Current Topic: SRAM\n\n"
+            "## 4. Progress Dashboard\n\n"
+            "| Stage | Status | 현재 목표 | Evidence / Notes |\n"
+            "| --- | --- | --- | --- |\n"
+            "| SRAM / DRAM / eDRAM | Not Started | SRAM | evidence |\n\n"
+            "## 5. Application Deliverables\n",
+        )
+        evidence_path = "learning-logs/2026/08/2026-08-14-sram.md"
+        write_fixture(
+            root,
+            evidence_path,
+            note(
+                date="2026-08-14",
+                understanding="Read Disturb를 설명했다.",
+                questions=(),
+            ),
+        )
+        request = payload(
+            root,
+            [
+                focus("Current Stage", "Not Started", "Stage 3 — Memory"),
+                dashboard("SRAM / DRAM / eDRAM"),
+            ],
+            [evidence_path],
+        )
+        progress.apply_update(request, root)
+        snapshot = learning_context.build_context(root)
+        updated_sha = learning_context.git_blob_sha(root / progress.TARGET_PATH)
+        assert f"Progress source SHA: `{updated_sha}`" in snapshot
+        assert "Roadmap reconciliation: **aligned**" in snapshot
 
     forbidden_fields = [
         "Primary Goal",
@@ -232,6 +279,8 @@ def main() -> int:
         "python scripts/apply_progress_update.py",
         '[[ "${changed_paths[0]}" != "roadmap/PROGRESS.md" ]]',
         "✅ Progress Update 처리 완료",
+        "Progress source SHA",
+        "Learning Context Refresh가 자동 실행됩니다",
         "❌ Progress Update 처리 실패",
     ):
         assert phrase in workflow, phrase

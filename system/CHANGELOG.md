@@ -5,6 +5,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 ## v0.3.0 — Current
 
 ### Added
+- Progress Update 뒤 생성된 context가 최신 `PROGRESS.md`를 사용했는지 검증하는 `Progress source SHA` provenance
 - 질문 전 prerequisite readiness와 새 topic Explain-first gate, Learning Unit 완료와 log-worthy 저장 판정의 분리 규칙
 - Learning Log 작성기, 저장 validator와 context builder가 함께 읽는 canonical Domain metadata schema
 - Roadmap topic별 Learning Objective, Minimum Required Understanding, Exit Criteria, Optional Deep Dive와 Next Topic을 정의하는 boundary 계약
@@ -20,6 +21,8 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
+- Progress 반영 성공과 후속 `CURRENT_LEARNING_CONTEXT.md` 갱신 완료를 구분하지 않아 stale snapshot으로 다음 학습을 제안할 수 있던 실행 경로
+- 새 학습 세션에서 `pending-approval` reconciliation을 읽기만 하고 공식 Progress 반영 여부를 묻지 않을 수 있던 승인 checkpoint 누락
 - 단일 질문·답변 또는 Exit Criterion 하나의 충족 직후 Learning Log 저장을 너무 일찍 제안할 수 있던 Checkpoint 모호성
 - `memory-architecture`로 분류된 8월 22일 SRAM/DRAM 학습 evidence가 현재 SRAM boundary의 마지막 criterion에 반영되지 않던 cross-domain evidence 누락
 - `next_roadmap_topic` 설명문을 다음 boundary의 공식 topic으로 다시 인식하지 못할 수 있던 transition alias 누락

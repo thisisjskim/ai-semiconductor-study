@@ -114,7 +114,10 @@ jobs:
                 "✅ Progress Update 처리 완료\n\n" +
                 `- Path: [\`${path}\`](${context.serverUrl}/${owner}/${repo}/blob/${commit}/${path})\n` +
                 `- Applied changes: ${process.env.CHANGE_COUNT}\n` +
-                `- Commit: [\`${commit.slice(0, 7)}\`](${context.serverUrl}/${owner}/${repo}/commit/${commit})`,
+                `- Commit: [\`${commit.slice(0, 7)}\`](${context.serverUrl}/${owner}/${repo}/commit/${commit})\n` +
+                "- Next: Learning Context Refresh가 자동 실행됩니다. " +
+                "`state/CURRENT_LEARNING_CONTEXT.md`의 `Progress source SHA`가 " +
+                "최신 `roadmap/PROGRESS.md` SHA와 같아지면 전체 반영이 완료됩니다.",
             });
 
       - name: Comment failure

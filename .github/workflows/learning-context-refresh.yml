@@ -9,6 +9,8 @@ on:
       - "roadmap/ROADMAP.md"
       - "roadmap/LEARNING_BOUNDARIES.json"
       - "system/LEARNING_LOG_METADATA_SCHEMA.json"
+      - "scripts/build_learning_context.py"
+      - "scripts/progress_policy.py"
   # GITHUB_TOKEN pushes do not emit new push workflow runs. This preserves the
   # separate workflow boundary while refreshing after a successful ingest.
   workflow_run:

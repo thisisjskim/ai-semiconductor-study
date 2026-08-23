@@ -165,7 +165,7 @@ Learning Log 저장 성공과 실제 commit을 확인한 뒤에만 새 evidence�
 
 실제 변경이 필요한 경우에만 현재 값과 제안 값을 사용자에게 보여 주고 Learning Log 저장과 분리된 두 번째 승인을 받는다. 승인 후 최신 `roadmap/PROGRESS.md` blob SHA, 실제 Learning Log evidence path, 승인된 `from`과 `to`를 `research-os-progress-update:v1` 계약에 넣어 `[progress-update] YYYY-MM-DD` Issue로 enqueue한다.
 
-GitHub Actions는 repository owner, 제목, target path, SHA, evidence 존재, 허용 필드, 현재 값, Dashboard 전이를 모두 검증한다. 검증 후 `roadmap/PROGRESS.md` 한 파일만 commit한다. ChatGPT는 Issue 결과 comment의 성공 marker, path, commit을 확인하고 그 commit ref의 파일에서 승인된 값이 일치하는지 다시 읽은 경우에만 반영 완료라고 말한다.
+GitHub Actions는 repository owner, 제목, target path, SHA, evidence 존재, 허용 필드, 현재 값, Dashboard 전이를 모두 검증한다. 검증 후 `roadmap/PROGRESS.md` 한 파일만 commit하고 Learning Context Refresh를 자동으로 후속 실행한다. ChatGPT는 Issue 결과 comment의 성공 marker, path, commit과 그 commit ref의 승인 값을 먼저 검증한다. 이어서 최신 `roadmap/PROGRESS.md` blob SHA와 `state/CURRENT_LEARNING_CONTEXT.md`의 `Progress source SHA`가 일치하는지 확인해야 전체 반영 완료라고 말한다. 불일치하는 동안에는 Progress 변경 성공과 context 갱신 대기를 구분하고 오래된 context로 다음 학습을 제안하지 않는다. 일치한 뒤에는 갱신된 snapshot의 Roadmap Position, Blocking Gaps, Recommended Next Move와 Required Source를 다음 학습의 기준으로 사용한다.
 
 ## 10. Session Recovery and Roadmap
 
@@ -180,6 +180,8 @@ Roadmap은 강제 syllabus가 아니라 navigation map이다. 기초 학습 → 
 새 채팅의 snapshot은 위치와 방향을 정하는 index이지 사용자의 실제 설명을 대체하는 source가 아니다. 첫 Learning Unit 전에는 snapshot이 지정한 가장 가까운 Learning Log 또는 next-topic boundary를 한 번 더 읽는다. 중요한 질문 전에는 필요한 prerequisite가 사용자 evidence로 확인되었는지 점검한다. 사용자의 기존 설명 수준을 확인하지 않은 채 모델의 일반 지식만으로 진단 질문을 만들지 않으며, 사용자가 퀴즈를 요청하지 않았다면 짧은 연결 설명과 예시 뒤에 자기 설명을 요청한다. 새로운 topic·topology·physical mechanism 또는 미확인 비교 대상은 최소 seed knowledge를 Explain-first로 제공한 뒤 추론 질문에 사용한다.
 
 `state/PROGRESS_RECONCILIATION.md`는 유효한 Learning Log와 `roadmap/PROGRESS.md`를 비교해 만든 검토용 제안서다. Learning Log가 존재한다는 이유만으로 `Review`나 `Completed`를 판단하지 않으며, 자동 제안은 최대 `Learning`까지로 제한한다. 단일 Learning Log가 증명할 수 없는 execution phase, deliverable, bottleneck, next milestone과 deadline은 자동 제안하지 않는다. Progress가 최신 Learning Log보다 새로우면 과거 evidence로 현재 focus를 되돌리지 않는다. 이 제안서는 `roadmap/PROGRESS.md`를 직접 수정하지 않는다. 실제 반영은 사용자가 stage, topic, status와 evidence를 확인해 별도로 승인한 뒤 `[progress-update]` Issue와 검증 workflow를 통해 수행한다.
+
+새 학습 세션에서 snapshot이 `Roadmap reconciliation: pending-approval`을 표시하면 첫 Learning Unit 전에 reconciliation의 현재 값, 제안 값과 근거 Learning Log path를 사용자에게 짧게 보여 주고 공식 Progress 반영 여부를 한 번 묻는다. 일반적인 학습 시작·계속 요청은 승인으로 확대 해석하지 않는다. 사용자가 보류하면 학습을 계속하며 같은 세션에서 동일 제안을 반복하지 않는다.
 
 ## 11. Ultimate Principle
 
