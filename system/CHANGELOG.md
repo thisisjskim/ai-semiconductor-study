@@ -5,6 +5,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 ## v0.3.0 — Current
 
 ### Added
+- 첫 Learning Unit 전에 boundary 또는 gap source와 함께 최신 의미 있는 Learning Log 최대 2개를 읽는 Required Source 정책
 - Progress Update 뒤 생성된 context가 최신 `PROGRESS.md`를 사용했는지 검증하는 `Progress source SHA` provenance
 - 질문 전 prerequisite readiness와 새 topic Explain-first gate, Learning Unit 완료와 log-worthy 저장 판정의 분리 규칙
 - Learning Log 작성기, 저장 validator와 context builder가 함께 읽는 canonical Domain metadata schema

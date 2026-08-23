@@ -268,6 +268,8 @@ def main() -> int:
             "## Required Source Before First Learning Unit", 1
         )[1].split("## Next Roadmap Topic", 1)[0]
         assert "a-latest.md" in required_source
+        assert "z-latest.md" in required_source
+        assert "최신 의미 있는 Learning Log를 최대 2개" in required_source
         assert "Roadmap reconciliation: **pending-approval**" in first
         assert "dashboard 상태가 Not Started" in first
 
@@ -304,6 +306,12 @@ def main() -> int:
             "`learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`"
             in same_day
         )
+        same_day_required = same_day.split(
+            "## Required Source Before First Learning Unit", 1
+        )[1].split("## Next Roadmap Topic", 1)[0]
+        assert "2026-08-22-npu-sram-data-reuse-dataflow.md" in same_day_required
+        assert "2026-08-22-npu-pe-array-systolic-tiling.md" in same_day_required
+        assert "2026-08-22-sram-dram-sense-amplifier.md" not in same_day_required
 
     # Scenario A: a roadmap-required Cell Ratio gap remains.
     with tempfile.TemporaryDirectory() as temp:
@@ -339,6 +347,9 @@ def main() -> int:
         assert "advanced Sense Amplifier topology는 무엇인가?" in plan
         assert "우선 학습: SRAM/DRAM 비교" in plan
         assert "`roadmap/LEARNING_BOUNDARIES.json`" in plan.split(
+            "## Required Source Before First Learning Unit", 1
+        )[1].split("## Next Roadmap Topic", 1)[0]
+        assert "`learning-logs/2026/08/a.md`" in plan.split(
             "## Required Source Before First Learning Unit", 1
         )[1].split("## Next Roadmap Topic", 1)[0]
 

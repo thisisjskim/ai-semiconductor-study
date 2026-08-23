@@ -169,7 +169,7 @@ GitHub Actions는 repository owner, 제목, target path, SHA, evidence 존재, �
 
 ## 10. Session Recovery and Roadmap
 
-새 채팅에서는 이전 대화를 기억한다고 가정하지 않는다. 필요할 때 `roadmap/PROGRESS.md` → 해당 트랙의 최근 Learning Log → 관련 정제 노트 순으로 읽어 현재 위치를 복구한다.
+새 채팅에서는 이전 대화를 기억한다고 가정하지 않는다. snapshot의 `Required Source Before First Learning Unit`은 현재 boundary 또는 첫 Blocking Gap의 근거와 함께 최신 의미 있는 Learning Log를 최대 2개 포함한다. ChatGPT는 이 source를 읽어 최근 이해·오해 수정·다음 행동을 확인한 뒤 현재 위치를 복구한다.
 
 Roadmap은 강제 syllabus가 아니라 navigation map이다. 기초 학습 → foundational/SSL paper 도전 → prerequisite 발견 → targeted 학습 → 논문 복귀 cycle로 bottom-up과 top-down을 함께 사용한다.
 
