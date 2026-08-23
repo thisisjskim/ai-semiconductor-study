@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from dataclasses import dataclass
@@ -50,6 +51,13 @@ DASHBOARD_LABELS = {
     "pim-cim": ("PIM / CIM",),
     "paper": ("Foundational Papers", "KAIST SSL Lab Papers"),
 }
+
+
+def git_blob_sha(path: Path) -> str:
+    """Return the Git blob SHA used by GitHub's repository contents API."""
+    data = path.read_bytes()
+    header = f"blob {len(data)}\0".encode("utf-8")
+    return hashlib.sha1(header + data).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -463,6 +471,7 @@ def build_context(root: Path) -> str:
     included, excluded = discover_logs(root)
     progress_path = root / "roadmap/PROGRESS.md"
     progress = progress_path.read_text(encoding="utf-8")
+    progress_sha = git_blob_sha(progress_path)
     roadmap_path = root / "roadmap/ROADMAP.md"
     roadmap_path.read_text(encoding="utf-8")  # Required source; validates readability.
     boundaries = load_boundaries(root)
@@ -475,6 +484,7 @@ def build_context(root: Path) -> str:
             "> 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
             "",
             "- Last generated date: 없음",
+            f"- Progress source SHA: `{progress_sha}`",
             f"- Roadmap reconciliation: **{decision.status}**",
             "",
             "## 현재 상태",
@@ -531,6 +541,7 @@ def build_context(root: Path) -> str:
         "> 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
         "",
         f"- Last generated date: {latest_date.isoformat()}",
+        f"- Progress source SHA: `{progress_sha}`",
         f"- Roadmap reconciliation: **{decision.status}**",
         "",
         "## Roadmap Position",

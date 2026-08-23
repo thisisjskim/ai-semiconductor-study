@@ -140,11 +140,14 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert "state/CURRENT_LEARNING_CONTEXT.md" not in push_paths
     assert 'workflows: ["Learning Log Ingest", "Progress Update"]' in workflow
     assert "github.event.workflow_run.conclusion == 'success'" in workflow
+    assert "github.event_name != 'workflow_run'" in workflow
     assert "group: research-os-main" in workflow
     assert '- "roadmap/PROGRESS.md"' in workflow
     assert '- "roadmap/ROADMAP.md"' in workflow
     assert '- "roadmap/LEARNING_BOUNDARIES.json"' in workflow
     assert '- "system/LEARNING_LOG_METADATA_SCHEMA.json"' in workflow
+    assert '- "scripts/build_learning_context.py"' in workflow
+    assert '- "scripts/progress_policy.py"' in workflow
     assert "python -B scripts/test_build_learning_context.py" in workflow
     assert "python -B scripts/build_learning_context.py" in workflow
     assert 'git add -- state/CURRENT_LEARNING_CONTEXT.md' in workflow
@@ -233,6 +236,8 @@ def main() -> int:
         first = context.build_context(root)
         second = context.build_context(root)
         assert first == second
+        progress_sha = context.git_blob_sha(root / "roadmap/PROGRESS.md")
+        assert f"Progress source SHA: `{progress_sha}`" in first
         assert "최신 의미 있는 학습 기록: `learning-logs/2026/08/a-latest.md`" in first
         assert "Current Topic: SRAM" in first
         assert "unresolved one" in first and "unresolved two" in first
@@ -371,6 +376,9 @@ def main() -> int:
         assert "Decision: **review_then_advance**" in aligned_review
         assert "Roadmap reconciliation: **aligned**" in aligned_review
         assert "Current Topic: SRAM" in aligned_review
+        aligned_sha = context.git_blob_sha(root / "roadmap/PROGRESS.md")
+        assert f"Progress source SHA: `{aligned_sha}`" in aligned_review
+        assert progress_sha != aligned_sha
 
     # Scenario E is a session policy: deep dive is selectable only on explicit request.
     repository_root = Path(__file__).resolve().parents[1]
