@@ -3,9 +3,9 @@
 > 이 문서는 Learning Log evidence와 `roadmap/PROGRESS.md`를 비교해 자동 생성한 검토용 제안서다. `roadmap/PROGRESS.md`를 수정하지 않으며, 아래 변경은 사용자 승인 후 별도 branch와 Pull Request에서만 적용한다.
 
 - Proposal status: **pending-approval**
-- Latest evidence date: 2026-08-22
+- Latest evidence date: 2026-08-23
 - Maximum automatic status proposal: **Learning**
-- Decision basis: Current Stage가 현재 depth boundary의 공식 stage와 일치하지 않음; 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
+- Decision basis: Current Stage가 현재 depth boundary의 공식 stage와 일치하지 않음; 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함; PIM / CIM에 학습 evidence가 있지만 dashboard 상태가 Not Started임
 
 ## 현재 포커스 변경 제안
 
@@ -21,6 +21,7 @@
 | Memory Architecture | `Learning` 유지 | `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`, `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md` |
 | SRAM / DRAM / eDRAM | `Learning` 유지 | `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`, `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`, `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md` |
 | NPU Architecture | `Learning` 유지 | `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` |
+| PIM / CIM | `Not Started` → `Learning` | `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md` |
 
 ## 판단 제한
 
@@ -43,6 +44,7 @@
 - `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`
 - `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md`
 - `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
+- `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
 
 ## 제외한 기록과 이유
 
