@@ -3,6 +3,7 @@
 ## Metadata
 
 - Date: 2026-08-22
+- 2026-08-22T09:54:52Z
 - Topic: NPU SRAM Data Reuse와 Dataflow
 - Document type: learning-log
 - Domain: memory-architecture
