@@ -3,6 +3,7 @@
 ## Metadata
 
 - Date: 2026-08-22
+- Recorded at: 2026-08-22T09:54:52Z
 - Topic: SRAM-DRAM 구조 비교와 DRAM Sense Amplifier
 - Document type: learning-log
 - Domain: memory-architecture
