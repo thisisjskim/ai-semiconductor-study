@@ -2,13 +2,13 @@
 
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
-- Last generated date: 2026-08-23
+- Last generated date: 2026-08-24
 - Progress source SHA: `40fb5174cae68a5a1674410e483354292d6c5afa`
 - Roadmap reconciliation: **pending-approval**
 
 ## Roadmap Position
 
-- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
+- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md`
 - Current Stage: Stage 4 — NPU Architecture
 - Current Topic: Memory Wall과 PIM/CIM의 compute 위치 변화
 - Domain: pim-cim
@@ -16,7 +16,7 @@
 
 ### 같은 날짜의 의미 있는 학습 단위
 
-- `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md` — Memory Wall과 Analog CIM 기초
+- `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md` — PIM/CIM Tiling, Bottleneck과 Roofline 기초
 
 ## Topic Goal
 
@@ -46,8 +46,9 @@
 
 ## Optional Open Questions
 
-- 큰 neural-network weight matrix를 제한된 크기의 여러 CIM array에 어떻게 tiling/mapping하고, 각 array에서 생성된 partial sum을 어떻게 결합하는가?
-- PIM/CIM의 구현 범위와 analog/digital CIM의 세부 경계는 이후 architecture 학습에서 추가 정리할 수 있다.
+- 실제 Foundational PIM/CIM 논문에서 architecture block diagram을 볼 때 어떤 subsystem이 measured bottleneck인지 어떻게 찾아낼 것인가?
+- 실제 논문의 compute efficiency, energy efficiency, ADC overhead, data reuse를 Roofline 또는 유사한 quantitative framework로 어떻게 해석할 것인가?
+- Digital CIM과 Analog CIM을 실제 silicon result로 비교할 때 precision, area, TOPS/W, TOPS/mm²를 어떤 기준으로 공정하게 비교해야 하는가?
 - 명시적 deep-dive 요청 때 선택 가능한 범위: ADC/DAC transistor-level circuit; device nonlinearity model; 고급 mapping algorithm
 
 ## Recommended Next Move
@@ -59,8 +60,8 @@
 ## Required Source Before First Learning Unit
 
 - `roadmap/LEARNING_BOUNDARIES.json`
-- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
 - `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
+- `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md`
 - 이유: 다음 topic의 depth boundary를 확인한 뒤 새 학습을 시작한다.
 - 이유: 최신 의미 있는 Learning Log를 최대 2개 읽어 최근 이해·오해 수정·다음 행동을 실제 evidence로 확인한다.
 - 이 source를 읽기 전에는 일반 지식만으로 첫 설명이나 진단 질문을 만들지 않는다.
@@ -71,13 +72,14 @@
 
 ## 현재 확인된 핵심 개념
 
-- Memory Wall: compute 성능만 높여도 memory hierarchy를 통한 data movement가 latency/energy 병목으로 남을 수 있다.
-- Weight-stationary CIM: weight를 memory array에 두고 activation을 공급하여 weight movement를 줄이는 방향이다.
-- Analog CIM MAC: cell의 w×x에 해당하는 physical contribution을 current/charge/voltage 등의 analog quantity로 표현하고 bitline에서 accumulation할 수 있다.
-- Multi-bit handling: positional weight 때문에 bit slicing/bit-serial 및 digital shift-and-add 등의 재구성이 필요할 수 있다.
-- Activation buffer: 특별한 memory technology의 이름이라기보다 activation을 임시 저장하는 역할이며, accelerator에서는 SRAM으로 구현될 수 있다.
-- Peripheral bottleneck: ADC, input driver/DAC, activation SRAM, interconnect, digital accumulation 등이 array 밖의 area/energy/throughput을 제한할 수 있다.
-- Array scaling: 큰 WL/BL은 parasitic resistance/capacitance와 sensing/precision 문제를 키울 수 있어 array size를 무조건 확대할 수 없다.
+- CIM K-tiling과 reduction dimension
+- Partial sum과 inter-array accumulation
+- M/N tiling과 K-tiling의 차이
+- CIM array size와 mapping capacity
+- Bitline/wordline parasitic resistance와 capacitance
+- I=C·dV/dt와 sensing latency 직관
+- Analog CIM과 Digital CIM
+- Multi-bit representation, bit-serial, bit-slicing, shift-and-add
 
 ## 미완료 자기 설명 점검
 
@@ -85,9 +87,9 @@
 
 ## 최근 Learning Log의 다음 행동 (참고용)
 
-- CIM tiling과 mapping을 학습한다.
-- 큰 matrix를 여러 CIM array로 분할했을 때 발생하는 partial sum과 inter-array accumulation을 직접 계산한다.
-- NPU tiling과 CIM tiling의 공통점과 차이를 capacity, data movement, circuit constraint 관점에서 비교한다.
+- 중심 Foundational PIM/CIM 논문 한 편을 선정하고 abstract와 주요 architecture figure를 읽으면서 `problem → prior bottleneck → proposed compute location → data path → claimed benefit`의 claim map을 만든다.
+- 논문의 주요 figure에서 weight, activation, partial sum, ADC/digital accumulation이 각각 어디에 위치하고 어떻게 이동하는지 직접 표시한다.
+- 논문의 성능/에너지 결과를 읽을 때 array peak만 보지 않고 ADC/peripheral overhead, data movement, precision, utilization을 함께 확인하고, 가능하면 Arithmetic Intensity 또는 Roofline 관점으로 memory-bound/compute-bound 가능성을 추론한다.
 - 위 항목은 source evidence이며 Roadmap-aware 추천보다 우선하지 않음
 
 ## Roadmap reconciliation
@@ -105,3 +107,4 @@
 - `roadmap/LEARNING_BOUNDARIES.json`
 - `roadmap/PROGRESS.md`
 - `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
+- `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md`
