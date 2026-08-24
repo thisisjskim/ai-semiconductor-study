@@ -22,136 +22,106 @@
 
 ## 3. Current Focus
 
-- Execution Phase: Phase 2 — NPU and Dataflow Foundation
-- Active Track: Track A — Essential Foundations → Paper Analysis
-- Current Stage: Stage 6 — Foundational Papers
+- Execution Phase: Phase 1 — Memory Bridge and Paper Scouting
+- Active Track: Track A — Essential Foundations
+- Current Stage: Stage 5 — PIM / CIM
 - Current Topic: 중심 Foundational Paper의 claim map과 architecture walkthrough
-- Current Deliverable: 중심 PIM/CIM 논문 1편의 `problem → prior-work gap → key claim → architecture/data path → result → limitation` 분석
-- Current Bottleneck: 실제 논문 figure와 measured result에서 architecture-level claim과 system-level evidence를 연결하는 경험 부족
-- Next Milestone: 중심 논문 1편을 선정하고 abstract와 핵심 figure를 바탕으로 problem, gap, claim, architecture를 자기 언어로 설명하기
-- Phase Deadline: 2026-09-06
+- Current Deliverable: 6T SRAM Hold/Write/Read 자기 설명이 포함된 후속 Learning Log
+- Current Bottleneck: CMOS inverter의 charge/discharge와 6T SRAM 동작을 current, charge, node capacitance 관점으로 연결하기
+- Next Milestone: SRAM 회로 핵심을 마치고 SRAM/DRAM 비교와 NPU on-chip buffer로 연결하기
+- Phase Deadline: 2026-08-23
 - Last Updated: 2026-08-24
 
 ## 4. Progress Dashboard
 
 | Stage | Status | 현재 목표 | Evidence / Notes |
 | --- | --- | --- | --- |
-| Stage 1 — AI Computation | Review | MAC, weight, activation, partial sum과 data movement를 논문에서 즉시 활용 | NPU/PIM 학습에서 반복 적용 |
-| Stage 2 — Computer Architecture | Review | latency, bandwidth, locality, utilization, bottleneck을 논문 분석에 적용 | NPU/CIM bottleneck reasoning evidence 확보 |
-| Stage 3 — Memory | Review | Register/SRAM/DRAM hierarchy와 data movement trade-off를 논문에 적용 | SRAM/DRAM/NPU/PIM Learning Logs |
-| Stage 4 — NPU Architecture | Review | PE array, buffer hierarchy, tiling, dataflow, reuse를 논문 architecture와 비교 | `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` |
-| Stage 5 — PIM / CIM | Completed | NPU↔PIM/CIM compute location, CIM tiling, ADC/activation bottleneck, analog/digital trade-off 설명 | `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`, `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md` |
-| Stage 6 — Foundational Papers | Learning | problem, gap, claim, architecture, result, limitation을 하나의 논리로 연결 | 현재 활성 학습 단위 |
-| KAIST SSL Lab Papers | Not Started | Foundational Paper 분석법을 SSL Lab 중심 논문과 관련 논문에 적용 | Stage 6 기본 분석 후 연결 |
-| Research Questions / Portfolio | Not Started | Paper Note, 비교표, 연구 관심과 지원 자료 연결 | 논문 분석 evidence부터 축적 |
+| 전자공학 기초 (Electronics Fundamentals) | Learning | MOSFET switch, CMOS inverter와 storage circuit 복습 | `learning-logs/2026/08/2026-08-12-register-sram-circuits.md` |
+| AI Computation | Not Started | MAC, weight, activation, partial sum의 hardware 흐름 이해 | Phase 2에서 NPU와 함께 시작 |
+| Computer Architecture | Not Started | latency, throughput, parallelism, locality의 핵심 이해 | Phase 2에서 필요한 범위 우선 학습 |
+| Memory Architecture | Learning | hierarchy, data movement와 Register/SRAM/DRAM 연결 | `learning-logs/2026/08/2026-08-22-sram-dram-sense-amplifier.md`, `learning-logs/2026/08/2026-08-22-npu-sram-data-reuse-dataflow.md` |
+| SRAM / DRAM / eDRAM | Learning | 6T SRAM 동작을 설명하고 SRAM과 DRAM 비교 | `learning-logs/2026/08/2026-08-14-sram-read-disturb-cell-stability.md`, `learning-logs/2026/08/2026-08-15-sram-cell-ratio-snm.md`, `learning-logs/2026/08/2026-08-15-sram-read-path-fundamentals.md` |
+| NPU Architecture | Learning | PE array, buffer hierarchy와 dataflow 설명 | `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md` |
+| PIM / CIM | Learning | 기존 NPU와 PIM/CIM의 data movement 차이 분석 | `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`, `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md` |
+| Foundational Papers | Not Started | 중심 논문의 claim과 architecture 분석 훈련 | 중심 논문 선정 후 시작 |
+| KAIST SSL Lab Papers | Not Started | SSL Lab 중심 논문 1편과 관련 논문 1~2편 분석 | Phase 1에서 후보 조사, Phase 2~4에서 분석 |
+| Research Questions / Portfolio | Not Started | Paper Note, 비교표, 연구 관심과 지원 자료 연결 | 결과물 구조만 확정; 실제 연구 결과물 evidence는 아직 없음 |
 
 ## 5. Application Deliverables
 
 | Deliverable | Status | Target | Evidence / Next Action |
 | --- | --- | --- | --- |
-| 핵심 기초 Learning Log | Review | 2026-09-20까지 지원에 필요한 핵심 evidence 선별 | NPU/PIM-CIM foundations까지 확보; 논문에서 발견되는 gap만 spiral review |
-| 중심 논문 선정 | Learning | 즉시 | PIM/CIM Foundational Paper 1편을 anchor로 확정 |
-| Claim map / Architecture walkthrough | Learning | 2026-09-06 | problem, gap, claim, data path, result, limitation 연결 |
-| 중심 Paper Note | Not Started | 2026-09-20 초안, 2026-09-27 검토 | claim map 완료 후 `templates/paper-note.md`로 확장 |
+| 핵심 기초 Learning Log | Learning | 2026-09-20까지 지원에 필요한 핵심 evidence 선별 | 현재 SRAM 기록에서 시작해 NPU/PIM으로 확장 |
+| 중심 논문 선정 | Not Started | 2026-08-23 | SSL Lab 연구 주제와 논문 후보를 실제 source로 확인 |
+| 중심 Paper Note | Not Started | 2026-09-20 초안, 2026-09-27 검토 | `templates/paper-note.md` 사용 |
 | 관련 논문 비교 자료 | Not Started | 2026-09-27 | 중심 논문과 1~2편을 problem, architecture, result, limitation으로 비교 |
-| 연구 관심 정리 | Learning | 2026-09-27 | Memory Wall, data movement, PIM/CIM bottleneck 관심을 논문 기반 research question으로 구체화 |
+| 연구 관심 정리 | Not Started | 2026-09-27 | PIM 관심 계기와 학습을 통해 구체화된 질문을 약 1페이지로 정리 |
 | GitHub 포트폴리오 안내 | Not Started | 2026-09-30 | 교수에게 보여줄 핵심 문서와 읽는 순서를 안내 |
 | CV 초안 | Not Started | 2026-09-27 | 학업 배경, 관심 분야, 분석 결과와 프로젝트 후보 연결 |
 | 교수 연락 이메일 | Not Started | 2026-09-30 | 관심 이유, 준비 evidence, 문의 목적을 간결하게 작성 |
-| Python simulation / 분석 프로젝트 | Not Started | 지원 전에는 선택 사항 | 중심 논문 분석 후 작고 설명 가능한 후보 결정 |
+| Python simulation / 분석 프로젝트 | Not Started | 지원 전에는 선택 사항 | 중심 논문 분석 후 작고 설명 가능한 후보를 결정 |
 
 ## 6. Phase Checkpoints
 
 | Phase | Date | Status | Exit Gate |
 | --- | --- | --- | --- |
-| Phase 1 — Memory Bridge and Paper Scouting | 2026-08-13 ~ 2026-08-23 | Review | Memory/NPU/PIM bridge 학습 완료; paper selection은 현재 단계에서 확정 |
-| Phase 2 — NPU and Dataflow Foundation | 2026-08-24 ~ 2026-09-06 | Learning | 기존 NPU/PIM foundations를 사용해 중심 논문 claim map 완성 |
-| Phase 3 — PIM/CIM and Anchor Paper Analysis | 2026-09-07 ~ 2026-09-20 | Not Started | 중심 논문의 key idea, architecture, result, limitation을 Paper Note로 정리 |
-| Phase 4 — Comparison and Application Package | 2026-09-21 ~ 2026-10-04 | Not Started | 관련 논문 비교와 최소 지원 패키지 검토, 교수 연락 준비 |
+| Phase 1 — Memory Bridge and Paper Scouting | 2026-08-13 ~ 2026-08-23 | Learning | SRAM 핵심 설명, SRAM/DRAM 연결, 중심 논문 후보 확인 |
+| Phase 2 — NPU and Dataflow Foundation | 2026-08-24 ~ 2026-09-06 | Not Started | NPU data path 설명, dataflow 1개 비교, 중심 논문 claim map |
+| Phase 3 — PIM/CIM and Anchor Paper Analysis | 2026-09-07 ~ 2026-09-20 | Not Started | 중심 논문의 key idea, architecture, result와 limitation 초안 |
+| Phase 4 — Comparison and Application Package | 2026-09-21 ~ 2026-10-04 | Not Started | 최소 지원 패키지 검토와 교수 연락 준비 |
 | Phase 5 — Post-contact Growth | 2026-10 이후 | Not Started | 피드백 기반 학습, 프로젝트와 research question 발전 |
 
 ## 7. Current Evidence-based Understanding
 
-현재 자기 설명과 문제 적용으로 확인된 내용:
+현재 확인된 내용:
 
-- NPU에서 tiling과 data reuse가 제한된 on-chip SRAM과 PE resource를 효율적으로 사용하고 DRAM traffic을 줄이는 이유를 설명할 수 있다.
-- K-tiling은 reduction dimension을 나누므로 각 tile이 partial sum을 만들고 마지막 accumulation이 필요함을 설명할 수 있다.
-- CIM에서도 weight matrix가 array capacity보다 크면 tiling과 inter-array accumulation이 필요하며, array scaling에는 area뿐 아니라 WL/BL parasitic과 sensing trade-off가 있음을 설명할 수 있다.
-- Analog CIM의 physical summation 장점과 noise, variation, precision, ADC burden을 Digital CIM의 digital logic/accumulation cost와 비교할 수 있다.
-- ADC sharing이 area와 일부 energy overhead를 줄이는 대신 conversion serialization으로 throughput bottleneck을 만들 수 있음을 설명할 수 있다.
-- CIM array의 MAC peak를 높여도 ADC throughput이나 activation bandwidth가 따라가지 못하면 system throughput과 effective utilization이 개선되지 않을 수 있음을 설명할 수 있다.
-- SRAM-CIM과 DRAM-PIM을 capacity와 data movement 관점에서 비교하고, weight movement를 줄인 뒤 activation movement가 새로운 bottleneck이 될 수 있음을 설명할 수 있다.
-- Weight-stationary의 이점이 weight size 자체뿐 아니라 reuse frequency와 movement cost에 달려 있음을 설명할 수 있다.
-- Arithmetic Intensity를 `Operations / Bytes moved`로 해석하고 data reuse와 DRAM traffic 감소가 AI를 높이는 이유를 계산 예제에 적용할 수 있다.
-- `BW × AI`는 memory가 연산한다는 뜻이 아니라 memory system이 해당 workload의 compute를 지속시킬 수 있는 rate의 상한임을 설명할 수 있다.
-- Roofline 직관에서 actual performance upper bound를 `min(Peak Compute, BW × AI)`로 판단하고 memory-bound와 compute-bound를 구분할 수 있다.
-- Bottleneck은 제거되기보다 memory → ADC → activation/interconnect → compute 등 다른 subsystem으로 이동할 수 있다는 system-level 관점을 형성했다.
+- Register는 작은 working set을 compute 가까이에 두어 latency와 data movement를 줄인다.
+- Register의 높은 bit당 circuit/area cost 때문에 더 큰 on-chip storage에는 SRAM이 적합하다.
+- Cross-coupled inverter, latch, flip-flop과 multi-bit Register의 관계를 기본 수준에서 설명할 수 있다.
+- 6T SRAM이 4T storage core와 2T access transistor로 구성됨을 설명할 수 있다.
+- MOSFET channel의 current가 node capacitance를 charge/discharge해 voltage를 바꾼다는 관점을 학습 중이다.
 
-최근 수정된 오해/어려움:
+아직 통과하지 못한 점검:
 
-- TOPS, GB/s, GOP, GB, OP/Byte의 단위 관계를 dimensional analysis로 구분했다.
-- Peak compute와 actual performance를 동일하게 보는 오류를 수정했다.
-- 특정 traffic이 4배 줄었다고 전체 AI가 반드시 4배 증가하지 않으며 다른 traffic이 남을 수 있음을 이해했다.
-- Digital CIM이 반드시 순차 accumulation을 해야 하거나 ADC를 더 필요로 한다는 초기 이해를 수정했다.
-- BL capacitance 증가 시 sensing latency 방향을 반대로 표현한 부분을 수정했고, BL capacitance와 ADC throughput을 직접적인 단일 인과로 두지 않도록 정리했다.
-
-현재 Stage 6에서 새로 검증해야 할 능력:
-
-- 논문의 problem과 prior-work gap을 구분해 설명하기.
-- 저자의 key claim을 architecture mechanism과 연결하기.
-- Figure에서 weight, activation, partial sum, ADC/peripheral의 data path를 추적하기.
-- headline TOPS/TOPS/W와 system-level result를 구분하기.
-- baseline과 result를 비교하고 limitation을 최소 하나 제시하기.
+- CMOS inverter의 switching을 current, charge, node capacitance 관점에서 완전히 설명하기
+- 6T SRAM의 Hold/Write/Read를 transistor-level에서 설명하기
+- SRAM read disturb와 cell stability 설명하기
+- SRAM과 DRAM을 구조, 동작, density, latency와 NPU 역할로 비교하기
+- NPU의 Register/SRAM/PE array 연결과 dataflow로 확장하기
 
 Source:
 
-- `roadmap/LEARNING_BOUNDARIES.json` — Stage 6 exit criteria
-- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
-- `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
-- `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md`
+- `learning-logs/2026/08/2026-08-12-register-sram-circuits.md`
+- `state/CURRENT_LEARNING_CONTEXT.md`는 위 source에서 만든 derived snapshot이므로 근거 자체로 사용하지 않음
 
 ## 8. Immediate Next Actions
 
 가장 중요한 행동 세 개만 활성화한다.
 
-1. 중심 Foundational PIM/CIM 논문 1편을 선정하고 abstract/introduction에서 **problem → prior-work gap → key claim**을 자기 언어로 작성한다.
-2. 핵심 architecture figure에서 **weight → activation → compute → partial sum/output → ADC/peripheral**의 data path를 추적하고, 기존 NPU/CIM 지식으로 왜 해당 구조가 제안되었는지 설명한다.
-3. 핵심 result figure/table에서 **baseline → measured result → claimed benefit → limitation**을 연결하고, array-local peak와 end-to-end system evidence를 구분한다.
+1. CMOS inverter의 output node charge/discharge를 PMOS/NMOS, current와 capacitance로 자기 설명한다.
+2. 6T SRAM의 Hold → Write → Read를 WL, BL/BL̅, Q/Q̅ 기준으로 설명하고 Learning Log evidence로 남긴다.
+3. 2026-08-23까지 SSL Lab 중심 논문 후보를 조사하고 abstract와 주요 figure를 미리 본다.
 
-필요할 때만 돌아갈 spiral review:
+그다음 행동:
 
-- ADC/DAC circuit 세부
-- device nonlinearity/variation
-- Digital CIM logic topology
-- DRAM-PIM bank-level scheduling
-- 실제 Roofline/operational-intensity 정량 분석
+- SRAM과 DRAM 비교
+- NPU의 PE, Register, on-chip buffer 전체 그림
+- 중심 논문 선정과 claim map 시작
 
-## 9. Stage 6 Exit Gate
-
-`paper-analysis-foundations`의 공식 exit criteria를 따른다.
-
-- [ ] 논문의 **problem, prior-work gap, key claim**을 자기 언어로 설명한다.
-- [ ] 핵심 **architecture와 result를 연결**하고 **limitation을 하나 이상** 제시한다.
-
-두 항목을 실제 논문 evidence로 통과하면 다음 Roadmap topic인 **관련 논문 비교와 Research Portfolio**로 advance한다.
-
-## 10. Weekly Review
+## 9. Weekly Review
 
 주간 검토에서는 다음만 확인한다.
 
 - 이번 주에 자신의 말로 설명한 핵심 개념 또는 논문 주장이 있는가?
 - 실제 Learning Log, Paper Note 또는 결과물 진전이 있는가?
-- 막힌 이유가 영어, 수식, circuit, architecture, paper-reading 중 무엇인지 분류했는가?
+- 막힌 이유가 영어, 수식, circuit, architecture 중 무엇인지 분류했는가?
 - prerequisite 보충 후 논문으로 돌아갈 날짜가 정해져 있는가?
 - 현재 활동이 2026년 10월 지원 패키지에 어떻게 기여하는가?
 - 다음 주 최우선 행동이 1~3개로 제한되어 있는가?
 
-## 11. Decision Log
+## 10. Decision Log
 
 - 2026-08-13: 기초를 모두 마친 뒤 논문으로 이동하는 방식 대신, 필수 기초와 논문 분석을 병행하기로 결정함.
 - 2026-08-13: 지원 전 필수 결과물을 중심 Paper Note 1개, 관련 논문 비교, 핵심 기초 evidence, 연구 관심 정리, CV와 이메일 초안으로 정함.
 - 2026-08-13: Python simulation은 지원 전 필수가 아닌 stretch goal로 둠.
 - 2026-08-13: 진행 상태는 Not Started, Learning, Review, Completed 네 단계로 유지함.
-- 2026-08-24: PIM/CIM foundations의 exit criteria를 충족한 것으로 판단하고 optional deep-dive를 기본 경로에서 제외함.
-- 2026-08-24: `roadmap/LEARNING_BOUNDARIES.json`의 공식 progression에 맞춰 Current Stage를 **Stage 6 — Foundational Papers**로 전환함.
-- 2026-08-24: 이후 prerequisite gap은 논문 분석 중 필요할 때 spiral learning으로 보충하기로 함.
