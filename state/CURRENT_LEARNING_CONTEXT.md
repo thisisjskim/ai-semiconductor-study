@@ -3,16 +3,16 @@
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
 - Last generated date: 2026-08-23
-- Progress source SHA: `3df019f079517bfd210035c89773c01339a6daad`
+- Progress source SHA: `40fb5174cae68a5a1674410e483354292d6c5afa`
 - Roadmap reconciliation: **pending-approval**
 
 ## Roadmap Position
 
 - 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
-- Current Stage: Stage 3 — Memory
-- Current Topic: NPU PE array, buffer hierarchy와 dataflow
+- Current Stage: Stage 4 — NPU Architecture
+- Current Topic: Memory Wall과 PIM/CIM의 compute 위치 변화
 - Domain: pim-cim
-- Depth Boundary: `npu-architecture-foundations`
+- Depth Boundary: `pim-cim-foundations`
 
 ### 같은 날짜의 의미 있는 학습 단위
 
@@ -20,24 +20,24 @@
 
 ## Topic Goal
 
-- NPU data path와 dataflow가 data movement와 utilization을 바꾸는 방식을 설명한다.
+- 기존 NPU와 PIM/CIM의 data movement 차이와 핵심 trade-off를 설명한다.
 
 ## Minimum Required Understanding
 
-- PE와 PE array
-- buffer hierarchy
-- 대표 dataflow 한 가지
-- data reuse와 utilization
+- Memory Wall
+- SRAM-CIM과 DRAM-PIM
+- Digital CIM과 Analog CIM
+- precision, energy, area trade-off
 
 ## Exit Criteria
 
-- [x] 입력부터 출력까지 PE array와 buffer를 지나는 data path를 설명한다.
-- [x] 대표 dataflow가 어떤 data movement를 줄이는지 설명한다.
+- [x] 기존 NPU와 PIM/CIM의 compute 위치와 data movement 차이를 설명한다.
+- [x] SRAM-CIM 또는 DRAM-PIM의 이점과 비용을 하나 이상 비교한다.
 
 ## Evidence of Completion
 
-- 입력부터 출력까지 PE array와 buffer를 지나는 data path를 설명한다.
-- 대표 dataflow가 어떤 data movement를 줄이는지 설명한다.
+- 기존 NPU와 PIM/CIM의 compute 위치와 data movement 차이를 설명한다.
+- SRAM-CIM 또는 DRAM-PIM의 이점과 비용을 하나 이상 비교한다.
 - 위 표시는 관련 Learning Log의 자기 설명·수정 이해에서 최소 evidence keyword가 모두 확인된 경우만 생성함
 
 ## Blocking Gaps
@@ -46,15 +46,15 @@
 
 ## Optional Open Questions
 
-- Stage 5의 memory wall은 지금까지 배운 NPU tiling/dataflow 최적화로도 왜 완전히 해결되지 않는가?
-- PIM/CIM은 compute 위치를 memory 쪽으로 옮겨 data movement를 어떻게 바꾸는가?
-- 명시적 deep-dive 요청 때 선택 가능한 범위: NoC routing; compiler scheduling; RTL 또는 cycle-accurate 구현
+- 큰 neural-network weight matrix를 제한된 크기의 여러 CIM array에 어떻게 tiling/mapping하고, 각 array에서 생성된 partial sum을 어떻게 결합하는가?
+- PIM/CIM의 구현 범위와 analog/digital CIM의 세부 경계는 이후 architecture 학습에서 추가 정리할 수 있다.
+- 명시적 deep-dive 요청 때 선택 가능한 범위: ADC/DAC transistor-level circuit; device nonlinearity model; 고급 mapping algorithm
 
 ## Recommended Next Move
 
 - Decision: **advance**
 - 이유: 현재 exit criteria를 충족했으므로 optional question을 기본 경로에 넣지 않고 다음 Roadmap topic으로 이동한다.
-- 우선 학습: Memory Wall과 PIM/CIM의 compute 위치 변화
+- 우선 학습: 중심 Foundational Paper의 claim map과 architecture walkthrough
 
 ## Required Source Before First Learning Unit
 
@@ -67,7 +67,7 @@
 
 ## Next Roadmap Topic
 
-- Memory Wall과 PIM/CIM의 compute 위치 변화
+- 중심 Foundational Paper의 claim map과 architecture walkthrough
 
 ## 현재 확인된 핵심 개념
 
@@ -92,7 +92,7 @@
 
 ## Roadmap reconciliation
 
-- Current Stage가 현재 depth boundary의 공식 stage와 일치하지 않음; 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함; PIM / CIM에 학습 evidence가 있지만 dashboard 상태가 Not Started임
+- Current Stage가 현재 depth boundary의 공식 stage와 일치하지 않음; 모든 exit criterion을 충족해 Roadmap에 정의된 다음 topic을 제안함
 - `roadmap/PROGRESS.md`는 자동 수정하지 않음
 
 ## 제외한 기록과 이유
@@ -104,4 +104,4 @@
 - `roadmap/ROADMAP.md`
 - `roadmap/LEARNING_BOUNDARIES.json`
 - `roadmap/PROGRESS.md`
-- `learning-logs/2026/08/2026-08-22-npu-pe-array-systolic-tiling.md`
+- `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
