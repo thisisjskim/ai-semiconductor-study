@@ -92,6 +92,7 @@
 ## 제외한 기록과 이유
 
 - `learning-logs/2026/08/2026-08-09-memory-hierarchy-data-reuse.md` — 필수 Metadata 누락: Document type, Domain, Roadmap stage
+- `learning-logs/2026/08/2026-08-25-learning-log-pipeline-e2e.md` — Domain이 research-os인 시스템 개발·운영 기록
 
 ## 참고한 source paths
 
