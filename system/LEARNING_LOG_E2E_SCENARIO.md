@@ -49,7 +49,7 @@ repository의 ChatGPT entrypoint를 따라 현재 상태를 복구해줘.
 
 기대 결과:
 
-1. `system/LEARNING_LOG_ISSUE_CONTRACT.md`, `templates/learning-log.md`, `system/LEARNING_LOG_AUTHORING_GUIDE.md`를 읽는다. 일반 plugin에서는 `ACTION_SCHEMA.yaml`을 읽을 필요가 없다.
+1. `system/LEARNING_LOG_ISSUE_CONTRACT.md`, `templates/learning-log.md`, `system/LEARNING_LOG_AUTHORING_GUIDE.md`를 읽는다.
 2. 현재 conversation에서만 evidence inventory를 만들고 provenance를 구분한다.
 3. target path 존재 여부를 확인하고 create/update를 결정한다.
 4. update면 최신 target content와 SHA를 읽는다.

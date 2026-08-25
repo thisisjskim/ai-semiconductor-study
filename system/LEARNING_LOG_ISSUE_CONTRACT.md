@@ -8,7 +8,6 @@
 - Metadata enum: `system/LEARNING_LOG_METADATA_SCHEMA.json`
 - Approval and verification policy: `system/RESEARCH_OS.md`
 - Evidence-based authoring: `system/LEARNING_LOG_AUTHORING_GUIDE.md`
-- Custom GPT Action interface only: `system/ACTION_SCHEMA.yaml`
 
 위 파일의 내용을 다른 안내 문서에 임의로 변형해 복사하지 않는다. 이 문서와 canonical source의 drift는 `scripts/test_ingest_learning_log.py`가 검사한다.
 
@@ -29,7 +28,7 @@
 
 Update에서는 기존 파일의 `Recorded at`을 그대로 보존하며 Issue 본문에 적힌 값은 사용하지 않는다. 기존 파일에 이 값이 없으면 임의 시각으로 채우지 않고 검증된 과거 Issue 시각을 별도 보완할 때까지 update를 거부한다.
 
-일반 GitHub plugin에서는 현재 환경이 제공하는 Issue create, comment append, Issue close, Issue/comment read, repository file-read 기능을 사용한다. tool 이름은 plugin마다 다를 수 있으므로 capability를 기준으로 대응시킨다. `system/ACTION_SCHEMA.yaml`은 Custom GPT Action을 직접 설정할 때만 필요하며 일반 plugin 저장의 선행 읽기 파일이 아니다.
+일반 GitHub plugin에서는 현재 환경이 제공하는 Issue create, comment append, Issue close, Issue/comment read, repository file-read 기능을 사용한다. tool 이름은 plugin마다 다를 수 있으므로 capability를 기준으로 대응시킨다.
 
 ## 정확한 wire contract
 

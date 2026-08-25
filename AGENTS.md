@@ -10,7 +10,6 @@
 - 장기 방향, topic depth boundary와 진행표: `roadmap/ROADMAP.md`, `roadmap/LEARNING_BOUNDARIES.json`, `roadmap/PROGRESS.md`
 - Learning Log 형식: `templates/learning-log.md`
 - Learning Log 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`
-- Custom GPT Action 설정 전용: `system/ACTION_SCHEMA.yaml`
 
 ## 작업 라우팅
 

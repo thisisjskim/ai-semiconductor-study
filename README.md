@@ -219,7 +219,7 @@ learning-logs/2026/08/2026-08-09-sram-read.md
 
 ## 6. Issue가 필요한 이유
 
-Custom GPT가 Markdown 파일을 직접 GitHub에 쓰려면 다음 작업을 직접 처리해야 합니다.
+ChatGPT가 Markdown 파일을 GitHub Contents API로 직접 쓰면 다음 작업까지 대화 인터페이스가 처리해야 합니다.
 
 * 전체 문서를 UTF-8로 처리
 * Base64로 변환
@@ -233,12 +233,12 @@ Custom GPT가 Markdown 파일을 직접 GitHub에 쓰려면 다음 작업을 직
 
 | 구성 요소          | 담당 역할                     |
 | -------------- | ------------------------- |
-| Custom GPT     | 학습, 문서 작성, Issue 전송       |
+| 일반 ChatGPT와 GitHub plugin | 학습, 문서 작성, Issue 전송 |
 | GitHub Issue   | 긴 Markdown을 일반 텍스트로 임시 접수 |
 | GitHub Actions | Base64 변환과 파일 생성·수정       |
 | Learning Log   | 장기적으로 남는 최종 학습 기록         |
 
-Custom GPT는 Base64를 만들지 않고 평문 Markdown만 Issue에 보냅니다.
+일반 ChatGPT는 Base64를 만들지 않고 연결된 GitHub plugin으로 평문 Markdown만 Issue에 보냅니다.
 
 ---
 
@@ -360,7 +360,7 @@ Issue 본문
 
 ## 9. 저장 성공을 확인하는 방식
 
-Custom GPT가 Issue를 닫았다고 해서 바로 “저장 완료”라고 말하면 안 됩니다.
+ChatGPT가 Issue를 닫았다고 해서 바로 “저장 완료”라고 말하면 안 됩니다.
 
 저장 상태는 세 단계로 구분해야 합니다.
 
@@ -395,7 +395,7 @@ Actions가 실패하면 Issue에 오류 댓글이 달리고 Actions에는 빨간
 
 ## 10. 권한이 분리된 방식
 
-Custom GPT의 PAT:
+연결된 GitHub plugin 또는 connector에 필요한 최소 repository 권한:
 
 ```text
 Contents: Read-only
@@ -410,7 +410,7 @@ contents: write
 issues: write
 ```
 
-따라서 Custom GPT가 저장소 파일을 직접 덮어쓸 수 없습니다. 실제 파일 수정 권한은 검증된 Workflow에만 있습니다.
+따라서 대화 인터페이스가 저장소 파일을 직접 덮어쓰지 않습니다. 실제 파일 수정 권한은 검증된 Workflow에만 있습니다.
 
 Public repository에서 다른 사람이 임의로 Issue를 만들어 파일을 쓰는 것도 막혀 있습니다. 현재 Workflow는 저장소 소유자인 `thisisjskim`이 만든 Issue만 처리합니다.
 

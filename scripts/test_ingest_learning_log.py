@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 import sys
 import tempfile
@@ -62,136 +61,6 @@ def assert_workflow_contract() -> None:
     assert "Actions 실행 로그" in workflow
 
 
-def assert_action_schema_contract() -> None:
-    schema_path = (
-        Path(__file__).resolve().parents[1] / "system/ACTION_SCHEMA.yaml"
-    )
-    schema = schema_path.read_text(encoding="utf-8")
-
-    lines = schema.splitlines()
-    for index, line in enumerate(lines):
-        match = re.match(r"^(?P<indent>\s*)(description|summary):\s*(?P<value>.*)$", line)
-        if not match:
-            continue
-        value = match.group("value")
-        if value in {">", ">-", "|", "|-"}:
-            indent = len(match.group("indent"))
-            folded_lines = []
-            for following in lines[index + 1 :]:
-                if not following.strip():
-                    continue
-                following_indent = len(following) - len(following.lstrip())
-                if following_indent <= indent:
-                    break
-                folded_lines.append(following.strip())
-            value = " ".join(folded_lines)
-        value = value.strip("'\"")
-        assert len(value) <= 300, (
-            f"Custom GPT의 300자 제한 초과: line {index + 1} "
-            f"({len(value)}자)"
-        )
-
-    # ChatGPT Actions requires path parameter fields to be present on the
-    # operation. A reusable component parameter $ref is valid OpenAPI, but the
-    # GPT editor currently skips these operations because it does not resolve
-    # the ref before checking for a non-empty parameter name.
-    assert "#/components/parameters/" not in schema
-
-    issue_operations = (
-        "listLearningLogIssueComments",
-        "appendLearningLogChunk",
-        "getLearningLogIssue",
-        "closeLearningLogIssue",
-    )
-    for operation_id in issue_operations:
-        operation_match = re.search(
-            rf"(?ms)^      operationId: {re.escape(operation_id)}\n"
-            rf"(?P<body>.*?)(?=^    (?:get|post|put|patch|delete):|^  /|^components:)",
-            schema,
-        )
-        assert operation_match, f"Action operation을 찾을 수 없습니다: {operation_id}"
-        body = operation_match.group("body")
-        assert re.search(
-            r"(?ms)^      parameters:\n"
-            r"        - name: issue_number\n"
-            r"          in: path\n"
-            r"          required: true\n"
-            r"(?:          .*\n)*?"
-            r"          schema:\n"
-            r"            type: integer\n",
-            body,
-        ), f"{operation_id}의 issue_number path parameter가 inline 형식이 아닙니다."
-
-
-def assert_custom_gpt_routing_contract() -> None:
-    root = Path(__file__).resolve().parents[1]
-    schema = (root / "system/ACTION_SCHEMA.yaml").read_text(encoding="utf-8")
-    instructions = (root / "system/CUSTOM_GPT_INSTRUCTIONS.md").read_text(
-        encoding="utf-8"
-    )
-    entrypoint = (root / "system/CHATGPT_ENTRYPOINT.md").read_text(
-        encoding="utf-8"
-    )
-
-    operation_ids = set(re.findall(r"^      operationId: (\w+)$", schema, re.M))
-    required_operations = {
-        "listRepositoryRoot",
-        "getStudyPath",
-        "createLearningLogIssue",
-        "listLearningLogIssueComments",
-        "appendLearningLogChunk",
-        "getLearningLogIssue",
-        "closeLearningLogIssue",
-    }
-    assert operation_ids == required_operations
-
-    for operation_id in required_operations:
-        assert f"`{operation_id}`" in instructions
-
-    assert "state/CURRENT_LEARNING_CONTEXT.md" in schema
-    assert "state/CURRENT_LEARNING_CONTEXT.md" in instructions
-    assert "system/CHATGPT_ENTRYPOINT.md" in instructions
-
-    routing_triggers = (
-        "이전 공부를 이어나가자",
-        "어디까지 공부했어?",
-        "논문을 마저 읽자",
-    )
-    for trigger in routing_triggers:
-        assert trigger in schema
-
-    assert "자연어로 답하기 전에" in instructions
-    assert 'getStudyPath(path="state/CURRENT_LEARNING_CONTEXT.md", ref="main")' in instructions
-    assert "아래 Action을 정확히 한 번 먼저 호출한다" in instructions
-    assert "세션 시작 전에 다시 읽지 않는다" in instructions
-    assert "파일별 호출 문장을 대신 작성하게 하지 않는다" in instructions
-    assert "Action을 호출하지 않은 채" in instructions
-    assert "파일을 붙여 넣기" in instructions
-    assert "GitHub 연결 실행 계약" in entrypoint
-    assert "GitHub 웹 검색" in entrypoint
-    assert "항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고" in entrypoint
-    assert "사용자에게 파일별 호출을 요구하지 않는다" in entrypoint
-    assert "system/LEARNING_LOG_ISSUE_CONTRACT.md" in entrypoint
-    assert "commit ref" in entrypoint
-    assert "특정 tool 이름이 항상 존재한다고 가정하지 않는다" in entrypoint
-    assert "capability 기준" in entrypoint
-    assert "system/LEARNING_LOG_ISSUE_CONTRACT.md" in instructions
-    assert "getStudyPath" in instructions
-
-    get_study_path_description = re.search(
-        r"operationId: getStudyPath.*?description: >-\n(?P<body>.*?)\n      parameters:",
-        schema,
-        re.S,
-    )
-    assert get_study_path_description
-    description = " ".join(
-        line.strip() for line in get_study_path_description.group("body").splitlines()
-    )
-    assert "path=state/CURRENT_LEARNING_CONTEXT.md" in description
-    assert "then begin" in description
-    assert "CHATGPT_ENTRYPOINT.md" not in description
-
-
 def assert_learning_log_guidance_contract() -> None:
     root = Path(__file__).resolve().parents[1]
     template = (root / "templates/learning-log.md").read_text(encoding="utf-8")
@@ -204,7 +73,7 @@ def assert_learning_log_guidance_contract() -> None:
     scenario = (root / "system/LEARNING_LOG_E2E_SCENARIO.md").read_text(
         encoding="utf-8"
     )
-    schema = (root / "system/ACTION_SCHEMA.yaml").read_text(encoding="utf-8")
+    template = (root / "templates/learning-log.md").read_text(encoding="utf-8")
 
     contract_lines = (
         "operation: create",
@@ -217,8 +86,7 @@ def assert_learning_log_guidance_contract() -> None:
     assert "✅ Learning Log 처리 완료" in guide
     assert "commit ref" in guide
     assert "tool-independent" in guide
-    assert "Custom GPT Action interface only" in guide
-    assert "일반 plugin 저장의 선행 읽기 파일이 아니다" in guide
+    assert "capability를 기준" in guide
     assert "system/LEARNING_LOG_METADATA_SCHEMA.json" in guide
     assert "Issue의 변경되지 않는 `created_at`" in guide
     assert "- Recorded at: {GitHub Actions가 Issue created_at으로 자동 설정}" in template
@@ -235,17 +103,24 @@ def assert_learning_log_guidance_contract() -> None:
     assert "mode: create" in scenario
     assert "성공 comment" in scenario
     assert "target file" in scenario
-    assert "일반 plugin에서는 `ACTION_SCHEMA.yaml`을 읽을 필요가 없다" in scenario
     assert "capability 기준" in scenario
 
-    learning_request = re.search(
-        r"(?ms)^    LearningLogIssueRequest:\n(?P<body>.*?)(?=^    \w+IssueRequest:)",
-        schema,
+    required_headings = (
+        "## Metadata",
+        "## 1. 오늘 공부한 목적",
+        "## 2. 오늘 이해한 내용",
+        "## 3. 핵심 개념",
+        "## 4. 내가 처음 이해한 방식",
+        "## 5. 오해 또는 불확실한 부분",
+        "## 6. 수정된 이해",
+        "## 7. 질문",
+        "## 8. AI 반도체 및 SSL 목표와의 연결",
+        "## 9. 다음 행동",
+        "## 10. 자기 설명 점검",
+        "## 사용자 원문",
     )
-    assert learning_request
-    request_body = learning_request.group("body")
-    assert "mode is invalid" in request_body
-    assert "register-sram-circuits" not in request_body
+    for heading in required_headings:
+        assert heading in template
 
 
 def assert_general_session_protocol_contract() -> None:
@@ -286,6 +161,12 @@ def assert_general_session_protocol_contract() -> None:
     assert "Progress source SHA" in entrypoint
     assert "오래된 context로 다음 학습을 제안하지 말고" in entrypoint
     assert "Required Source Before First Learning Unit" in entrypoint
+    assert "GitHub 연결 실행 계약" in entrypoint
+    assert "항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고" in entrypoint
+    assert "특정 tool 이름이 항상 존재한다고 가정하지 않는다" in entrypoint
+    assert "capability 기준" in entrypoint
+    assert "system/LEARNING_LOG_ISSUE_CONTRACT.md" in entrypoint
+    assert "commit ref" in entrypoint
 
     assert "Learning Unit은" in research_os
     assert "단순 동의나 따라 말하기만으로 완료 판정하지 않는다" in research_os
@@ -301,9 +182,8 @@ def assert_general_session_protocol_contract() -> None:
 
     assert "일반 ChatGPT 학습 시작점" in agents
     assert "Learning Log 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`" in agents
-    assert "Custom GPT Action 설정 전용" in agents
     assert "Learning Unit checkpoint" in architecture
-    assert "Custom GPT Action interface에만 사용" in architecture
+    assert "capability" in architecture
     assert "일반 ChatGPT 새 채팅" in readme
     assert "system/CHATGPT_ENTRYPOINT.md\n→ state/CURRENT_LEARNING_CONTEXT.md" in readme
     assert "GitHub의 ai-semiconductor-study 기반으로 공부 시작하자" in readme
@@ -721,8 +601,6 @@ def main() -> int:
     assert len(sanitized.split("- 원인: ", 1)[1].splitlines()[0]) <= 300
 
     assert_workflow_contract()
-    assert_action_schema_contract()
-    assert_custom_gpt_routing_contract()
     assert_learning_log_guidance_contract()
     assert_general_session_protocol_contract()
 
