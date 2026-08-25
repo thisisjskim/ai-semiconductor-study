@@ -7,7 +7,6 @@
 - 일반 ChatGPT 학습 시작점: `system/CHATGPT_ENTRYPOINT.md`
 - 정책의 canonical source: `system/RESEARCH_OS.md`
 - 현재 학습 상태: `state/CURRENT_LEARNING_CONTEXT.md`
-- 진행표 정합성 제안: `state/PROGRESS_RECONCILIATION.md`
 - 장기 방향, topic depth boundary와 진행표: `roadmap/ROADMAP.md`, `roadmap/LEARNING_BOUNDARIES.json`, `roadmap/PROGRESS.md`
 - Learning Log 형식: `templates/learning-log.md`
 - Learning Log 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`
@@ -16,7 +15,7 @@
 ## 작업 라우팅
 
 - **일반 학습**: 현재 context와 관련 Learning Log를 확인하고 Tutor 흐름을 따른다.
-- **상태 진단**: `state/CURRENT_LEARNING_CONTEXT.md`, `state/PROGRESS_RECONCILIATION.md`, `roadmap/PROGRESS.md`, 실제 Learning Log를 비교한다. 사실과 추론, 충돌을 구분하고 승인 없이 상태표를 수정하지 않는다.
+- **상태 진단**: `state/CURRENT_LEARNING_CONTEXT.md`, `roadmap/PROGRESS.md`, 실제 Learning Log를 비교한다. 사실과 추론, 충돌을 구분하고 승인 없이 상태표를 수정하지 않는다.
 - **Research OS 개발**: 정책, 계약, workflow, script와 테스트를 실제로 읽고 별도 branch에서 변경한다.
 
 Pull Request의 제목, 본문과 사용자에게 제공하는 변경 설명은 사용자가 달리 요청하지 않는 한 한국어로 작성한다.

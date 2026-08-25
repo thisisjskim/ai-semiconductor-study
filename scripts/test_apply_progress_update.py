@@ -155,7 +155,7 @@ def main() -> int:
         snapshot = learning_context.build_context(root)
         updated_sha = learning_context.git_blob_sha(root / progress.TARGET_PATH)
         assert f"Progress source SHA: `{updated_sha}`" in snapshot
-        assert "Roadmap reconciliation: **aligned**" in snapshot
+        assert "Roadmap reconciliation" not in snapshot
 
     forbidden_fields = [
         "Primary Goal",

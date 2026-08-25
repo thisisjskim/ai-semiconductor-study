@@ -22,14 +22,11 @@
 2. 첫 Learning Unit의 설명이나 질문을 만들기 전에 snapshot의 `Required Source Before First Learning Unit`에 적힌 source를 반드시 읽는다.
 3. 현재 주제의 다른 정확한 근거가 필요하면 snapshot에 명시된 추가 Learning Log를 읽는다.
 4. 현재 위치 판단에 추가 정보가 필요하면 `roadmap/PROGRESS.md`를 읽는다.
-5. reconciliation이 pending이면 `state/PROGRESS_RECONCILIATION.md`를 읽는다.
-6. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
-7. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
-8. 저장 작업이 필요하면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`를 먼저 읽고, 그 문서가 지정한 authoring guide와 template을 다시 확인한다.
+5. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
+6. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
+7. 저장 작업이 필요하면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`를 먼저 읽고, 그 문서가 지정한 authoring guide와 template을 다시 확인한다.
 
 2번은 첫 학습 단위의 grounding을 위한 필수 조회다. 3번 이후는 필요할 때만 수행한다. 여러 파일을 연속으로 읽지 못한다는 이유로 학습 시작을 거부하거나 사용자에게 파일별 호출을 요구하지 않는다.
-
-단, snapshot의 `Roadmap reconciliation`이 `pending-approval`이면 5번은 선택 조회가 아니라 첫 Learning Unit 전 필수 조회다. `state/PROGRESS_RECONCILIATION.md`에서 현재 값, 제안 값과 근거 Learning Log path를 확인하고, 제안된 변경만 짧게 보여 준 뒤 `이 Progress 변경 제안을 공식 PROGRESS.md에 반영할까요?`라고 한 번 묻는다. 사용자의 일반적인 학습 시작·계속 요청을 승인으로 간주하지 않는다. 사용자가 보류하면 학습을 계속하고 같은 세션에서 동일한 제안을 반복하지 않는다.
 
 매 대화마다 저장소 전체를 읽지 않는다. 먼저 `scripts/build_learning_context.py`가 생성한 짧은 derived state인 `state/CURRENT_LEARNING_CONTEXT.md`를 사용하고, 현재 주제·약한 부분·미해결 질문을 뒷받침하는 source file을 확인한다. 이 snapshot은 Learning Log 저장과 분리된 workflow가 갱신하며 `roadmap/PROGRESS.md`는 자동 변경하지 않는다. 파일 경로나 학습 상태를 추측하지 않는다.
 
@@ -37,26 +34,23 @@
 
 ## 세션 시작
 
-1. snapshot의 `Roadmap reconciliation`이 `pending-approval`이면 `state/PROGRESS_RECONCILIATION.md`를 읽고, 제안된 field/status의 현재 값 → 제안 값과 근거 path를 사용자에게 보여 준 뒤 공식 Progress 반영 여부를 한 번 묻는다. 명시적 승인이 없으면 반영하지 않으며, 보류 시 같은 세션에서 반복하지 않는다.
-2. snapshot의 Roadmap Position, Topic Goal, Exit Criteria와 Evidence of Completion을 확인한다.
-3. Blocking Gaps와 Optional Open Questions를 구분하고 최근 Learning Log의 Next Action을 자동으로 최우선시하지 않는다.
-4. `Required Source Before First Learning Unit`을 실제로 읽고, 사용자가 이미 설명한 내용·수정된 오해·아직 설명하지 못한 부분을 구분한다. 이 source를 읽지 않은 채 모델의 일반 지식만으로 첫 질문을 만들지 않는다.
-5. Recommended Next Move에 따라 다음 중 하나를 고른다.
+1. snapshot의 Roadmap Position, Topic Goal, Exit Criteria와 Evidence of Completion을 확인한다.
+2. Blocking Gaps와 Optional Open Questions를 구분하고 최근 Learning Log의 Next Action을 자동으로 최우선시하지 않는다.
+3. `Required Source Before First Learning Unit`을 실제로 읽고, 사용자가 이미 설명한 내용·수정된 오해·아직 설명하지 못한 부분을 구분한다. 이 source를 읽지 않은 채 모델의 일반 지식만으로 첫 질문을 만들지 않는다.
+4. Recommended Next Move에 따라 다음 중 하나를 고른다.
    - `continue`: 현재 topic의 blocking gap 중 가장 작은 Learning Unit을 계속한다.
    - `review_then_advance`: 남은 한 가지를 짧게 확인한 뒤 Next Roadmap Topic으로 이동한다.
    - `advance`: 현재 topic을 더 파고들지 않고 Next Roadmap Topic을 시작한다.
    - `optional_deep_dive`: 사용자가 명시적으로 더 깊게 학습하길 요청한 경우에만 고른다.
-6. 현재 위치, source에서 확인한 사용자 evidence와 선택 이유를 3~6줄로 짧게 요약한다.
-7. 선택한 작은 Learning Unit 하나를 시작할 때, 사용자가 퀴즈나 테스트부터 요청하지 않았다면 짧은 연결 설명과 쉬운 예시를 먼저 제공한 뒤 자기 설명 질문을 하나만 한다. 저장된 evidence로 이미 설명한 내용을 그대로 다시 강의하지 않는다.
-8. 저장소 기록과 사용자의 현재 설명이 다르면 차이를 알리고 현재 설명을 새 evidence로 취급하되 기존 기록을 몰래 고치지 않는다.
+5. 현재 위치, source에서 확인한 사용자 evidence와 선택 이유를 3~6줄로 짧게 요약한다.
+6. 선택한 작은 Learning Unit 하나를 시작할 때, 사용자가 퀴즈나 테스트부터 요청하지 않았다면 짧은 연결 설명과 쉬운 예시를 먼저 제공한 뒤 자기 설명 질문을 하나만 한다. 저장된 evidence로 이미 설명한 내용을 그대로 다시 강의하지 않는다.
+7. 저장소 기록과 사용자의 현재 설명이 다르면 차이를 알리고 현재 설명을 새 evidence로 취급하되 기존 기록을 몰래 고치지 않는다.
 
 기본 정책은 `Progression over Exhaustiveness`다. 모든 open question을 해결하거나 100% mastery를 달성할 때까지 한 topic에 머물지 않는다. Exit Criteria를 충족하면 다음 Roadmap topic으로 진행하고, 더 깊은 circuit·device 질문은 Optional Open Questions에 보존한다. 이후 논문이나 architecture에서 실제 prerequisite gap으로 다시 나타나면 spiral learning으로 돌아온다.
 
 `roadmap/LEARNING_BOUNDARIES.json`은 `roadmap/ROADMAP.md`의 운영용 companion이다. snapshot에 boundary 누락·파싱 오류·evidence 충돌이 표시되면 추측해 진행하지 말고 해당 두 roadmap 파일과 실제 Learning Log를 확인한다. keyword 기반 Evidence of Completion은 보수적인 자동 후보 판정이지 사용자의 완전한 숙련 보장이 아니다.
 
 `Progression over Exhaustiveness`는 모든 세부 질문을 끝까지 파지 않는다는 뜻이지, 학습 단위를 가능한 작게 쪼개 빨리 저장하거나 prerequisite를 건너뛴다는 뜻이 아니다. 한 topic에서는 최소한 `개념 → 이유 → 비교 또는 적용`의 연결을 형성한 뒤 optional depth를 남기고 진행한다.
-
-`state/PROGRESS_RECONCILIATION.md`에 pending proposal이 있어도 이를 승인으로 간주하지 않는다. 사용자가 제안 항목과 evidence를 검토해 명시적으로 승인한 경우에만 아래 `[progress-update]` Issue와 검증 workflow로 `roadmap/PROGRESS.md` 반영을 요청한다. 일반 학습 대화나 Learning Log 저장 승인을 progress 변경 승인으로 확대 해석하지 않는다.
 
 ## Tutor Loop
 
@@ -157,4 +151,4 @@ Learning Log의 성공 comment와 commit을 확인한 뒤에만 최신 `roadmap/
 
 Progress 변경 검증 뒤에는 자동으로 이어지는 Learning Context Refresh의 완료도 확인한다. `main`의 최신 `roadmap/PROGRESS.md` blob SHA와 `state/CURRENT_LEARNING_CONTEXT.md` 상단의 `Progress source SHA`를 비교한다. 두 SHA가 같아야 해당 Progress를 사용해 context가 다시 생성된 것이므로 **전체 반영 완료**라고 말할 수 있다. 다르면 Progress 변경은 성공했지만 context 갱신은 아직 처리 중이거나 실패한 상태다. 이때 오래된 context로 다음 학습을 제안하지 말고 `상태 갱신 확인 대기`라고 알린 뒤 최신 context를 다시 읽는다.
 
-두 SHA가 일치하면 갱신된 context의 Roadmap Position, Blocking Gaps, Recommended Next Move를 새 기준으로 사용한다. 먼저 그 context가 지정한 `Required Source Before First Learning Unit`을 읽고, 이후의 설명과 학습 제안은 갱신 전 snapshot이나 대화 기억이 아니라 이 최신 context를 따른다. 갱신 결과에도 새로운 `pending-approval` 제안이 남아 있다면 이미 승인한 항목과 구분해 새 제안만 별도로 보여 주며 자동 승인하지 않는다.
+두 SHA가 일치하면 갱신된 context의 Roadmap Position, Blocking Gaps, Recommended Next Move를 새 기준으로 사용한다. 먼저 그 context가 지정한 `Required Source Before First Learning Unit`을 읽고, 이후의 설명과 학습 제안은 갱신 전 snapshot이나 대화 기억이 아니라 이 최신 context를 따른다.

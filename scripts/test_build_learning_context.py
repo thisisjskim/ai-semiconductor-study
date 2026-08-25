@@ -147,7 +147,6 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert '- "roadmap/LEARNING_BOUNDARIES.json"' in workflow
     assert '- "system/LEARNING_LOG_METADATA_SCHEMA.json"' in workflow
     assert '- "scripts/build_learning_context.py"' in workflow
-    assert '- "scripts/progress_policy.py"' in workflow
     assert '- "scripts/test_build_learning_context.py"' in workflow
     assert '- ".github/workflows/learning-context-refresh.yml"' in workflow
     assert "python -B scripts/test_build_learning_context.py" in workflow
@@ -155,6 +154,14 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert 'git add -- state/CURRENT_LEARNING_CONTEXT.md' in workflow
     assert "git add -A" not in workflow
     assert '[[ "${changed_paths[0]}" != "state/CURRENT_LEARNING_CONTEXT.md" ]]' in workflow
+    for removed_path in (
+        ".github/workflows/progress-reconciliation.yml",
+        "scripts/build_progress_reconciliation.py",
+        "scripts/progress_policy.py",
+        "scripts/test_build_progress_reconciliation.py",
+        "state/PROGRESS_RECONCILIATION.md",
+    ):
+        assert not (repository_root / removed_path).exists()
 
 
 def main() -> int:
@@ -270,8 +277,7 @@ def main() -> int:
         assert "a-latest.md" in required_source
         assert "z-latest.md" in required_source
         assert "최신 의미 있는 Learning Log를 최대 2개" in required_source
-        assert "Roadmap reconciliation: **pending-approval**" in first
-        assert "dashboard 상태가 Not Started" in first
+        assert "Roadmap reconciliation" not in first
 
         original_glob = Path.glob
         try:
@@ -364,7 +370,6 @@ def main() -> int:
         )
         plan = context.build_context(root)
         assert "Decision: **review_then_advance**" in plan
-        assert "Roadmap reconciliation: **pending-approval**" in plan
         assert "`learning-logs/2026/08/a.md`" in plan.split(
             "## Required Source Before First Learning Unit", 1
         )[1].split("## Next Roadmap Topic", 1)[0]
@@ -387,7 +392,6 @@ def main() -> int:
         )
         aligned_review = context.build_context(root)
         assert "Decision: **review_then_advance**" in aligned_review
-        assert "Roadmap reconciliation: **aligned**" in aligned_review
         assert "Current Topic: SRAM" in aligned_review
         aligned_sha = context.git_blob_sha(root / "roadmap/PROGRESS.md")
         assert f"Progress source SHA: `{aligned_sha}`" in aligned_review
@@ -401,7 +405,6 @@ def main() -> int:
         domain for boundary in boundaries for domain in boundary.domains
     }
     assert domain_policy.learning_domains == boundary_domains
-    assert domain_policy.learning_domains == frozenset(context.DASHBOARD_LABELS)
     progress_topics = {
         topic for boundary in boundaries for topic in boundary.progress_topics
     }
@@ -442,7 +445,13 @@ def main() -> int:
     assert f"- Current Topic: {expected_topic}" in actual
     assert f"- Depth Boundary: `{expected_boundary.id}`" in actual
     assert f"- Progress source SHA: `{expected_progress_sha}`" in actual
+    assert "Roadmap reconciliation" not in actual
     assert actual_required_source.strip()
+    actual_logs, _ = context.discover_logs(repository_root)
+    if not any(
+        log.domain in expected_boundary.evidence_domains for log in actual_logs
+    ):
+        assert "`roadmap/LEARNING_BOUNDARIES.json`" in actual_required_source
     for criterion in expected_boundary.exit_criteria:
         assert criterion.text in actual
 
@@ -452,7 +461,7 @@ def main() -> int:
         write_fixture(root, "learning-logs/2026/08/system.md", note(domain="research-os"))
         empty = context.build_context(root)
         assert "최신 의미 있는 학습 기록: 없음" in empty
-        assert "Roadmap reconciliation: **not-needed**" in empty
+        assert "Roadmap reconciliation" not in empty
         assert "research-os" in empty
 
     assert_workflow_contract(repository_root)

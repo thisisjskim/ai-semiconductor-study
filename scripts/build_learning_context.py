@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Iterable
 
 from learning_log_metadata import DomainPolicy, load_domain_policy
-from progress_policy import ProgressDecision, decide_progress
 
 
 REQUIRED_SECTIONS = (
@@ -41,18 +40,6 @@ CHECKBOX_RE = re.compile(r"^- \[(?P<state>[ xX])\]\s*(?P<text>.+)$")
 LIST_RE = re.compile(r"^(?:[-*+] |\d+[.)]\s+)(?P<text>.+)$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RECORDED_AT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
-DASHBOARD_LABELS = {
-    "ai-computation": ("AI Computation",),
-    "computer-architecture": ("Computer Architecture",),
-    "memory-architecture": ("Memory Architecture",),
-    "sram": ("SRAM / DRAM / eDRAM",),
-    "dram": ("SRAM / DRAM / eDRAM",),
-    "npu": ("NPU Architecture",),
-    "pim-cim": ("PIM / CIM",),
-    "paper": ("Foundational Papers", "KAIST SSL Lab Papers"),
-}
-
-
 def git_blob_sha(path: Path) -> str:
     """Return the Git blob SHA used by GitHub's repository contents API."""
     data = path.read_bytes()
@@ -374,6 +361,8 @@ def select_grounding_paths(
         )
         if ranked:
             paths.append(ranked[0].path)
+        else:
+            paths.append("roadmap/LEARNING_BOUNDARIES.json")
 
     paths.extend(latest_paths)
     return tuple(dict.fromkeys(paths))
@@ -397,8 +386,12 @@ def build_learning_plan(
     completed = tuple(item for item in boundary.exit_criteria if criterion_is_met(item, corpus))
     remaining = tuple(item for item in boundary.exit_criteria if item not in completed)
 
-    latest_date = max(log.date for log in relevant)
-    latest_relevant = [log for log in relevant if log.date == latest_date]
+    latest_date = max((log.date for log in relevant), default=None)
+    latest_relevant = (
+        [log for log in relevant if log.date == latest_date]
+        if latest_date is not None
+        else []
+    )
     questions: list[str] = []
     for log in latest_relevant:
         questions.extend(
@@ -437,43 +430,6 @@ def build_learning_plan(
     )
 
 
-def dashboard_labels_for_log(log: LearningLog) -> tuple[str, ...]:
-    if log.domain != "paper":
-        return DASHBOARD_LABELS.get(log.domain, ())
-    stage = log.roadmap_stage.casefold()
-    if "stage 6" in stage or "foundational" in stage:
-        return ("Foundational Papers",)
-    if "stage 7" in stage or "ssl" in stage:
-        return ("KAIST SSL Lab Papers",)
-    return ()
-
-
-def progress_decision(
-    progress: str, included: Iterable[LearningLog], plan: LearningPlan | None
-) -> ProgressDecision:
-    logs = list(included)
-    if not logs or plan is None:
-        return decide_progress(
-            progress,
-            has_evidence=False,
-            canonical_stage="",
-            canonical_topic="",
-            next_roadmap_topic="",
-            recommended_move="continue",
-            evidence_dashboard_labels=(),
-        )
-    labels = [label for log in logs for label in dashboard_labels_for_log(log)]
-    return decide_progress(
-        progress,
-        has_evidence=True,
-        canonical_stage=plan.boundary.roadmap_stage,
-        canonical_topic=plan.boundary.progress_topics[0],
-        next_roadmap_topic=plan.boundary.next_roadmap_topic,
-        recommended_move=plan.recommended_move,
-        evidence_dashboard_labels=labels,
-    )
-
-
 def bullet_lines(items: list[str], empty: str = "없음") -> list[str]:
     return [f"- {item}" for item in items] if items else [f"- {empty}"]
 
@@ -488,7 +444,6 @@ def build_context(root: Path) -> str:
     boundaries = load_boundaries(root)
 
     if not included:
-        decision = progress_decision(progress, [], None)
         lines = [
             "# Current Learning Context",
             "",
@@ -496,7 +451,6 @@ def build_context(root: Path) -> str:
             "",
             "- Last generated date: 없음",
             f"- Progress source SHA: `{progress_sha}`",
-            f"- Roadmap reconciliation: **{decision.status}**",
             "",
             "## 현재 상태",
             "",
@@ -504,11 +458,6 @@ def build_context(root: Path) -> str:
             "- Current Topic: 없음",
             "- Domain: 없음",
             "- Roadmap stage: 없음",
-            "",
-            "## Roadmap reconciliation",
-            "",
-            f"- {decision.reason}",
-            "- `roadmap/PROGRESS.md`는 자동 수정하지 않음",
             "",
             "## 제외한 기록과 이유",
             "",
@@ -536,7 +485,6 @@ def build_context(root: Path) -> str:
     )
     actions = extract_items(primary.sections["## 9. 다음 행동"], LIMITS["actions"])
     plan = build_learning_plan(boundaries, progress, included, primary)
-    decision = progress_decision(progress, included, plan)
     current_stage = progress_value(progress, "Current Stage") or primary.roadmap_stage
     current_topic = progress_value(progress, "Current Topic") or primary.topic
 
@@ -553,7 +501,6 @@ def build_context(root: Path) -> str:
         "",
         f"- Last generated date: {latest_date.isoformat()}",
         f"- Progress source SHA: `{progress_sha}`",
-        f"- Roadmap reconciliation: **{decision.status}**",
         "",
         "## Roadmap Position",
         "",
@@ -613,7 +560,7 @@ def build_context(root: Path) -> str:
     lines.extend(["", "## 최근 Learning Log의 다음 행동 (참고용)", ""])
     lines.extend(bullet_lines(actions))
     lines.append("- 위 항목은 source evidence이며 Roadmap-aware 추천보다 우선하지 않음")
-    lines.extend(["", "## Roadmap reconciliation", "", f"- {decision.reason}", "- `roadmap/PROGRESS.md`는 자동 수정하지 않음", "", "## 제외한 기록과 이유", ""])
+    lines.extend(["", "## 제외한 기록과 이유", ""])
     lines.extend(bullet_lines([f"`{path}` — {why}" for path, why in excluded]))
     lines.extend(["", "## 참고한 source paths", "", "- `roadmap/ROADMAP.md`", "- `roadmap/LEARNING_BOUNDARIES.json`", "- `roadmap/PROGRESS.md`"])
     lines.extend(f"- `{path}`" for path in plan.evidence_paths)
