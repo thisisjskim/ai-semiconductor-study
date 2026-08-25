@@ -37,6 +37,11 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - Learning Log title의 전체 pattern과 target path의 날짜·slug 일치를 실행 코드에서 검증
 - 성공 comment뿐 아니라 결과 commit의 실제 target file까지 확인해야 저장 완료로 판정
 
+### Changed
+- 사용하지 않는 Custom GPT Instructions, Setup과 OpenAPI Action schema 제거
+- Learning Log와 Progress 회귀 테스트를 일반 ChatGPT entrypoint, tool-independent Issue 계약, authoring guide와 template 기준으로 전환
+- GitHub 저장 절차의 특정 Action 이름을 연결된 plugin이 제공하는 capability 기반 표현으로 일반화
+
 ### Safety
 - 지원 날짜, 실행 계획 필드, milestone, deadline, Roadmap 구조는 자동 변경하지 않음
 - Dashboard의 `Review`와 `Completed`는 자동 판정하지 않음

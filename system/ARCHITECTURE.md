@@ -5,7 +5,7 @@
 | 구성 요소 | 책임 |
 | --- | --- |
 | GitHub Repository | 장기 기록의 Source of Truth. 정책, 상태 근거, 코드와 변경 이력을 보존한다. |
-| 일반 ChatGPT | 학습 대화, 설명, 자기 설명 점검을 담당하는 Tutor Interface다. `system/CHATGPT_ENTRYPOINT.md`에서 시작한다. |
+| 일반 ChatGPT | 학습 대화, 설명, 자기 설명 점검을 담당하는 Tutor Interface다. `system/CHATGPT_ENTRYPOINT.md`에서 시작하고 연결된 GitHub plugin의 capability로 repository를 읽고 Issue를 처리한다. |
 | Codex | 코드, 지침, 테스트, workflow를 branch에서 개발하는 Developer Interface다. |
 | GitHub Issue | 승인된 Learning Log 또는 Progress Update 요청과 versioned envelope를 전달하는 queue다. Issue 생성·닫기는 처리 완료가 아니다. |
 | GitHub Actions | Issue와 comments를 payload로 만들고 검증·저장·결과 회신을 연결하는 orchestration layer다. |
@@ -18,7 +18,6 @@
 | `state/**` | 빠른 context 복구를 위해 source를 압축한 generated/derived state다. |
 | `system/**` | Research OS의 정책, 진입점, 구조와 저장 계약이다. |
 | `templates/**` | Learning Log 등 기록의 형식을 정의한다. |
-| Custom GPT | 당분간 유지되는 legacy/fallback interface다. 정책의 유일한 보관 장소로 사용하지 않는다. |
 
 ## A. 학습 흐름
 
@@ -34,7 +33,7 @@ GitHub context load
 → Actions 성공과 결과 comment 확인
 ```
 
-일반 ChatGPT는 entrypoint와 snapshot을 먼저 읽고 필요할 때만 관련 Learning Log와 roadmap을 확인한다. Learning Unit checkpoint에서 저장 승인을 받으면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`의 tool-independent 계약으로 Issue를 enqueue한다. `system/ACTION_SCHEMA.yaml`은 별도로 구성한 Custom GPT Action interface에만 사용한다. `.github/workflows/learning-log-ingest.yml`은 Issue와 comments를 모아 `scripts/ingest_learning_log.py`에 전달한다. Python 검증을 통과한 한 개의 `learning-logs/**` 파일만 commit하며, 결과 comment의 path와 commit 및 실제 파일까지 확인해야 저장이 끝난다.
+일반 ChatGPT는 entrypoint와 snapshot을 먼저 읽고 필요할 때만 관련 Learning Log와 roadmap을 확인한다. Learning Unit checkpoint에서 저장 승인을 받으면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`의 tool-independent 계약과 연결된 GitHub plugin의 Issue capability로 요청을 enqueue한다. `.github/workflows/learning-log-ingest.yml`은 Issue와 comments를 모아 `scripts/ingest_learning_log.py`에 전달한다. Python 검증을 통과한 한 개의 `learning-logs/**` 파일만 commit하며, 결과 comment의 path와 commit 및 실제 파일까지 확인해야 저장이 끝난다.
 
 Learning Log 저장이 확인된 뒤 ChatGPT는 실제 evidence와 최신 `roadmap/PROGRESS.md`를 비교한다. 허용된 변경이 있을 때만 별도로 제안하고 두 번째 사용자 승인을 받는다. `[progress-update]` Issue를 닫으면 `.github/workflows/progress-update.yml`이 `scripts/apply_progress_update.py`로 요청을 검증하고 `roadmap/PROGRESS.md` 한 파일만 commit한다. ChatGPT는 성공 comment의 commit을 읽어 제안한 값이 실제 반영됐는지 확인한 뒤, 후속 context refresh까지 검증한다.
 
@@ -60,7 +59,6 @@ Canonical source는 판단을 다시 만들 수 있는 원본이다.
 
 - 운영·학습 정책: `system/RESEARCH_OS.md`
 - 일반 ChatGPT 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`
-- Custom GPT Action API schema: `system/ACTION_SCHEMA.yaml`
 - 저장 검증 구현: `scripts/ingest_learning_log.py`, `scripts/apply_progress_update.py`
 - Learning Log metadata enum: `system/LEARNING_LOG_METADATA_SCHEMA.json`
 - 장기 방향, topic depth boundary와 명시적 진행표: `roadmap/ROADMAP.md`, `roadmap/LEARNING_BOUNDARIES.json`, `roadmap/PROGRESS.md`

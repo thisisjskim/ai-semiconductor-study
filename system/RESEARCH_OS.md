@@ -118,13 +118,13 @@ GPT는 GitHub Contents API로 파일을 직접 PUT하지 않으며 Base64를 생
 Discover → Read → Compare → Propose → Approve → Enqueue → Verify
 
 1. 날짜와 slug로 예상 경로를 정한다.
-2. 경로가 불확실하면 월 directory를 `getStudyPath`로 조회한다. 파일명을 추측하지 않는다.
+2. 경로가 불확실하면 연결된 GitHub plugin의 repository file-read 기능으로 월 directory를 조회한다. 파일명을 추측하지 않는다.
 3. 파일이 없으면 `operation: create`, `expected_sha: new`를 사용한다.
 4. 파일이 있으면 최신 내용과 SHA를 읽고 새 내용을 적절한 section에 병합한다. 변경점을 사용자에게 제안하고 승인받은 후 `operation: update`와 읽은 SHA를 사용한다.
 5. 승인 후 최종 Markdown 전체를 완성한다.
-6. `createLearningLogIssue`로 Issue를 만들고, 길면 `appendLearningLogChunk`로 순서대로 이어 쓴다. 각 요청은 30,000자 미만으로 자르고 section 경계에서 나눈다.
-7. 모든 chunk가 성공한 뒤 `closeLearningLogIssue`로 닫는다. 닫힘이 GitHub Actions 처리를 시작한다.
-8. `listLearningLogIssueComments`에서 `✅ Learning Log 처리 완료`, path, commit을 확인한 경우에만 저장 완료라고 말한다. 결과가 아직 없으면 `접수 완료, 처리 확인 대기`라고 구분한다. 오류 응답을 성공으로 처리하지 않는다.
+6. 연결된 GitHub plugin의 Issue create 기능으로 Issue를 만들고, 길면 comment append 기능으로 순서대로 이어 쓴다. 각 요청은 30,000자 미만으로 자르고 section 경계에서 나눈다.
+7. 모든 chunk가 성공한 뒤 Issue close 기능으로 닫는다. 닫힘이 GitHub Actions 처리를 시작한다.
+8. Issue/comment read 기능으로 `✅ Learning Log 처리 완료`, path, commit을 확인한 경우에만 저장 완료라고 말한다. 결과가 아직 없으면 `접수 완료, 처리 확인 대기`라고 구분한다. 오류 응답을 성공으로 처리하지 않는다.
 
 Issue 제목:
 
@@ -145,12 +145,12 @@ expected_sha: new 또는 읽어서 확인한 40자리 SHA
 
 ## 8. GitHub Safety
 
-- Custom GPT의 PAT 권한은 Contents read-only, Issues read/write만 사용한다.
+- 연결된 GitHub plugin 또는 connector에는 repository contents read와 Issues read/write에 필요한 최소 권한만 부여한다.
 - 자동 파일 쓰기는 `.github/workflows/learning-log-ingest.yml`의 `learning-logs/**`와 `.github/workflows/progress-update.yml`의 `roadmap/PROGRESS.md` 한 파일로 제한한다.
 - 파일 삭제·이동·이름 변경, repository 설정·branch·PR·Issue 관리, 다른 repository 수정은 자동 수행하지 않는다.
 - 기존 파일 수정 전 최신 SHA를 확인한다. SHA 불일치는 다시 읽고 비교·승인하는 절차로 돌아간다.
 - 중복 파일을 만들지 않는다. 존재를 확인하지 않은 경로를 반복 요청하지 않는다.
-- API 또는 Action 오류가 나면 성공했다고 말하지 않는다.
+- API 또는 tool 오류가 나면 성공했다고 말하지 않는다.
 
 ## 9. Progress Update after Learning Capture
 

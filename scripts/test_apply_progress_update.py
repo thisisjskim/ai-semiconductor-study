@@ -288,15 +288,15 @@ def main() -> int:
     learning_workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/learning-log-ingest.yml").read_text(encoding="utf-8")
     assert "startsWith(github.event.issue.title, '[learning-log]')" in learning_workflow
 
-    schema = (Path(__file__).resolve().parents[1] / "system/ACTION_SCHEMA.yaml").read_text(encoding="utf-8")
-    assert "operationId: createLearningLogIssue" in schema
-    assert "ProgressUpdateIssueRequest:" in schema
-    assert "research-os-progress-update:v1" in schema
-
-    instructions = (Path(__file__).resolve().parents[1] / "system/CUSTOM_GPT_INSTRUCTIONS.md").read_text(encoding="utf-8")
-    assert "## 6. Learning Log 이후 Progress 반영" in instructions
-    assert "PROGRESS.md에도 반영할까요?" in instructions
-    assert "Review와 Completed를 자동 판정하지 않는다" in instructions
+    root = Path(__file__).resolve().parents[1]
+    entrypoint = (root / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
+    research_os = (root / "system/RESEARCH_OS.md").read_text(encoding="utf-8")
+    assert "## Learning Log 이후 Progress 반영" in entrypoint
+    assert "PROGRESS.md에도 반영할까요?" in entrypoint
+    assert "Learning Log 저장 승인을 Progress 변경 승인으로 재사용하지 않는다" in entrypoint
+    assert "research-os-progress-update:v1" in research_os
+    assert "Review" in research_os and "Completed" in research_os
+    assert "자동 반영 금지" in research_os
     print("All progress update tests passed")
     return 0
 
