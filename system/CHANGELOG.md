@@ -22,15 +22,14 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
+- 현재 boundary에 해당하는 Learning Log가 아직 없을 때 Current Learning Context 생성이 실패하던 빈 evidence 처리
 - 실제 학습 진도가 다음 boundary로 이동해도 과거 SRAM 문구를 고정 검사해 Context Refresh가 실패하던 저장소 상태 테스트
 - Progress 반영 성공과 후속 `CURRENT_LEARNING_CONTEXT.md` 갱신 완료를 구분하지 않아 stale snapshot으로 다음 학습을 제안할 수 있던 실행 경로
-- 새 학습 세션에서 `pending-approval` reconciliation을 읽기만 하고 공식 Progress 반영 여부를 묻지 않을 수 있던 승인 checkpoint 누락
 - 단일 질문·답변 또는 Exit Criterion 하나의 충족 직후 Learning Log 저장을 너무 일찍 제안할 수 있던 Checkpoint 모호성
 - `memory-architecture`로 분류된 8월 22일 SRAM/DRAM 학습 evidence가 현재 SRAM boundary의 마지막 criterion에 반영되지 않던 cross-domain evidence 누락
 - `next_roadmap_topic` 설명문을 다음 boundary의 공식 topic으로 다시 인식하지 못할 수 있던 transition alias 누락
 - 허용 목록에 없는 Domain이 저장된 뒤에야 context evidence에서 제외되던 검증 공백
 - 미지원 Domain을 학습 내용의 무효로 표현하던 context 제외 사유를 metadata 오류로 명확화
-- Current Learning Context와 Progress Reconciliation이 서로 다른 규칙으로 `aligned`와 `pending-approval`을 동시에 표시하던 정합성 충돌
 - 최신 Learning Log의 세부 Topic 제목을 공식 Current Topic으로 자동 승격하던 오류; 공식 변경은 boundary의 exit criteria와 `next_roadmap_topic`만 사용
 - 새 학습 세션이 snapshot 두 파일만 읽고 사용자의 실제 Learning Log evidence를 확인하지 않은 채 첫 진단 질문을 만들 수 있던 grounding 공백
 - 첫 Blocking Gap과 가장 가까운 Learning Log를 필수 source로 지정하고, 설명·예시 없이 cold quiz부터 시작하지 않도록 session protocol 강화
@@ -42,6 +41,9 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 지원 날짜, 실행 계획 필드, milestone, deadline, Roadmap 구조는 자동 변경하지 않음
 - Dashboard의 `Review`와 `Completed`는 자동 판정하지 않음
 - 모든 main 쓰기 workflow를 하나의 concurrency group으로 직렬화하고 각 Issue 유형을 제목으로 분리함
+
+### Removed
+- 자동 Progress Reconciliation state, builder, shared policy와 후속 GitHub Actions workflow
 
 ## v0.2.3
 

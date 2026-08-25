@@ -427,7 +427,6 @@ Public repository에서 다른 사람이 임의로 Issue를 만들어 파일을 
 * Actions를 통한 Markdown 파일 생성·수정
 * 성공 또는 실패 결과 회신
 * Learning Log 기반 `CURRENT_LEARNING_CONTEXT.md` 갱신
-* Learning Log와 `PROGRESS.md`의 차이를 보여주는 progress reconciliation 제안서 갱신
 
 ### `CURRENT_LEARNING_CONTEXT.md` 자동 갱신
 
@@ -435,15 +434,9 @@ Public repository에서 다른 사람이 임의로 Issue를 만들어 파일을 
 
 추천은 `continue`, `review_then_advance`, `advance` 중 하나입니다. `optional_deep_dive`는 사용자가 명시적으로 더 깊게 공부하겠다고 선택했을 때만 세션에서 사용합니다. 자동 evidence 판정은 질문·다음 행동 section을 제외하고 자기 설명과 수정 이해에서 필요한 keyword 묶음이 모두 발견된 경우에만 exit criterion 후보를 완료로 표시합니다.
 
-Learning Log 저장과 context refresh는 서로 다른 commit입니다. Context refresh가 실패해도 이미 저장된 Learning Log는 취소되거나 되돌아가지 않으며, workflow는 state snapshot 이외의 파일을 자동 commit하지 않습니다. `roadmap/PROGRESS.md`의 충돌은 snapshot에 reconciliation pending으로 표시하고 dashboard 자체는 자동 수정하지 않습니다.
+Learning Log 저장과 context refresh는 서로 다른 commit입니다. Context refresh가 실패해도 이미 저장된 Learning Log는 취소되거나 되돌아가지 않으며, workflow는 state snapshot 이외의 파일을 자동 commit하지 않습니다. Context builder는 `roadmap/PROGRESS.md`를 읽지만 자동 수정하지 않습니다.
 
 다음은 아직 자동화되지 않았습니다.
-
-### Progress reconciliation 제안서
-
-Context refresh가 성공하면 별도 workflow가 `state/PROGRESS_RECONCILIATION.md`를 갱신합니다. 이 문서는 유효한 Learning Log를 근거로 현재 stage, topic과 dashboard 상태의 변경 후보를 보여줍니다. Phase 전체 계획인 execution phase, deliverable, bottleneck, next milestone과 deadline은 단일 Learning Log에서 자동 제안하지 않습니다.
-
-자동 제안은 보수적으로 `Not Started → Learning`까지만 허용합니다. `Review`와 `Completed`는 자동 판단하지 않으며 기존의 높은 상태도 낮추지 않습니다. `roadmap/PROGRESS.md` 자체는 자동으로 변경되지 않습니다. 사용자가 제안을 승인하면 Codex가 별도 branch와 Pull Request에서 승인된 항목만 반영합니다.
 
 ### Foundation Note 자동 승격
 

@@ -281,10 +281,8 @@ def assert_general_session_protocol_contract() -> None:
     assert "공부 시작하자" in entrypoint
     assert "지난번부터 이어서 하자" in entrypoint
     assert "AI semiconductor 공부 계속하자" in entrypoint
-    assert "Roadmap reconciliation`이 `pending-approval`이면 5번은 선택 조회가 아니라" in entrypoint
-    assert "이 Progress 변경 제안을 공식 PROGRESS.md에 반영할까요?" in entrypoint
-    assert "현재 값 → 제안 값과 근거 path" in entrypoint
-    assert "보류 시 같은 세션에서 반복하지 않는다" in entrypoint
+    assert "PROGRESS_RECONCILIATION" not in entrypoint
+    assert "Roadmap reconciliation" not in entrypoint
     assert "Progress source SHA" in entrypoint
     assert "오래된 context로 다음 학습을 제안하지 말고" in entrypoint
     assert "Required Source Before First Learning Unit" in entrypoint
@@ -296,9 +294,8 @@ def assert_general_session_protocol_contract() -> None:
     assert "단일 질문과 답변" in research_os
     assert "prerequisite를 건너뛴다는 뜻이 아니다" in research_os
     assert "새로운 topic·topology·physical mechanism" in research_os
-    assert "새 학습 세션에서 snapshot이 `Roadmap reconciliation: pending-approval`" in research_os
-    assert "공식 Progress 반영 여부를 한 번 묻는다" in research_os
-    assert "같은 세션에서 동일 제안을 반복하지 않는다" in research_os
+    assert "PROGRESS_RECONCILIATION" not in research_os
+    assert "Roadmap reconciliation" not in research_os
     assert "Progress source SHA" in research_os
     assert "오래된 context로 다음 학습을 제안하지 않는다" in research_os
 
