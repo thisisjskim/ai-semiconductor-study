@@ -3,7 +3,7 @@
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
 - Last generated date: 2026-08-24
-- Progress source SHA: `d843c4f8a0d43bab3106144b486e14a5da56df34`
+- Progress source SHA: `a87d9e905e510cc5eaf30d66f6a8e26a7f75725e`
 
 ## Roadmap Position
 
