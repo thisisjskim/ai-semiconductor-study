@@ -136,18 +136,13 @@ Issue 생성과 닫기는 저장 요청을 queue에 넣는 **enqueue**다. 이�
 
 사용자가 `공부 시작하자`, `지난번부터 이어서 하자`, `AI semiconductor 공부 계속하자`처럼 짧게 요청해도 동일한 bootstrap과 세션 시작 절차를 적용한다.
 
-## Learning Log 이후 Progress 반영
+## Learning Log 이후 Current Boundary 검토
 
-Learning Log의 성공 comment와 commit을 확인한 뒤에만 최신 `roadmap/PROGRESS.md`와 그 SHA를 다시 읽는다. 새 학습 evidence가 다음 자동 반영 후보를 실제로 뒷받침하는지 비교한다.
+Learning Log의 성공 comment와 commit을 확인한 뒤에만 최신 `roadmap/PROGRESS.md`와 그 SHA를 다시 읽는다. 새 Learning Log가 생겼다는 이유나 최신 log의 Domain이 달라졌다는 이유만으로 Current Boundary를 바꾸지 않는다. 사용자가 공식 목표를 명시적으로 바꾸었거나 현재 boundary의 exit criteria를 충족해 다음 boundary로 이동할 때만 변경을 제안한다. 논문 중 prerequisite 보충 학습은 논문 boundary를 유지한다.
 
-- Current Stage
-- Current Topic
-- Progress Dashboard의 `Not Started → Learning`
-- 위 변경이 있을 때 필요한 Last Updated
+실제 변경이 없으면 Progress 승인을 다시 묻지 않는다. 변경이 필요하면 `Current Boundary: <현재> → <제안>`과 근거 Learning Log를 보여 주고 `Current Boundary도 변경할까요?`라고 별도 승인을 요청한다. Learning Log 저장 승인을 Current Boundary 변경 승인으로 재사용하지 않는다.
 
-실제 변경이 없으면 Progress 승인을 다시 묻지 않는다. 변경이 있으면 현재 값과 제안 값을 항목별로 보여 주고 `PROGRESS.md에도 반영할까요?`라고 별도 승인을 요청한다. Learning Log 저장 승인을 Progress 변경 승인으로 재사용하지 않는다.
-
-승인 후 `[progress-update] YYYY-MM-DD` Issue를 만들고 닫는다. 요청에는 최신 `PROGRESS.md` SHA, 근거가 된 실제 Learning Log 경로, 승인받은 `from`과 `to`만 넣는다. 결과 comment에서 `✅ Progress Update 처리 완료`, path, commit을 확인하고, 그 commit ref의 `roadmap/PROGRESS.md`를 다시 읽어 모든 제안 값이 일치하는지 검증한다. 결과가 없거나 실패하면 각각 처리 대기 또는 실패로 구분한다.
+승인 후 `system/RESEARCH_OS.md`의 `research-os-progress-update:v2` 계약으로 `[progress-update] YYYY-MM-DD` Issue를 만들고 닫는다. 요청에는 최신 `PROGRESS.md` SHA, 근거가 된 실제 Learning Log 경로와 승인받은 boundary `from`/`to`만 넣는다. Action은 `PROGRESS.md`의 Current Boundary만 변경한다. 결과 comment에서 `✅ Progress Update 처리 완료`, path, commit을 확인하고, 그 commit ref의 `roadmap/PROGRESS.md`를 다시 읽어 승인된 Boundary가 반영됐는지 검증한다. Stage와 Topic은 후속 Context가 `LEARNING_BOUNDARIES.json`에서 계산한다. 결과가 없거나 실패하면 각각 처리 대기 또는 실패로 구분한다.
 
 Progress 변경 검증 뒤에는 자동으로 이어지는 Learning Context Refresh의 완료도 확인한다. `main`의 최신 `roadmap/PROGRESS.md` blob SHA와 `state/CURRENT_LEARNING_CONTEXT.md` 상단의 `Progress source SHA`를 비교한다. 두 SHA가 같아야 해당 Progress를 사용해 context가 다시 생성된 것이므로 **전체 반영 완료**라고 말할 수 있다. 다르면 Progress 변경은 성공했지만 context 갱신은 아직 처리 중이거나 실패한 상태다. 이때 오래된 context로 다음 학습을 제안하지 말고 `상태 갱신 확인 대기`라고 알린 뒤 최신 context를 다시 읽는다.
 

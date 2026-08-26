@@ -16,7 +16,7 @@ repository의 ChatGPT entrypoint를 따라 현재 상태를 복구해줘.
 기대 결과:
 
 1. 연결된 GitHub plugin의 실제 file-read 기능으로 `state/CURRENT_LEARNING_CONTEXT.md`를 `ref: main`에서 한 번 읽는다.
-2. Current Topic, 확인된 이해, Open Questions, Next Action을 복구한다.
+2. Current Boundary와 파생 Stage·Topic, 확인된 이해, Open Questions, Next Action을 복구한다.
 3. 필요한 경우에만 관련 Learning Log를 추가로 읽는다.
 4. 사용자의 현재 설명과 저장 기록이 다르면 차이를 알리고 기존 기록은 수정하지 않는다.
 

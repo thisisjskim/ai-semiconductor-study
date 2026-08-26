@@ -10,6 +10,7 @@ on:
       - "roadmap/LEARNING_BOUNDARIES.json"
       - "system/LEARNING_LOG_METADATA_SCHEMA.json"
       - "scripts/build_learning_context.py"
+      - "scripts/learning_boundaries.py"
       - "scripts/test_build_learning_context.py"
       - ".github/workflows/learning-context-refresh.yml"
   # GITHUB_TOKEN pushes do not emit new push workflow runs. This preserves the

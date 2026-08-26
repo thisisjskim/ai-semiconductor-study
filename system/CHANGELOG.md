@@ -38,6 +38,9 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 성공 comment뿐 아니라 결과 commit의 실제 target file까지 확인해야 저장 완료로 판정
 
 ### Changed
+- `roadmap/PROGRESS.md`를 승인된 Current Boundary 한 줄만 보존하는 공식 위치 포인터로 축소하고 Stage·Topic은 Context에서만 산출
+- Progress Update 계약을 개별 필드·Dashboard 수정에서 단일 `current_boundary` 전환 v2로 변경
+- Context의 Stage, Topic, goal과 criteria를 최신 Learning Log가 아닌 Current Boundary에서 일관되게 산출
 - 사용하지 않는 Custom GPT Instructions, Setup과 OpenAPI Action schema 제거
 - Learning Log와 Progress 회귀 테스트를 일반 ChatGPT entrypoint, tool-independent Issue 계약, authoring guide와 template 기준으로 전환
 - GitHub 저장 절차의 특정 Action 이름을 연결된 plugin이 제공하는 capability 기반 표현으로 일반화

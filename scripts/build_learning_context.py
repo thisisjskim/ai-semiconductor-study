@@ -5,13 +5,18 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import json
 import re
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
+from learning_boundaries import (
+    ExitCriterion,
+    LearningBoundary,
+    boundary_by_id,
+    load_boundaries,
+)
 from learning_log_metadata import DomainPolicy, load_domain_policy
 
 
@@ -42,7 +47,7 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RECORDED_AT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 def git_blob_sha(path: Path) -> str:
     """Return the Git blob SHA used by GitHub's repository contents API."""
-    data = path.read_bytes()
+    data = path.read_bytes().replace(b"\r\n", b"\n")
     header = f"blob {len(data)}\0".encode("utf-8")
     return hashlib.sha1(header + data).hexdigest()
 
@@ -56,28 +61,6 @@ class LearningLog:
     domain: str
     roadmap_stage: str
     sections: dict[str, str]
-
-
-@dataclass(frozen=True)
-class ExitCriterion:
-    text: str
-    evidence_groups: tuple[tuple[str, ...], ...]
-
-
-@dataclass(frozen=True)
-class LearningBoundary:
-    id: str
-    progress_topics: tuple[str, ...]
-    domains: tuple[str, ...]
-    evidence_domains: tuple[str, ...]
-    roadmap_stage: str
-    topic_goal: str
-    minimum_required_understanding: tuple[str, ...]
-    exit_criteria: tuple[ExitCriterion, ...]
-    blocking_question_keywords: tuple[str, ...]
-    optional_question_keywords: tuple[str, ...]
-    optional_deep_dive: tuple[str, ...]
-    next_roadmap_topic: str
 
 
 @dataclass(frozen=True)
@@ -245,59 +228,16 @@ def extract_unfinished(text: str, limit: int) -> list[str]:
     return items
 
 
-def load_boundaries(root: Path) -> list[LearningBoundary]:
-    path = root / "roadmap/LEARNING_BOUNDARIES.json"
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("version") != 1 or payload.get("policy") != "progression-over-exhaustiveness":
-        raise ValueError("Unsupported learning boundary contract")
-    boundaries: list[LearningBoundary] = []
-    for raw in payload.get("boundaries", []):
-        criteria = tuple(
-            ExitCriterion(
-                text=item["text"],
-                evidence_groups=tuple(tuple(group) for group in item["evidence_groups"]),
-            )
-            for item in raw["exit_criteria"]
-        )
-        boundaries.append(
-            LearningBoundary(
-                id=raw["id"],
-                progress_topics=tuple(raw["progress_topics"]),
-                domains=tuple(raw["domains"]),
-                evidence_domains=tuple(raw.get("evidence_domains", raw["domains"])),
-                roadmap_stage=raw["roadmap_stage"],
-                topic_goal=raw["topic_goal"],
-                minimum_required_understanding=tuple(raw["minimum_required_understanding"]),
-                exit_criteria=criteria,
-                blocking_question_keywords=tuple(raw["blocking_question_keywords"]),
-                optional_question_keywords=tuple(raw["optional_question_keywords"]),
-                optional_deep_dive=tuple(raw["optional_deep_dive"]),
-                next_roadmap_topic=raw["next_roadmap_topic"],
-            )
-        )
-    if not boundaries:
-        raise ValueError("No learning boundaries configured")
-    return boundaries
-
-
 def progress_value(progress: str, label: str) -> str:
     match = re.search(rf"^- {re.escape(label)}:\s*(.+)$", progress, re.MULTILINE)
     return match.group(1).strip() if match else ""
 
 
 def select_boundary(
-    boundaries: Iterable[LearningBoundary], progress: str, primary: LearningLog
+    boundaries: Iterable[LearningBoundary], progress: str
 ) -> LearningBoundary:
-    available = list(boundaries)
-    current_topic = progress_value(progress, "Current Topic").casefold()
-    for boundary in available:
-        if any(alias.casefold() == current_topic for alias in boundary.progress_topics):
-            return boundary
-    for boundary in available:
-        if primary.domain in boundary.domains:
-            return boundary
-    raise ValueError(
-        f"No learning boundary for Current Topic={current_topic or '없음'} / domain={primary.domain}"
+    return boundary_by_id(
+        boundaries, progress_value(progress, "Current Boundary")
     )
 
 
@@ -379,7 +319,7 @@ def build_learning_plan(
     included: Iterable[LearningLog],
     primary: LearningLog,
 ) -> LearningPlan:
-    boundary = select_boundary(boundaries, progress, primary)
+    boundary = select_boundary(boundaries, progress)
     logs = list(included)
     relevant = [log for log in logs if log.domain in boundary.evidence_domains]
     corpus = evidence_corpus(relevant)
@@ -442,6 +382,7 @@ def build_context(root: Path) -> str:
     roadmap_path = root / "roadmap/ROADMAP.md"
     roadmap_path.read_text(encoding="utf-8")  # Required source; validates readability.
     boundaries = load_boundaries(root)
+    official_boundary = select_boundary(boundaries, progress)
 
     if not included:
         lines = [
@@ -455,9 +396,11 @@ def build_context(root: Path) -> str:
             "## 현재 상태",
             "",
             "- 최신 의미 있는 학습 기록: 없음",
-            "- Current Topic: 없음",
+            f"- Current Boundary: `{official_boundary.id}`",
+            f"- Current Stage: {official_boundary.roadmap_stage}",
+            f"- Current Topic: {official_boundary.current_topic}",
             "- Domain: 없음",
-            "- Roadmap stage: 없음",
+            f"- Depth Boundary: `{official_boundary.id}`",
             "",
             "## 제외한 기록과 이유",
             "",
@@ -485,8 +428,8 @@ def build_context(root: Path) -> str:
     )
     actions = extract_items(primary.sections["## 9. 다음 행동"], LIMITS["actions"])
     plan = build_learning_plan(boundaries, progress, included, primary)
-    current_stage = progress_value(progress, "Current Stage") or primary.roadmap_stage
-    current_topic = progress_value(progress, "Current Topic") or primary.topic
+    current_stage = plan.boundary.roadmap_stage
+    current_topic = plan.boundary.current_topic
 
     move_explanations = {
         "continue": "현재 topic의 blocking gap이 둘 이상이므로 필요한 최소 범위만 계속 학습한다.",
@@ -505,6 +448,7 @@ def build_context(root: Path) -> str:
         "## Roadmap Position",
         "",
         f"- 최신 의미 있는 학습 기록: `{primary.path}`",
+        f"- Current Boundary: `{plan.boundary.id}`",
         f"- Current Stage: {current_stage}",
         f"- Current Topic: {current_topic}",
         f"- Domain: {primary.domain}",
