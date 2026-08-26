@@ -21,6 +21,12 @@ PIM_FOCUS = """# Progress
 ## 3. Current Focus
 
 - Current Boundary: pim-cim-foundations
+
+## 4. Progress Dashboard
+
+| Stage | Status | 현재 목표 | Evidence / Notes |
+| --- | --- | --- | --- |
+| PIM / CIM | Learning | data movement | 기존 계획은 보존 |
 """
 EVIDENCE_PATH = "learning-logs/2026/08/2026-08-24-pim.md"
 
@@ -96,10 +102,11 @@ def main() -> int:
         assert path == progress.TARGET_PATH and count == 1
         updated = (root / path).read_text(encoding="utf-8")
         assert "- Current Boundary: paper-analysis-foundations" in updated
-        focus = updated.split("## 3. Current Focus", 1)[1]
+        focus = updated.split("## 3. Current Focus", 1)[1].split("\n## ", 1)[0]
         assert sum(line.startswith("- Current ") for line in focus.splitlines()) == 1
         assert "Current Stage" not in updated and "Current Topic" not in updated
-        assert "Progress Dashboard" not in updated and "Last Updated" not in updated
+        assert "| PIM / CIM | Learning | data movement | 기존 계획은 보존 |" in updated
+        assert "Last Updated" not in updated
 
         snapshot = learning_context.build_context(root)
         updated_sha = learning_context.git_blob_sha(root / progress.TARGET_PATH)

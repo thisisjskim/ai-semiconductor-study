@@ -30,7 +30,7 @@ flowchart TD
 | [`system/RESEARCH_OS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/RESEARCH_OS.md)                                         | 학습·기록·승인 정책의 canonical source       |
 | [`roadmap/ROADMAP.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/ROADMAP.md)                                               | 장기 학습 방향과 단계                      |
 | [`roadmap/LEARNING_BOUNDARIES.json`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/LEARNING_BOUNDARIES.json)                   | topic별 최소 이해·exit criteria·다음 topic 계약 |
-| [`roadmap/PROGRESS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/PROGRESS.md)                                             | 승인된 Current Boundary 하나만 보존하는 공식 위치 포인터 |
+| [`roadmap/PROGRESS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/PROGRESS.md)                                             | 승인된 Current Boundary와 사람이 참고하는 장기 계획·현황 |
 | [`system/LEARNING_LOG_ISSUE_CONTRACT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/LEARNING_LOG_ISSUE_CONTRACT.md)         | 일반 ChatGPT의 Learning Log 저장 계약      |
 | [`templates/learning-log.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/templates/learning-log.md)                                 | Learning Log 문서 형식                |
 | `learning-logs/YYYY/MM/*.md`                                                                                                                             | 실제 학습 과정과 이해 증거가 쌓이는 곳            |

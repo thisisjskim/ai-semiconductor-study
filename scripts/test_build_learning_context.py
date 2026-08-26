@@ -432,13 +432,15 @@ def main() -> int:
     actual_progress = (repository_root / "roadmap/PROGRESS.md").read_text(
         encoding="utf-8"
     )
-    actual_focus = actual_progress.split("## 3. Current Focus", 1)[1]
+    actual_focus = actual_progress.split("## 3. Current Focus", 1)[1].split(
+        "\n## ", 1
+    )[0]
     assert sum(
         line.startswith("- Current ") for line in actual_focus.splitlines()
     ) == 1
     assert "Current Stage" not in actual_progress
     assert "Current Topic" not in actual_progress
-    assert "Progress Dashboard" not in actual_progress
+    assert "## 4. Progress Dashboard" in actual_progress
     assert "Last Updated" not in actual_progress
     expected_boundary_id = context.progress_value(actual_progress, "Current Boundary")
     expected_progress_sha = context.git_blob_sha(
