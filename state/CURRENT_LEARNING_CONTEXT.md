@@ -3,12 +3,13 @@
 > 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
 - Last generated date: 2026-08-24
-- Progress source SHA: `a87d9e905e510cc5eaf30d66f6a8e26a7f75725e`
+- Progress source SHA: `1e58391e2ae77e2ba1474a79168cf803df082602`
 
 ## Roadmap Position
 
 - 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md`
-- Current Stage: Stage 5 — PIM / CIM
+- Current Boundary: `paper-analysis-foundations`
+- Current Stage: Stage 6 — Foundational Papers
 - Current Topic: 중심 Foundational Paper의 claim map과 architecture walkthrough
 - Domain: pim-cim
 - Depth Boundary: `paper-analysis-foundations`

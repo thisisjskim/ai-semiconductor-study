@@ -380,18 +380,11 @@ Exit gate:
 - 해결하거나 명확히 분류한 prerequisite gap 1개 이상
 - 다음 주에 수행할 가장 중요한 행동 1~3개
 
-## 7. Status and Evidence Rules
+## 7. Official Position and Evidence Rules
 
-진행 상태는 `roadmap/PROGRESS.md`에서 다음 네 단계로 관리한다.
+`roadmap/PROGRESS.md`는 사용자가 승인한 `Current Boundary` 하나를 공식 위치로 관리한다. Current Stage와 Current Topic은 해당 boundary에서 자동 산출한다. 최신 Learning Log나 그 Domain만으로 공식 위치를 이동하지 않으며, 공식 목표 변경 또는 exit criteria 충족 뒤 사용자 승인이 있을 때만 boundary를 바꾼다.
 
-- **Not Started**: 현재 목표 기준의 의미 있는 evidence가 없음
-- **Learning**: 설명, 질문, 분석 등 진행 중인 evidence가 있음
-- **Review**: 핵심 범위의 1차 학습을 마치고 자기 설명·비교·비판을 검증 중
-- **Completed**: 현재 목표의 exit gate를 충족했으며 다음 단계에서 사용할 수 있음
-
-`Completed`는 영구 숙련을 의미하지 않는다. 논문에서 새로운 prerequisite gap이 발견되면 다시 `Learning` 또는 `Review`로 돌아갈 수 있다.
-
-상태 변경의 근거는 실제 repository path로 연결한다.
+학습의 실제 진행과 이해 근거는 다음 repository path에 둔다.
 
 - 기초 학습: `learning-logs/**`, Concept/Foundation Note
 - 논문 분석: Paper Note와 논문 비교 자료
@@ -416,4 +409,4 @@ Exit gate:
 - 파일 수는 늘지만 교수에게 보여줄 결과물이 선명하지 않다.
 - 현재 활동이 2026년 10월 지원 패키지에 어떻게 기여하는지 설명하기 어렵다.
 
-현재 위치, 이번 주 행동과 실제 evidence는 `roadmap/PROGRESS.md`에서 관리한다.
+현재 공식 위치는 `roadmap/PROGRESS.md`, 실제 evidence와 다음 행동은 Learning Log와 관련 note에서 관리한다.

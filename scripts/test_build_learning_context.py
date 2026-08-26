@@ -93,6 +93,7 @@ def setup_root(root: Path) -> None:
         "boundaries": [
             {
                 "id": "sram-foundations",
+                "current_topic": "SRAM",
                 "progress_topics": ["SRAM"],
                 "domains": ["sram"],
                 "roadmap_stage": "Stage 3 — Memory",
@@ -123,11 +124,9 @@ def setup_root(root: Path) -> None:
     write_fixture(
         root,
         "roadmap/PROGRESS.md",
-        "| Stage | Status |\n"
-        "|---|---|\n"
-        "| SRAM / DRAM / eDRAM | Not Started |\n"
-        "- Current Stage: Not Started\n"
-        "- Current Topic: SRAM\n",
+        "# Progress\n\n"
+        "## 3. Current Focus\n\n"
+        "- Current Boundary: sram-foundations\n",
     )
 
 
@@ -147,6 +146,7 @@ def assert_workflow_contract(repository_root: Path) -> None:
     assert '- "roadmap/LEARNING_BOUNDARIES.json"' in workflow
     assert '- "system/LEARNING_LOG_METADATA_SCHEMA.json"' in workflow
     assert '- "scripts/build_learning_context.py"' in workflow
+    assert '- "scripts/learning_boundaries.py"' in workflow
     assert '- "scripts/test_build_learning_context.py"' in workflow
     assert '- ".github/workflows/learning-context-refresh.yml"' in workflow
     assert "python -B scripts/test_build_learning_context.py" in workflow
@@ -165,6 +165,14 @@ def assert_workflow_contract(repository_root: Path) -> None:
 
 
 def main() -> int:
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        lf = root / "lf.md"
+        crlf = root / "crlf.md"
+        lf.write_bytes(b"line\n")
+        crlf.write_bytes(b"line\r\n")
+        assert context.git_blob_sha(lf) == context.git_blob_sha(crlf)
+
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
         setup_root(root)
@@ -248,6 +256,8 @@ def main() -> int:
         progress_sha = context.git_blob_sha(root / "roadmap/PROGRESS.md")
         assert f"Progress source SHA: `{progress_sha}`" in first
         assert "최신 의미 있는 학습 기록: `learning-logs/2026/08/a-latest.md`" in first
+        assert "Current Boundary: `sram-foundations`" in first
+        assert "Current Stage: Stage 3 — Memory" in first
         assert "Current Topic: SRAM" in first
         assert "unresolved one" in first and "unresolved two" in first
         assert "resolved must not appear" not in first
@@ -374,17 +384,10 @@ def main() -> int:
             "## Required Source Before First Learning Unit", 1
         )[1].split("## Next Roadmap Topic", 1)[0]
 
-    # A fully aligned review does not rename the roadmap topic after the latest log.
+    # A fully aligned review does not rename the official boundary after the latest log.
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
         setup_root(root)
-        write_fixture(
-            root,
-            "roadmap/PROGRESS.md",
-            (root / "roadmap/PROGRESS.md").read_text(encoding="utf-8")
-            .replace("- Current Stage: Not Started", "- Current Stage: Stage 3 — Memory")
-            .replace("| SRAM / DRAM / eDRAM | Not Started |", "| SRAM / DRAM / eDRAM | Learning |"),
-        )
         write_fixture(
             root,
             "learning-logs/2026/08/narrow.md",
@@ -395,7 +398,6 @@ def main() -> int:
         assert "Current Topic: SRAM" in aligned_review
         aligned_sha = context.git_blob_sha(root / "roadmap/PROGRESS.md")
         assert f"Progress source SHA: `{aligned_sha}`" in aligned_review
-        assert progress_sha != aligned_sha
 
     # Scenario E is a session policy: deep dive is selectable only on explicit request.
     repository_root = Path(__file__).resolve().parents[1]
@@ -408,6 +410,8 @@ def main() -> int:
     progress_topics = {
         topic for boundary in boundaries for topic in boundary.progress_topics
     }
+    for boundary in boundaries:
+        assert boundary.current_topic in boundary.progress_topics
     for boundary in boundaries[:-1]:
         assert boundary.next_roadmap_topic in progress_topics
     sram_boundary = next(item for item in boundaries if item.id == "sram-foundations")
@@ -428,19 +432,27 @@ def main() -> int:
     actual_progress = (repository_root / "roadmap/PROGRESS.md").read_text(
         encoding="utf-8"
     )
-    expected_stage = context.progress_value(actual_progress, "Current Stage")
-    expected_topic = context.progress_value(actual_progress, "Current Topic")
+    actual_focus = actual_progress.split("## 3. Current Focus", 1)[1]
+    assert sum(
+        line.startswith("- Current ") for line in actual_focus.splitlines()
+    ) == 1
+    assert "Current Stage" not in actual_progress
+    assert "Current Topic" not in actual_progress
+    assert "Progress Dashboard" not in actual_progress
+    assert "Last Updated" not in actual_progress
+    expected_boundary_id = context.progress_value(actual_progress, "Current Boundary")
     expected_progress_sha = context.git_blob_sha(
         repository_root / "roadmap/PROGRESS.md"
     )
     expected_boundary = next(
-        boundary
-        for boundary in boundaries
-        if expected_topic in boundary.progress_topics
+        boundary for boundary in boundaries if expected_boundary_id == boundary.id
     )
+    expected_stage = expected_boundary.roadmap_stage
+    expected_topic = expected_boundary.current_topic
     actual_required_source = actual.split(
         "## Required Source Before First Learning Unit", 1
     )[1].split("## Next Roadmap Topic", 1)[0]
+    assert f"- Current Boundary: `{expected_boundary_id}`" in actual
     assert f"- Current Stage: {expected_stage}" in actual
     assert f"- Current Topic: {expected_topic}" in actual
     assert f"- Depth Boundary: `{expected_boundary.id}`" in actual

@@ -152,20 +152,31 @@ expected_sha: new 또는 읽어서 확인한 40자리 SHA
 - 중복 파일을 만들지 않는다. 존재를 확인하지 않은 경로를 반복 요청하지 않는다.
 - API 또는 tool 오류가 나면 성공했다고 말하지 않는다.
 
-## 9. Progress Update after Learning Capture
+## 9. Current Boundary Update
 
-Learning Log 저장 성공과 실제 commit을 확인한 뒤에만 새 evidence가 Progress 변경을 뒷받침하는지 평가한다. 변경 후보는 다음으로 제한한다.
+`roadmap/PROGRESS.md`는 사용자가 승인한 `Current Boundary` 한 줄만 보존한다. Current Stage와 Current Topic은 Progress에 중복 저장하지 않고 Context 생성 시 `roadmap/LEARNING_BOUNDARIES.json`의 같은 boundary에서 산출한다. 최신 Learning Log만으로 Current Boundary를 자동 변경하지 않는다. 논문을 읽다가 prerequisite를 보충하는 동안에도 공식 목표가 논문 분석이면 boundary는 그대로 유지한다.
 
-- Current Stage
-- Current Topic
-- Progress Dashboard의 `Not Started → Learning`
-- 위 변경이 있을 때 필요한 Last Updated
+Current Boundary 변경은 다음 두 경우에만 제안한다.
 
-자동 반영 금지 대상은 지원 날짜, Execution Phase, Active Track, Current Deliverable, Current Bottleneck, Next Milestone, Phase Deadline, Roadmap의 목표와 구조, `Review`와 `Completed` 판정이다.
+- 사용자가 공식 학습 목표를 명시적으로 바꾼다.
+- 현재 boundary의 exit criteria를 충족하고 사용자가 다음 boundary 이동을 승인한다.
 
-실제 변경이 필요한 경우에만 현재 값과 제안 값을 사용자에게 보여 주고 Learning Log 저장과 분리된 두 번째 승인을 받는다. 승인 후 최신 `roadmap/PROGRESS.md` blob SHA, 실제 Learning Log evidence path, 승인된 `from`과 `to`를 `research-os-progress-update:v1` 계약에 넣어 `[progress-update] YYYY-MM-DD` Issue로 enqueue한다.
+Learning Log 저장 성공과 실제 commit을 확인한 뒤 변경 필요성을 검토하되, 실제 변경이 없으면 승인 요청을 만들지 않는다. 변경이 필요하면 현재 boundary와 제안 boundary, 근거 Learning Log를 보여 주고 Learning Log 저장과 분리된 두 번째 승인을 받는다. 승인 후 최신 `roadmap/PROGRESS.md` blob SHA, 실제 Learning Log evidence path와 승인된 boundary `from`/`to`를 다음 `research-os-progress-update:v2` 계약에 넣어 `[progress-update] YYYY-MM-DD` Issue로 enqueue한다.
 
-GitHub Actions는 repository owner, 제목, target path, SHA, evidence 존재, 허용 필드, 현재 값, Dashboard 전이를 모두 검증한다. 검증 후 `roadmap/PROGRESS.md` 한 파일만 commit하고 Learning Context Refresh를 자동으로 후속 실행한다. ChatGPT는 Issue 결과 comment의 성공 marker, path, commit과 그 commit ref의 승인 값을 먼저 검증한다. 이어서 최신 `roadmap/PROGRESS.md` blob SHA와 `state/CURRENT_LEARNING_CONTEXT.md`의 `Progress source SHA`가 일치하는지 확인해야 전체 반영 완료라고 말한다. 불일치하는 동안에는 Progress 변경 성공과 context 갱신 대기를 구분하고 오래된 context로 다음 학습을 제안하지 않는다. 일치한 뒤에는 갱신된 snapshot의 Roadmap Position, Blocking Gaps, Recommended Next Move와 Required Source를 다음 학습의 기준으로 사용한다.
+```text
+<!-- research-os-progress-update:v2
+target_path: roadmap/PROGRESS.md
+expected_sha: 읽어서 확인한 40자리 SHA
+-->
+{
+  "evidence_paths": ["learning-logs/YYYY/MM/YYYY-MM-DD-topic.md"],
+  "changes": [
+    {"type": "current_boundary", "from": "현재 boundary id", "to": "승인된 boundary id"}
+  ]
+}
+```
+
+GitHub Actions는 repository owner, 제목, target path, SHA, evidence 존재와 boundary id를 검증한다. 통과하면 `roadmap/PROGRESS.md`의 Current Boundary 한 줄만 바꿔 commit한다. 이어지는 Learning Context Refresh는 해당 boundary에서 Current Stage, Current Topic, goal과 exit criteria를 생성한다. ChatGPT는 결과 comment의 성공 marker, path, commit과 승인 값을 검증하고, 최신 Progress blob SHA와 context의 `Progress source SHA`가 같아진 뒤에만 전체 반영 완료라고 말한다. 두 SHA가 다르면 오래된 context로 다음 학습을 제안하지 않는다.
 
 ## 10. Session Recovery and Roadmap
 

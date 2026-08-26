@@ -4,6 +4,7 @@
   "boundaries": [
     {
       "id": "ai-computation-foundations",
+      "current_topic": "AI Computation",
       "progress_topics": ["AI Computation"],
       "domains": ["ai-computation"],
       "roadmap_stage": "Stage 1 — AI Computation",
@@ -30,6 +31,7 @@
     },
     {
       "id": "computer-architecture-foundations",
+      "current_topic": "Computer Architecture의 parallelism, locality, bandwidth",
       "progress_topics": ["Computer Architecture", "Computer Architecture의 parallelism, locality, bandwidth"],
       "domains": ["computer-architecture"],
       "roadmap_stage": "Stage 2 — Computer Architecture",
@@ -56,6 +58,7 @@
     },
     {
       "id": "sram-foundations",
+      "current_topic": "Register와 SRAM 회로 기초",
       "progress_topics": ["Register와 SRAM 회로 기초", "SRAM", "SRAM 회로 기초"],
       "domains": ["sram"],
       "evidence_domains": ["sram", "memory-architecture"],
@@ -92,6 +95,7 @@
     },
     {
       "id": "memory-architecture-bridge",
+      "current_topic": "SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결",
       "progress_topics": ["SRAM과 DRAM 비교", "SRAM/DRAM 비교", "Memory Architecture", "Register, SRAM, DRAM/HBM의 역할과 trade-off", "SRAM과 DRAM의 구조·역할 비교 및 NPU on-chip buffer 연결"],
       "domains": ["memory-architecture", "dram"],
       "roadmap_stage": "Stage 3 — Memory",
@@ -118,6 +122,7 @@
     },
     {
       "id": "npu-architecture-foundations",
+      "current_topic": "NPU PE array, buffer hierarchy와 dataflow",
       "progress_topics": ["NPU Architecture", "NPU와 Dataflow", "NPU PE array, buffer hierarchy와 dataflow"],
       "domains": ["npu"],
       "roadmap_stage": "Stage 4 — NPU Architecture",
@@ -140,6 +145,7 @@
     },
     {
       "id": "pim-cim-foundations",
+      "current_topic": "Memory Wall과 PIM/CIM의 compute 위치 변화",
       "progress_topics": ["PIM / CIM", "PIM/CIM", "Memory Wall과 PIM/CIM의 compute 위치 변화"],
       "domains": ["pim-cim"],
       "roadmap_stage": "Stage 5 — PIM / CIM",
@@ -162,6 +168,7 @@
     },
     {
       "id": "paper-analysis-foundations",
+      "current_topic": "중심 Foundational Paper의 claim map과 architecture walkthrough",
       "progress_topics": ["Foundational Papers", "KAIST SSL Lab Papers", "Paper Analysis", "중심 Foundational Paper의 claim map과 architecture walkthrough"],
       "domains": ["paper"],
       "roadmap_stage": "Stage 6 — Foundational Papers",

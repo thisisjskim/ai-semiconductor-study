@@ -1,6 +1,6 @@
 현재 시스템은 **학습 내용 저장 파이프라인까지 정상 작동하는 v0.2 계열**이라고 볼 수 있습니다.
 
-다만 정확히 말하면 지금 완성된 것은 “학습 기록 자동 저장”이고, `roadmap/PROGRESS.md` 갱신이나 Foundation Note 승격까지 완전히 자동화된 것은 아닙니다.
+Learning Log 저장과 승인된 Current Boundary 갱신은 자동화되어 있습니다. 다만 어느 boundary로 이동할지는 ChatGPT가 임의로 정하지 않고 사용자가 승인하며, Foundation Note 승격도 자동화하지 않습니다.
 
 ## 전체 구조
 
@@ -30,7 +30,7 @@ flowchart TD
 | [`system/RESEARCH_OS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/RESEARCH_OS.md)                                         | 학습·기록·승인 정책의 canonical source       |
 | [`roadmap/ROADMAP.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/ROADMAP.md)                                               | 장기 학습 방향과 단계                      |
 | [`roadmap/LEARNING_BOUNDARIES.json`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/LEARNING_BOUNDARIES.json)                   | topic별 최소 이해·exit criteria·다음 topic 계약 |
-| [`roadmap/PROGRESS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/PROGRESS.md)                                             | 현재 학습 단계와 다음 목표를 보여주는 대시보드        |
+| [`roadmap/PROGRESS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/PROGRESS.md)                                             | 승인된 Current Boundary 하나만 보존하는 공식 위치 포인터 |
 | [`system/LEARNING_LOG_ISSUE_CONTRACT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/LEARNING_LOG_ISSUE_CONTRACT.md)         | 일반 ChatGPT의 Learning Log 저장 계약      |
 | [`templates/learning-log.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/templates/learning-log.md)                                 | Learning Log 문서 형식                |
 | `learning-logs/YYYY/MM/*.md`                                                                                                                             | 실제 학습 과정과 이해 증거가 쌓이는 곳            |
@@ -42,7 +42,7 @@ flowchart TD
 * `PROGRESS.md`: 현재 어디에 있는가
 * `learning-logs/**`: 왜 그 위치에 있다고 판단할 수 있는가
 
-즉, Learning Log가 실제 학습의 증거이고 `PROGRESS.md`는 그 증거를 압축한 현재 상태표입니다.
+즉, Learning Log가 실제 학습의 증거이고 `PROGRESS.md`는 사용자가 승인한 공식 학습 위치만 가리킵니다. 최신 Log의 주제가 달라져도 Current Boundary는 자동으로 이동하지 않습니다.
 
 ---
 
@@ -430,11 +430,11 @@ Public repository에서 다른 사람이 임의로 Issue를 만들어 파일을 
 
 ### `CURRENT_LEARNING_CONTEXT.md` 자동 갱신
 
-`learning-logs/**`, `roadmap/PROGRESS.md`, `roadmap/ROADMAP.md` 또는 `roadmap/LEARNING_BOUNDARIES.json`이 `main`에서 변경되면 별도 `learning-context-refresh.yml` workflow가 `scripts/build_learning_context.py`를 실행합니다. 이 deterministic builder는 Progress의 현재 위치, topic별 depth boundary와 유효한 Learning Log evidence를 순서대로 비교해 `state/CURRENT_LEARNING_CONTEXT.md`를 갱신합니다. 최근 Learning Log의 마지막 질문이나 Next Action은 더 이상 단독 추천 기준이 아닙니다.
+`learning-logs/**`, `roadmap/PROGRESS.md`, `roadmap/ROADMAP.md` 또는 `roadmap/LEARNING_BOUNDARIES.json`이 `main`에서 변경되면 별도 `learning-context-refresh.yml` workflow가 `scripts/build_learning_context.py`를 실행합니다. 이 deterministic builder는 Progress의 `Current Boundary`를 읽고 같은 boundary 정의에서 Stage, Topic, goal과 exit criteria를 산출한 뒤 유효한 Learning Log evidence와 비교해 `state/CURRENT_LEARNING_CONTEXT.md`를 갱신합니다. 최근 Learning Log의 Domain, 마지막 질문이나 Next Action은 공식 위치를 바꾸는 단독 기준이 아닙니다.
 
 추천은 `continue`, `review_then_advance`, `advance` 중 하나입니다. `optional_deep_dive`는 사용자가 명시적으로 더 깊게 공부하겠다고 선택했을 때만 세션에서 사용합니다. 자동 evidence 판정은 질문·다음 행동 section을 제외하고 자기 설명과 수정 이해에서 필요한 keyword 묶음이 모두 발견된 경우에만 exit criterion 후보를 완료로 표시합니다.
 
-Learning Log 저장과 context refresh는 서로 다른 commit입니다. Context refresh가 실패해도 이미 저장된 Learning Log는 취소되거나 되돌아가지 않으며, workflow는 state snapshot 이외의 파일을 자동 commit하지 않습니다. Context builder는 `roadmap/PROGRESS.md`를 읽지만 자동 수정하지 않습니다.
+Learning Log 저장과 context refresh는 서로 다른 commit입니다. Context refresh가 실패해도 이미 저장된 Learning Log는 취소되거나 되돌아가지 않으며, workflow는 state snapshot 이외의 파일을 자동 commit하지 않습니다. Progress 변경은 별도 사용자 승인과 `[progress-update]` Action으로만 실행됩니다.
 
 다음은 아직 자동화되지 않았습니다.
 
