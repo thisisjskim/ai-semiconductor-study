@@ -154,7 +154,7 @@ expected_sha: new 또는 읽어서 확인한 40자리 SHA
 
 ## 9. Current Boundary Update
 
-`roadmap/PROGRESS.md`는 사용자가 승인한 `Current Boundary` 한 줄만 보존한다. Current Stage와 Current Topic은 Progress에 중복 저장하지 않고 Context 생성 시 `roadmap/LEARNING_BOUNDARIES.json`의 같은 boundary에서 산출한다. 최신 Learning Log만으로 Current Boundary를 자동 변경하지 않는다. 논문을 읽다가 prerequisite를 보충하는 동안에도 공식 목표가 논문 분석이면 boundary는 그대로 유지한다.
+`roadmap/PROGRESS.md`의 Current Focus는 사용자가 승인한 `Current Boundary` 한 줄만 보존한다. Target Snapshot, Status Definition, Dashboard, Deliverables와 Phase Checkpoints는 사람이 참고하는 계획·현황이며 자동 위치 판정에 사용하지 않는다. Current Stage와 Current Topic은 Progress에 중복 저장하지 않고 Context 생성 시 `roadmap/LEARNING_BOUNDARIES.json`의 같은 boundary에서 산출한다. 최신 Learning Log만으로 Current Boundary를 자동 변경하지 않는다. 논문을 읽다가 prerequisite를 보충하는 동안에도 공식 목표가 논문 분석이면 boundary는 그대로 유지한다.
 
 Current Boundary 변경은 다음 두 경우에만 제안한다.
 
