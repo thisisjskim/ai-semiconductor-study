@@ -57,7 +57,11 @@
 
 ### Paper Note
 
-Problem, Motivation, Prerequisites, Key Idea, Architecture, Method, Experiments, Results, Trade-offs, Limitations, Questions, Research Interest 연결을 분석한다.
+논문 한 편당 하나의 living note로 Problem, Motivation, Key Idea, Architecture, Experiments, Trade-offs와 사용자의 분석을 여러 세션에 걸쳐 축적한다. 동시에 다음 세션의 정확한 복귀 위치와 논문에서 발생한 선수지식 학습을 보존한다.
+
+`paper-notes/{foundational|ssl-lab|related}/YYYY-MM-DD-paper-slug.md`
+
+파일명 날짜는 최초 생성일이고 이후에는 같은 파일을 수정한다. 최신 Paper Reading Checkpoint는 파일명이나 Git 수정 시각이 아니라 Workflow가 Issue `created_at`으로 기록한 `Checkpoint recorded at`으로 판별한다. 형식은 `templates/paper-note.md`, 작성 기준은 `system/PAPER_NOTE_AUTHORING_GUIDE.md`를 따른다.
 
 Promotion은 원본 이동·삭제·덮어쓰기가 아니라 `learning-log → foundation → final-note`의 새 문서 생성이다.
 
@@ -143,10 +147,20 @@ expected_sha: new 또는 읽어서 확인한 40자리 SHA
 
 후속 댓글에는 envelope를 반복하지 않고 Markdown의 다음 부분만 보낸다. Issue 생성이나 chunk 전송이 실패하면 닫지 말고 어느 단계에서 실패했는지 알린다.
 
+Paper Reading Checkpoint는 같은 Issue transport를 사용하되 별도 계약으로 분리한다. 사용자가 논문 읽기 종료, Resume Point 변경, Bridge 추가·상태 변경 또는 Paper Note 분석 반영을 승인했을 때 `system/PAPER_NOTE_ISSUE_CONTRACT.md`를 읽고 `[paper-note] paper-slug` Issue를 사용한다. 이 요청에는 정확히 `operation`, `intent: paper-reading-checkpoint`, `target_path`, `expected_sha`만 넣는다. GitHub Actions가 `Checkpoint recorded at`을 자동 설정하며, 검증된 한 개의 `paper-notes/**` 파일만 쓴다.
+
+별도 선수지식 학습으로 Learning Log와 Paper Note가 함께 바뀌면 사용자에게 두 변경을 한 번에 보여 주고 한 번 승인받을 수 있다. 실행은 한 Issue가 한 파일만 처리한다는 원칙을 유지해 다음 순서로 직렬 처리한다.
+
+1. Learning Log를 생성 또는 수정하고 성공 comment, commit과 실제 파일을 확인한다.
+2. 확인된 Learning Log 경로를 연결한 Paper Note를 생성 또는 수정한다.
+3. Paper Note와 후속 Current Context를 확인한다.
+
+앞 단계가 실패하면 존재하지 않는 Learning Log 경로를 Paper Note에 기록하지 않는다. 일부만 성공하면 부분 성공으로 보고한다.
+
 ## 8. GitHub Safety
 
 - 연결된 GitHub plugin 또는 connector에는 repository contents read와 Issues read/write에 필요한 최소 권한만 부여한다.
-- 자동 파일 쓰기는 `.github/workflows/learning-log-ingest.yml`의 `learning-logs/**`와 `.github/workflows/progress-update.yml`의 `roadmap/PROGRESS.md` 한 파일로 제한한다.
+- 자동 파일 쓰기는 `.github/workflows/learning-log-ingest.yml`의 `learning-logs/**`, `.github/workflows/paper-note-ingest.yml`의 `paper-notes/**`, `.github/workflows/progress-update.yml`의 `roadmap/PROGRESS.md` 한 파일로 제한한다.
 - 파일 삭제·이동·이름 변경, repository 설정·branch·PR·Issue 관리, 다른 repository 수정은 자동 수행하지 않는다.
 - 기존 파일 수정 전 최신 SHA를 확인한다. SHA 불일치는 다시 읽고 비교·승인하는 절차로 돌아간다.
 - 중복 파일을 만들지 않는다. 존재를 확인하지 않은 경로를 반복 요청하지 않는다.
@@ -189,6 +203,21 @@ Roadmap은 강제 syllabus가 아니라 navigation map이다. 기초 학습 → 
 기본 정책은 `Progression over Exhaustiveness`다. Exit Criteria를 막는 질문은 Blocking Gap, 현재 진행에 필수적이지 않은 심화 질문은 Optional Open Question으로 분류한다. Blocking Gap이 없으면 다음 topic으로 이동하고, 하나만 남으면 짧게 복습한 뒤 이동한다. 이 원칙은 모든 세부 질문을 끝까지 파지 않는다는 뜻이지, 작은 목표 하나마다 저장하거나 prerequisite를 건너뛴다는 뜻이 아니다. 한 topic에서 최소한 `개념 → 이유 → 비교 또는 적용`의 연결을 만든다. Optional Deep Dive는 사용자가 명시적으로 요청하거나 장기 목표에 필요한 근거가 있을 때만 기본 경로에 넣는다. 이후 실제 논문에서 prerequisite gap이 드러나면 spiral learning으로 이전 topic에 돌아올 수 있다.
 
 새 채팅의 snapshot은 위치와 방향을 정하는 index이지 사용자의 실제 설명을 대체하는 source가 아니다. 첫 Learning Unit 전에는 snapshot이 지정한 가장 가까운 Learning Log 또는 next-topic boundary를 한 번 더 읽는다. 중요한 질문 전에는 필요한 prerequisite가 사용자 evidence로 확인되었는지 점검한다. 사용자의 기존 설명 수준을 확인하지 않은 채 모델의 일반 지식만으로 진단 질문을 만들지 않으며, 사용자가 퀴즈를 요청하지 않았다면 짧은 연결 설명과 예시 뒤에 자기 설명을 요청한다. 새로운 topic·topology·physical mechanism 또는 미확인 비교 대상은 최소 seed knowledge를 Explain-first로 제공한 뒤 추론 질문에 사용한다.
+
+### Paper Reading Recovery
+
+Roadmap Position과 Paper Position은 서로 다른 축이다. Roadmap Position은 장기 학습 지도의 공식 위치이고, Current Paper는 지금 읽는 논문의 작업 위치다. 논문에서 CNN이나 eDRAM을 보충해도 Current Boundary를 임의로 바꾸지 않는다.
+
+`state/CURRENT_LEARNING_CONTEXT.md`의 `Current Paper Note`는 상세 상태를 복제하지 않고 최신 Paper Reading Checkpoint의 경로 하나만 가리킨다. 새 채팅에서 이 경로가 있으면 해당 Paper Note를 반드시 읽어 `Resume Point`와 `Prerequisite Bridge`를 복구한다. 최신 Learning Log가 다른 주제라는 이유로 Current Paper를 바꾸거나, Learning Log의 Next Action을 논문 복귀 위치로 사용하지 않는다.
+
+Paper Note의 Bridge는 두 종류다.
+
+- `논문 안에서 해결한 선수지식`: 별도 Learning Log를 만들지 않는다. 논문에서의 의미와 사용자의 이해를 Paper Note에 직접 기록한다. 저장 전에는 사용자의 짧은 자기 설명을 한 번 요청하며, 확인되지 않은 AI 설명을 사용자 이해로 쓰지 않는다.
+- `별도로 이어가는 선수지식`: 사용자가 명시적으로 선택했을 때만 Learning Log로 저장하고 Paper Note에 실제 경로를 연결한다. `studying`, `paused`, `sufficient-for-paper` 중 하나를 사용하며 `studying`은 최대 하나다.
+
+새 채팅에서 Paper Note를 읽은 뒤 정확히 하나의 Bridge가 `studying`이면 연결된 Learning Log를 읽고 그 지점부터 선수지식 학습을 이어간다. `studying`이 없으면 `Resume Point`에서 논문을 계속 읽는다. `studying`이 둘 이상이거나 연결 경로가 없으면 추측하지 않고 상태 오류를 사용자에게 알린다. 사용자가 별도 학습을 잠시 멈추고 논문으로 돌아가면 해당 Bridge를 `paused`, 논문 읽기에 충분해졌으면 `sufficient-for-paper`로 저장하고 기존 `Resume Point`에서 복귀한다. 일반적 완전 숙련을 요구하지 않고 Paper Note의 `이 논문에 충분한 기준`까지만 학습한다.
+
+사용자가 당일 논문 읽기를 종료하면 Paper Note의 분석 section, 정확한 `Resume Point`, 그날의 `Reading Session History`와 Bridge 변화를 함께 갱신하도록 제안한다. Paper Note 저장은 자동 추측이 아니라 사용자 승인 뒤 Issue → Actions로 처리한다.
 
 ## 11. Ultimate Principle
 

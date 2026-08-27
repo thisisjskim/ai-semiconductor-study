@@ -1,0 +1,389 @@
+#!/usr/bin/env python3
+"""Contract and regression tests for Paper Note ingest."""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location(
+    "ingest_paper_note", ROOT / "scripts/ingest_paper_note.py"
+)
+assert SPEC and SPEC.loader
+ingest = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(ingest)
+
+
+def replace_section(markdown: str, heading: str, next_heading: str, body: str) -> str:
+    start = markdown.index(heading) + len(heading)
+    end = markdown.index(next_heading, start)
+    return markdown[:start] + "\n\n" + body.strip() + "\n\n" + markdown[end:]
+
+
+def note(bridge: str = "") -> str:
+    markdown = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
+    replacements = {
+        "{Paper Title}": "Example Accelerator",
+        "- Title:": "- Title: Example Accelerator",
+        "- Paper type: foundational | ssl-lab | related": "- Paper type: foundational",
+        "- Venue / Year:": "- Venue / Year: ExampleConf / 2026",
+        "- Authors:": "- Authors: Example Author",
+        "- Paper link:": "- Paper link: https://example.com/paper",
+        "- Started: YYYY-MM-DD": "- Started: 2026-08-27",
+        "- Resume Point:": (
+            "- Resume Point: Section 3.2 / PDF p.6 / Figure 4에서 "
+            "partial sum 이동을 확인하는 부분부터 재개한다."
+        ),
+    }
+    for before, after in replacements.items():
+        markdown = markdown.replace(before, after, 1)
+    bridge_body = bridge or """
+### 논문 안에서 해결한 선수지식
+
+- 없음
+
+### 별도로 이어가는 선수지식
+
+- 없음
+"""
+    return replace_section(
+        markdown,
+        "## 3. Prerequisite Bridge",
+        "## 4. Problem",
+        bridge_body,
+    )
+
+
+def payload(
+    markdown: str,
+    operation: str = "create",
+    expected_sha: str = "new",
+    created_at: str = "2026-08-27T10:20:30Z",
+    extra_envelope: str = "",
+) -> dict:
+    body = (
+        "<!-- research-os-paper-note:v1\n"
+        f"operation: {operation}\n"
+        "intent: paper-reading-checkpoint\n"
+        "target_path: paper-notes/foundational/2026-08-27-example-accelerator.md\n"
+        f"expected_sha: {expected_sha}\n"
+        f"{extra_envelope}"
+        "-->\n"
+        f"{markdown}"
+    )
+    return {
+        "title": "[paper-note] example-accelerator",
+        "issue_created_at": created_at,
+        "author": "owner",
+        "repository_owner": "owner",
+        "body": body,
+        "comments": [],
+    }
+
+
+def expect_error(function, code: str) -> None:
+    try:
+        function()
+    except ingest.IngestError as error:
+        assert error.code == code, (error.code, str(error))
+    else:
+        raise AssertionError(f"Expected IngestError({code})")
+
+
+def assert_template_contract() -> None:
+    template = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
+    assert "## 2. Reading Checkpoint" in template
+    assert "- Resume Point:" in template
+    assert "## 3. Prerequisite Bridge" in template
+    assert "### 논문 안에서 해결한 선수지식" in template
+    assert "### 별도로 이어가는 선수지식" in template
+    assert "studying | paused | sufficient-for-paper" in template
+    assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
+    assert "## 17. Reading Session History" in template
+    for removed in (
+        "- Status: queued | reading | analyzed | revisiting",
+        "- Current section:",
+        "- Last completed section:",
+        "- Current prerequisite gap:",
+        "- Reading pass:",
+        "## 15. Next Reading Action",
+    ):
+        assert removed not in template
+
+
+def assert_repository_contract() -> None:
+    workflow = (ROOT / ".github/workflows/paper-note-ingest.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "name: Paper Note Ingest" in workflow
+    assert "startsWith(github.event.issue.title, '[paper-note]')" in workflow
+    assert "issue_created_at: issue.created_at" in workflow
+    assert "python -B scripts/test_ingest_paper_note.py" in workflow
+    assert "python -B scripts/ingest_paper_note.py" in workflow
+    preflight = workflow.split("- name: Preflight Paper Note", 1)[1].split(
+        "- name: Ingest Paper Note", 1
+    )[0]
+    assert '--report "$RUNNER_TEMP/paper-note-report.md"' in preflight
+    assert 'git add -- "$TARGET_PATH"' in workflow
+    assert "git add -A" not in workflow
+    assert "✅ Paper Note 처리 완료" in workflow
+    assert "Checkpoint recorded at" in workflow
+    contract = (ROOT / "system/PAPER_NOTE_ISSUE_CONTRACT.md").read_text(
+        encoding="utf-8"
+    )
+    assert "research-os-paper-note:v1" in contract
+    assert "intent: paper-reading-checkpoint" in contract
+    assert "Issue의 변경되지 않는 `created_at`" in contract
+    assert (ROOT / "system/PAPER_NOTE_AUTHORING_GUIDE.md").is_file()
+    assert (ROOT / "paper-notes/README.md").is_file()
+    entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
+    assert "Current Paper Note" in entrypoint
+    assert "## Paper Reading Loop" in entrypoint
+    assert "정확히 하나가 `studying`" in entrypoint
+    assert "최신 Learning Log가 eDRAM·CNN 등 다른 주제여도" in entrypoint
+    assert "system/PAPER_NOTE_ISSUE_CONTRACT.md" in entrypoint
+    assert "변경 전·후" in entrypoint
+    policy = (ROOT / "system/RESEARCH_OS.md").read_text(encoding="utf-8")
+    assert "paper-notes/{foundational|ssl-lab|related}/YYYY-MM-DD-paper-slug.md" in policy
+    assert ".github/workflows/paper-note-ingest.yml" in policy
+    assert "### Paper Reading Recovery" in policy
+    architecture = (ROOT / "system/ARCHITECTURE.md").read_text(encoding="utf-8")
+    assert "scripts/ingest_paper_note.py" in architecture
+    assert "최신 Learning Log나 파일명 순서는 Current Paper 선택에 사용하지 않는다" in architecture
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    assert "Paper Reading Checkpoint 저장 계약" in agents
+
+
+def assert_ingest_contract() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        target_path, operation, timestamp = ingest.ingest(payload(note()), root)
+        target = root / target_path
+        assert operation == "create"
+        assert timestamp == "2026-08-27T10:20:30Z"
+        stored = target.read_text(encoding="utf-8")
+        assert "- Checkpoint recorded at: 2026-08-27T10:20:30Z" in stored
+        assert "GitHub Actions가 Issue created_at" not in stored
+
+        old_sha = ingest.git_blob_sha(target.read_bytes())
+        updated = stored.replace("아직 분석하지 않음", "확인된 Problem", 1)
+        result = ingest.ingest(
+            payload(
+                updated,
+                operation="update",
+                expected_sha=old_sha,
+                created_at="2026-08-28T01:02:03Z",
+            ),
+            root,
+        )
+        assert result[1] == "update"
+        assert "- Checkpoint recorded at: 2026-08-28T01:02:03Z" in target.read_text(
+            encoding="utf-8"
+        )
+
+        expect_error(
+            lambda: ingest.validate_payload(
+                payload(updated, operation="update", expected_sha=old_sha), root
+            ),
+            "paper-note-validation-error",
+        )
+
+
+def assert_bridge_validation() -> None:
+    two_studying = """
+### 논문 안에서 해결한 선수지식
+
+- 없음
+
+### 별도로 이어가는 선수지식
+
+#### CNN
+
+- Status: studying
+- 논문에서 필요한 이유: dataflow 이해
+- 이 논문에 충분한 기준: convolution mapping 설명
+- Learning Logs:
+  - 없음
+
+#### Quantization
+
+- Status: studying
+- 논문에서 필요한 이유: precision 이해
+- 이 논문에 충분한 기준: bit-width trade-off 설명
+- Learning Logs:
+  - 없음
+"""
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        expect_error(
+            lambda: ingest.validate_payload(payload(note(two_studying)), root),
+            "multiple-studying-bridges",
+        )
+
+        missing_log = two_studying.replace(
+            "#### Quantization\n\n- Status: studying",
+            "#### Quantization\n\n- Status: paused",
+        ).replace(
+            "  - 없음",
+            "  - `learning-logs/2026/08/2026-08-27-cnn-foundations.md`",
+            1,
+        )
+        expect_error(
+            lambda: ingest.validate_payload(payload(note(missing_log)), root),
+            "missing-related-learning-log",
+        )
+
+        invalid_status = missing_log.replace(
+            "- Status: studying", "- Status: finished", 1
+        ).replace(
+            "  - `learning-logs/2026/08/2026-08-27-cnn-foundations.md`",
+            "  - 없음",
+            1,
+        )
+        expect_error(
+            lambda: ingest.validate_payload(payload(note(invalid_status)), root),
+            "invalid-bridge-status",
+        )
+
+        studying_without_log = """
+### 논문 안에서 해결한 선수지식
+
+- 없음
+
+### 별도로 이어가는 선수지식
+
+#### CNN
+
+- Status: studying
+- 논문에서 필요한 이유: dataflow 이해
+- 이 논문에 충분한 기준: convolution mapping 설명
+- Learning Logs:
+  - 없음
+"""
+        expect_error(
+            lambda: ingest.validate_payload(
+                payload(note(studying_without_log)), root
+            ),
+            "studying-bridge-without-learning-log",
+        )
+
+        studying_without_concept = studying_without_log.replace(
+            "#### CNN\n\n", "", 1
+        )
+        expect_error(
+            lambda: ingest.validate_payload(
+                payload(note(studying_without_concept)), root
+            ),
+            "invalid-tracked-bridge-structure",
+        )
+
+        log_path = Path(
+            "learning-logs/2026/08/2026-08-27-cnn-foundations.md"
+        )
+        (root / log_path).parent.mkdir(parents=True, exist_ok=True)
+        (root / log_path).write_text("# stored Learning Log\n", encoding="utf-8")
+        studying_with_log = studying_without_log.replace(
+            "  - 없음", f"  - `{log_path.as_posix()}`", 1
+        )
+        ingest.validate_payload(payload(note(studying_with_log)), root)
+
+        paused_without_log = studying_without_log.replace(
+            "- Status: studying", "- Status: paused", 1
+        )
+        ingest.validate_payload(payload(note(paused_without_log)), root)
+
+        missing_status = paused_without_log.replace("- Status: paused\n", "", 1)
+        expect_error(
+            lambda: ingest.validate_payload(payload(note(missing_status)), root),
+            "missing-bridge-status",
+        )
+
+
+def assert_identity_and_checkpoint_validation() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        wrong_owner = payload(note())
+        wrong_owner["author"] = "someone-else"
+        expect_error(
+            lambda: ingest.validate_payload(wrong_owner, root),
+            "paper-note-validation-error",
+        )
+
+        wrong_slug = payload(note())
+        wrong_slug["title"] = "[paper-note] different-paper"
+        expect_error(
+            lambda: ingest.validate_payload(wrong_slug, root),
+            "paper-note-validation-error",
+        )
+
+        missing_resume = note().replace(
+            "- Resume Point: Section 3.2 / PDF p.6 / Figure 4에서 partial sum 이동을 확인하는 부분부터 재개한다.",
+            "- Resume Point:",
+            1,
+        )
+        expect_error(
+            lambda: ingest.validate_payload(payload(missing_resume), root),
+            "paper-note-validation-error",
+        )
+
+        wrong_started = note().replace(
+            "- Started: 2026-08-27", "- Started: 2026-08-26", 1
+        )
+        expect_error(
+            lambda: ingest.validate_payload(payload(wrong_started), root),
+            "paper-note-validation-error",
+        )
+
+        bad_time = payload(note(), created_at="2026-08-27 10:20:30")
+        expect_error(
+            lambda: ingest.validate_payload(bad_time, root),
+            "invalid-checkpoint-recorded-at",
+        )
+
+
+def assert_envelope_contract() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        expect_error(
+            lambda: ingest.validate_payload(
+                payload(note(), extra_envelope="mode: checkpoint\n"), root
+            ),
+            "invalid-envelope",
+        )
+        wrong = payload(note())
+        wrong["body"] = wrong["body"].replace(
+            "intent: paper-reading-checkpoint", "intent: maintenance"
+        )
+        expect_error(
+            lambda: ingest.validate_payload(wrong, root),
+            "invalid-intent",
+        )
+
+
+def assert_cli_report() -> None:
+    assert "✅ Paper Note 처리 완료" in (
+        ingest.RESULT_MARKER + "\n✅ Paper Note 처리 완료"
+    )
+    report = ingest.failure_report("example", "bad\nmessage")
+    assert report.startswith(ingest.RESULT_MARKER)
+    assert "bad message" in report
+
+
+def main() -> int:
+    assert_template_contract()
+    assert_repository_contract()
+    assert_ingest_contract()
+    assert_bridge_validation()
+    assert_identity_and_checkpoint_validation()
+    assert_envelope_contract()
+    assert_cli_report()
+    print("All Paper Note ingest tests passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

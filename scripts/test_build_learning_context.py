@@ -74,6 +74,36 @@ def note(
 """
 
 
+def paper_note(
+    title: str,
+    checkpoint_recorded_at: str,
+    resume_point: str = "Section 3.2 / PDF p.6 / Figure 4부터 재개",
+    bridge_statuses: tuple[str, ...] = (),
+    paper_type: str = "foundational",
+) -> str:
+    bridge_lines = "\n".join(
+        f"#### Bridge {index}\n\n- Status: {status}"
+        for index, status in enumerate(bridge_statuses, start=1)
+    ) or "- 없음"
+    return f"""# Paper Note: {title}
+
+## Metadata
+- Title: {title}
+- Document type: paper-note
+- Paper type: {paper_type}
+- Checkpoint recorded at: {checkpoint_recorded_at}
+
+## 2. Reading Checkpoint
+- Resume Point: {resume_point}
+
+## 3. Prerequisite Bridge
+### 논문 안에서 해결한 선수지식
+- 없음
+### 별도로 이어가는 선수지식
+{bridge_lines}
+"""
+
+
 def write_fixture(root: Path, relative: str, content: str) -> None:
     path = root / relative
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -135,9 +165,13 @@ def assert_workflow_contract(repository_root: Path) -> None:
         repository_root / ".github/workflows/learning-context-refresh.yml"
     ).read_text(encoding="utf-8")
     assert "learning-logs/**" in workflow
+    assert "paper-notes/**" in workflow
     push_paths = workflow.split("paths:", 1)[1].split("workflow_run:", 1)[0]
     assert "state/CURRENT_LEARNING_CONTEXT.md" not in push_paths
-    assert 'workflows: ["Learning Log Ingest", "Progress Update"]' in workflow
+    assert (
+        'workflows: ["Learning Log Ingest", "Paper Note Ingest", "Progress Update"]'
+        in workflow
+    )
     assert "github.event.workflow_run.conclusion == 'success'" in workflow
     assert "github.event_name != 'workflow_run'" in workflow
     assert "group: research-os-main" in workflow
@@ -399,6 +433,79 @@ def main() -> int:
         aligned_sha = context.git_blob_sha(root / "roadmap/PROGRESS.md")
         assert f"Progress source SHA: `{aligned_sha}`" in aligned_review
 
+    # A Paper Reading Checkpoint, not a Learning Log or filename, selects Current Paper.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "learning-logs/2026/08/2026-08-29-edram.md",
+            note(
+                topic="eDRAM",
+                domain="memory-architecture",
+                date="2026-08-29",
+                recorded_at="2026-08-29T12:00:00Z",
+            ),
+        )
+        write_fixture(
+            root,
+            "paper-notes/foundational/2026-08-27-z-old-paper.md",
+            paper_note("Old Paper", "2026-08-27T12:00:00Z"),
+        )
+        write_fixture(
+            root,
+            "paper-notes/foundational/2026-08-26-a-current-paper.md",
+            paper_note("Current Paper", "2026-08-28T12:00:00Z"),
+        )
+        selected = context.build_context(root)
+        assert "## Current Paper" in selected
+        assert (
+            "Current Paper Note: "
+            "`paper-notes/foundational/2026-08-26-a-current-paper.md`"
+            in selected
+        )
+        assert "Last generated date: 2026-08-29" in selected
+
+        invalid = paper_note(
+            "Invalid Newest",
+            "2026-08-30T12:00:00Z",
+            bridge_statuses=("studying", "studying"),
+        )
+        write_fixture(
+            root,
+            "paper-notes/foundational/2026-08-30-invalid-newest.md",
+            invalid,
+        )
+        still_selected = context.build_context(root)
+        assert "2026-08-26-a-current-paper.md" in still_selected
+        assert "2026-08-30-invalid-newest.md" not in still_selected
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        no_paper = context.build_context(root)
+        assert "## Current Paper" in no_paper
+        assert "Current Paper Note: 없음" in no_paper
+
+    # Current Paper is still recoverable before the first Learning Log exists.
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        setup_root(root)
+        write_fixture(
+            root,
+            "paper-notes/related/2026-08-27-paper-only.md",
+            paper_note("Paper Only", "2026-08-27T03:04:05Z").replace(
+                "- Paper type: foundational", "- Paper type: related", 1
+            ),
+        )
+        paper_only = context.build_context(root)
+        assert "최신 의미 있는 학습 기록: 없음" in paper_only
+        assert (
+            "Current Paper Note: `paper-notes/related/2026-08-27-paper-only.md`"
+            in paper_only
+        )
+        assert "Last generated date: 2026-08-27" in paper_only
+
     # Scenario E is a session policy: deep dive is selectable only on explicit request.
     repository_root = Path(__file__).resolve().parents[1]
     domain_policy = load_domain_policy(repository_root)
@@ -427,6 +534,9 @@ def main() -> int:
     assert "prerequisite가 저장 evidence 또는 현재 conversation에서 확인되었는지" in entrypoint
     assert "추론 질문은 최소한 하나의 관련 seed fact" in entrypoint
     assert "현재 세션의 Tutor 운영 제약" in entrypoint
+    assert "`Current Paper Note`가 `없음`이 아니면 해당 Paper Note를 읽는다" in entrypoint
+    assert "Resume Point와 Bridge 상태는 Context 문구나 대화 기억으로 추측하지 않는다" in entrypoint
+    assert "Current Paper가 있으면 해당 Paper Note를 읽고" in entrypoint
 
     actual = context.build_context(repository_root)
     actual_progress = (repository_root / "roadmap/PROGRESS.md").read_text(

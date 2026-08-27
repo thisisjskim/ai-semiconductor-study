@@ -45,6 +45,13 @@ CHECKBOX_RE = re.compile(r"^- \[(?P<state>[ xX])\]\s*(?P<text>.+)$")
 LIST_RE = re.compile(r"^(?:[-*+] |\d+[.)]\s+)(?P<text>.+)$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RECORDED_AT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+PAPER_NOTE_PATH_RE = re.compile(
+    r"^paper-notes/(?P<paper_type>foundational|ssl-lab|related)/"
+    r"\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
+)
+BRIDGE_STATUSES = {"studying", "paused", "sufficient-for-paper"}
+
+
 def git_blob_sha(path: Path) -> str:
     """Return the Git blob SHA used by GitHub's repository contents API."""
     data = path.read_bytes().replace(b"\r\n", b"\n")
@@ -61,6 +68,12 @@ class LearningLog:
     domain: str
     roadmap_stage: str
     sections: dict[str, str]
+
+
+@dataclass(frozen=True)
+class PaperNote:
+    path: str
+    checkpoint_recorded_at: datetime
 
 
 @dataclass(frozen=True)
@@ -185,6 +198,79 @@ def discover_logs(root: Path) -> tuple[list[LearningLog], list[tuple[str, str]]]
     included.sort(key=learning_log_order)
     excluded.sort()
     return included, excluded
+
+
+def classify_paper_note(path: Path, root: Path) -> PaperNote | None:
+    relative = repository_path(path, root)
+    path_match = PAPER_NOTE_PATH_RE.fullmatch(relative)
+    if not path_match:
+        return None
+    try:
+        markdown = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return None
+    if not markdown.startswith("# Paper Note:"):
+        return None
+    sections = parse_sections(markdown)
+    if not {
+        "## Metadata",
+        "## 2. Reading Checkpoint",
+        "## 3. Prerequisite Bridge",
+    }.issubset(sections):
+        return None
+    metadata = parse_metadata(sections)
+    if metadata.get("Document type") != "paper-note":
+        return None
+    if metadata.get("Paper type") != path_match.group("paper_type"):
+        return None
+    checkpoint = metadata.get("Checkpoint recorded at", "")
+    if not RECORDED_AT_RE.fullmatch(checkpoint):
+        return None
+    try:
+        checkpoint_recorded_at = datetime.fromisoformat(
+            checkpoint.removesuffix("Z") + "+00:00"
+        )
+    except ValueError:
+        return None
+
+    checkpoint_fields = parse_metadata(
+        {"## Metadata": sections["## 2. Reading Checkpoint"]}
+    )
+    if not checkpoint_fields.get("Resume Point"):
+        return None
+    statuses = [
+        match.group("value").strip()
+        for line in sections["## 3. Prerequisite Bridge"].splitlines()
+        if (match := METADATA_RE.fullmatch(line.strip()))
+        and match.group("key").strip() == "Status"
+    ]
+    if any(status not in BRIDGE_STATUSES for status in statuses):
+        return None
+    if statuses.count("studying") > 1:
+        return None
+    return PaperNote(relative, checkpoint_recorded_at)
+
+
+def discover_current_paper(root: Path) -> PaperNote | None:
+    paper_root = root / "paper-notes"
+    if not paper_root.exists():
+        return None
+    notes = [
+        note
+        for path in sorted(paper_root.glob("**/*.md"), key=lambda item: item.as_posix())
+        if (note := classify_paper_note(path, root)) is not None
+    ]
+    if not notes:
+        return None
+    return max(notes, key=lambda note: (note.checkpoint_recorded_at, note.path))
+
+
+def append_current_paper(lines: list[str], current_paper: PaperNote | None) -> None:
+    lines.extend(["", "## Current Paper", ""])
+    if current_paper:
+        lines.append(f"- Current Paper Note: `{current_paper.path}`")
+    else:
+        lines.append("- Current Paper Note: 없음")
 
 
 def extract_items(text: str, limit: int) -> list[str]:
@@ -376,6 +462,7 @@ def bullet_lines(items: list[str], empty: str = "없음") -> list[str]:
 
 def build_context(root: Path) -> str:
     included, excluded = discover_logs(root)
+    current_paper = discover_current_paper(root)
     progress_path = root / "roadmap/PROGRESS.md"
     progress = progress_path.read_text(encoding="utf-8")
     progress_sha = git_blob_sha(progress_path)
@@ -385,12 +472,17 @@ def build_context(root: Path) -> str:
     official_boundary = select_boundary(boundaries, progress)
 
     if not included:
+        latest_snapshot_date = (
+            current_paper.checkpoint_recorded_at.date().isoformat()
+            if current_paper
+            else "없음"
+        )
         lines = [
             "# Current Learning Context",
             "",
-            "> 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
+            "> 이 문서는 `learning-logs/**`, `paper-notes/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
             "",
-            "- Last generated date: 없음",
+            f"- Last generated date: {latest_snapshot_date}",
             f"- Progress source SHA: `{progress_sha}`",
             "",
             "## 현재 상태",
@@ -401,10 +493,9 @@ def build_context(root: Path) -> str:
             f"- Current Topic: {official_boundary.current_topic}",
             "- Domain: 없음",
             f"- Depth Boundary: `{official_boundary.id}`",
-            "",
-            "## 제외한 기록과 이유",
-            "",
         ]
+        append_current_paper(lines, current_paper)
+        lines.extend(["", "## 제외한 기록과 이유", ""])
         lines.extend(bullet_lines([f"`{path}` — {why}" for path, why in excluded]))
         lines.extend(
             [
@@ -420,6 +511,11 @@ def build_context(root: Path) -> str:
         return "\n".join(lines)
 
     latest_date = included[-1].date
+    latest_snapshot_date = latest_date
+    if current_paper:
+        latest_snapshot_date = max(
+            latest_snapshot_date, current_paper.checkpoint_recorded_at.date()
+        )
     latest_logs = [item for item in included if item.date == latest_date]
     primary = latest_logs[-1]
     concepts = extract_items(primary.sections["## 3. 핵심 개념"], LIMITS["concepts"])
@@ -440,9 +536,9 @@ def build_context(root: Path) -> str:
     lines = [
         "# Current Learning Context",
         "",
-        "> 이 문서는 `learning-logs/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
+        "> 이 문서는 `learning-logs/**`, `paper-notes/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.",
         "",
-        f"- Last generated date: {latest_date.isoformat()}",
+        f"- Last generated date: {latest_snapshot_date.isoformat()}",
         f"- Progress source SHA: `{progress_sha}`",
         "",
         "## Roadmap Position",
@@ -458,6 +554,7 @@ def build_context(root: Path) -> str:
         "",
     ]
     lines.extend(bullet_lines([f"`{item.path}` — {item.topic}" for item in latest_logs]))
+    append_current_paper(lines, current_paper)
     lines.extend(["", "## Topic Goal", "", f"- {plan.boundary.topic_goal}"])
     lines.extend(["", "## Minimum Required Understanding", ""])
     lines.extend(bullet_lines(list(plan.boundary.minimum_required_understanding)))

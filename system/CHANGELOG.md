@@ -5,6 +5,11 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 ## v0.3.0 — Current
 
 ### Added
+- 논문 한 편을 여러 세션에 걸쳐 갱신하는 `paper-notes/{foundational|ssl-lab|related}/YYYY-MM-DD-slug.md` living note 구조
+- `[paper-note]` Issue와 `research-os-paper-note:v1` 계약으로 Paper Reading Checkpoint를 검증·저장하는 GitHub Actions
+- Issue `created_at` 기반 `Checkpoint recorded at`, Resume Point와 Prerequisite Bridge 상태 검증
+- 논문 안에서 해결한 선수지식과 Learning Log로 별도 학습하는 선수지식의 분리, `studying | paused | sufficient-for-paper` 복귀 규칙
+- 최신 유효 Paper Reading Checkpoint를 `CURRENT_LEARNING_CONTEXT.md`의 `Current Paper Note`로 자동 연결하는 context builder
 - 첫 Learning Unit 전에 boundary 또는 gap source와 함께 최신 의미 있는 Learning Log 최대 2개를 읽는 Required Source 정책
 - Progress Update 뒤 생성된 context가 최신 `PROGRESS.md`를 사용했는지 검증하는 `Progress source SHA` provenance
 - 질문 전 prerequisite readiness와 새 topic Explain-first gate, Learning Unit 완료와 log-worthy 저장 판정의 분리 규칙
@@ -38,6 +43,8 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 성공 comment뿐 아니라 결과 commit의 실제 target file까지 확인해야 저장 완료로 판정
 
 ### Changed
+- 새 채팅의 논문 복구 경로를 `Current Context → Current Paper Note → Resume Point 또는 studying Bridge의 Learning Log` 순서로 명시
+- Paper Note와 Learning Log를 함께 저장할 때 한 번 승인받되 한 파일씩 순차 검증·저장하도록 분리
 - `roadmap/PROGRESS.md`의 Current Focus를 승인된 Current Boundary 한 줄로 축소하고, 기존 계획·현황 section은 보존하며 Stage·Topic은 Context에서만 산출
 - Progress Update 계약을 개별 필드·Dashboard 수정에서 단일 `current_boundary` 전환 v2로 변경
 - Context의 Stage, Topic, goal과 criteria를 최신 Learning Log가 아닌 Current Boundary에서 일관되게 산출
