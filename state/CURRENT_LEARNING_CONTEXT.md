@@ -2,7 +2,7 @@
 
 > 이 문서는 `learning-logs/**`, `paper-notes/**`와 roadmap에서 자동 생성한 derived/generated snapshot이다. Source of truth가 아니며 원본 기록을 다시 확인할 수 있다.
 
-- Last generated date: 2026-08-24
+- Last generated date: 2026-08-28
 - Progress source SHA: `e210eecd0f2e04363d42703a38a0dd1c4a921958`
 
 ## Roadmap Position
@@ -20,7 +20,7 @@
 
 ## Current Paper
 
-- Current Paper Note: 없음
+- Current Paper Note: `paper-notes/foundational/2026-08-28-overview-of-cim-circuits-with-dram-and-nvm.md`
 
 ## Topic Goal
 
