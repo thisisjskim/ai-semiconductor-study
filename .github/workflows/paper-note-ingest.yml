@@ -1,0 +1,218 @@
+name: Paper Note Ingest
+
+on:
+  issues:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "다시 처리할 Paper Note Issue 번호"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: research-os-main
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[paper-note]'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build ingest payload
+        id: payload
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+          PAYLOAD_PATH: ${{ runner.temp }}/paper-note-payload.json
+        with:
+          script: |
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            if (!Number.isInteger(issueNumber) || issueNumber < 1) {
+              core.setFailed("Issue 번호를 확인할 수 없습니다.");
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const { data: issue } = await github.rest.issues.get({
+              owner, repo, issue_number: issueNumber,
+            });
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: issueNumber, per_page: 100 },
+            );
+            const payload = {
+              number: issue.number,
+              title: issue.title,
+              issue_created_at: issue.created_at,
+              author: issue.user?.login || "",
+              repository_owner: owner,
+              body: issue.body || "",
+              comments: comments.map((comment) => ({
+                author: comment.user?.login || "",
+                body: comment.body || "",
+              })),
+            };
+
+            require("fs").writeFileSync(
+              process.env.PAYLOAD_PATH, JSON.stringify(payload), "utf8",
+            );
+            core.setOutput("issue_number", String(issueNumber));
+
+      - name: Run Paper Note contract tests
+        run: python -B scripts/test_ingest_paper_note.py
+
+      - name: Preflight Paper Note
+        run: |
+          python -B scripts/ingest_paper_note.py \
+            --payload "$RUNNER_TEMP/paper-note-payload.json" \
+            --root . \
+            --report "$RUNNER_TEMP/paper-note-report.md" \
+            --validate-only
+
+      - name: Ingest Paper Note
+        id: ingest
+        run: |
+          python -B scripts/ingest_paper_note.py \
+            --payload "$RUNNER_TEMP/paper-note-payload.json" \
+            --root . \
+            --report "$RUNNER_TEMP/paper-note-report.md" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Validate ingest result
+        id: validate
+        env:
+          TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$TARGET_PATH" || "$TARGET_PATH" != paper-notes/* ]]; then
+            echo "Invalid target path: $TARGET_PATH" >&2
+            exit 1
+          fi
+          if [[ ! -f "$TARGET_PATH" ]]; then
+            echo "Target file was not created: $TARGET_PATH" >&2
+            exit 1
+          fi
+
+          mapfile -t changed_paths < <(
+            git status --porcelain --untracked-files=all | sed 's/^...//'
+          )
+          if (( ${#changed_paths[@]} > 1 )); then
+            printf 'Unexpected files changed:\n%s\n' "${changed_paths[@]}" >&2
+            exit 1
+          fi
+          if (( ${#changed_paths[@]} == 1 )) && [[ "${changed_paths[0]}" != "$TARGET_PATH" ]]; then
+            echo "Unexpected file changed: ${changed_paths[0]}" >&2
+            exit 1
+          fi
+
+          if (( ${#changed_paths[@]} == 0 )); then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit Paper Note
+        id: commit
+        env:
+          TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
+          OPERATION: ${{ steps.ingest.outputs.operation }}
+          HAS_CHANGES: ${{ steps.validate.outputs.has_changes }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [[ "$HAS_CHANGES" == "true" ]]; then
+            git add -- "$TARGET_PATH"
+            if [[ "$OPERATION" == "create" ]]; then
+              COMMIT_MESSAGE="논문 기록: 새 Paper Note 생성 - ${TARGET_PATH}"
+            else
+              COMMIT_MESSAGE="논문 기록: Reading Checkpoint 갱신 - ${TARGET_PATH}"
+            fi
+            git commit -m "$COMMIT_MESSAGE"
+            git push origin HEAD:main
+          else
+            echo "Paper Note is already up to date; no commit needed."
+          fi
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Comment success
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ steps.payload.outputs.issue_number }}
+          TARGET_PATH: ${{ steps.ingest.outputs.target_path }}
+          OPERATION: ${{ steps.ingest.outputs.operation }}
+          CHECKPOINT_RECORDED_AT: ${{ steps.ingest.outputs.checkpoint_recorded_at }}
+          COMMIT_SHA: ${{ steps.commit.outputs.commit }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const path = process.env.TARGET_PATH;
+            const commit = process.env.COMMIT_SHA;
+            const fileUrl = `${context.serverUrl}/${owner}/${repo}/blob/${commit}/${path}`;
+            const commitUrl = `${context.serverUrl}/${owner}/${repo}/commit/${commit}`;
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: issueNumber,
+              body:
+                "<!-- research-os-result -->\n" +
+                "✅ Paper Note 처리 완료\n\n" +
+                `- Operation: \`${process.env.OPERATION}\`\n` +
+                "- Intent: `paper-reading-checkpoint`\n" +
+                `- Path: [\`${path}\`](${fileUrl})\n` +
+                `- Checkpoint recorded at: \`${process.env.CHECKPOINT_RECORDED_AT}\`\n` +
+                `- Commit: [\`${commit.slice(0, 7)}\`](${commitUrl})\n` +
+                "- Next: Learning Context Refresh가 자동 실행됩니다.",
+            });
+
+      - name: Comment failure
+        if: failure() && steps.payload.outputs.issue_number
+        uses: actions/github-script@v8
+        env:
+          ISSUE_NUMBER: ${{ steps.payload.outputs.issue_number }}
+          REPORT_PATH: ${{ runner.temp }}/paper-note-report.md
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const actionsUrl =
+              `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            let body =
+              "<!-- research-os-result -->\n" +
+              "❌ Paper Note 처리 실패\n\n" +
+              "- Error code: `workflow-error`\n" +
+              "- 원인: 예상하지 못한 workflow 오류가 발생했습니다.\n" +
+              "- 파일 저장: 수행되지 않음";
+
+            if (fs.existsSync(process.env.REPORT_PATH)) {
+              const report = fs.readFileSync(process.env.REPORT_PATH, "utf8")
+                .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+                .slice(0, 4000)
+                .trim();
+              if (
+                report.startsWith("<!-- research-os-result -->") &&
+                report.includes("❌ Paper Note 처리 실패")
+              ) {
+                body = report;
+              }
+            }
+
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: Number(process.env.ISSUE_NUMBER),
+              body: `${body}\n\n- Actions 실행 로그: ${actionsUrl}`,
+            });

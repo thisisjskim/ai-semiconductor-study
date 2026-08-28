@@ -1,6 +1,6 @@
 현재 시스템은 **학습 내용 저장 파이프라인까지 정상 작동하는 v0.2 계열**이라고 볼 수 있습니다.
 
-Learning Log 저장과 승인된 Current Boundary 갱신은 자동화되어 있습니다. 다만 어느 boundary로 이동할지는 ChatGPT가 임의로 정하지 않고 사용자가 승인하며, Foundation Note 승격도 자동화하지 않습니다.
+Learning Log 저장, Paper Reading Checkpoint 저장과 승인된 Current Boundary 갱신은 자동화되어 있습니다. 다만 어느 boundary로 이동할지와 무엇을 별도 선수지식 학습으로 남길지는 ChatGPT가 임의로 정하지 않고 사용자가 선택합니다.
 
 ## 전체 구조
 
@@ -32,15 +32,20 @@ flowchart TD
 | [`roadmap/LEARNING_BOUNDARIES.json`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/LEARNING_BOUNDARIES.json)                   | topic별 최소 이해·exit criteria·다음 topic 계약 |
 | [`roadmap/PROGRESS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/PROGRESS.md)                                             | 승인된 Current Boundary와 사람이 참고하는 장기 계획·현황 |
 | [`system/LEARNING_LOG_ISSUE_CONTRACT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/LEARNING_LOG_ISSUE_CONTRACT.md)         | 일반 ChatGPT의 Learning Log 저장 계약      |
+| [`system/PAPER_NOTE_ISSUE_CONTRACT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/PAPER_NOTE_ISSUE_CONTRACT.md)             | Paper Reading Checkpoint 저장 계약          |
 | [`templates/learning-log.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/templates/learning-log.md)                                 | Learning Log 문서 형식                |
+| [`templates/paper-note.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/templates/paper-note.md)                                     | living Paper Note 문서 형식            |
 | `learning-logs/YYYY/MM/*.md`                                                                                                                             | 실제 학습 과정과 이해 증거가 쌓이는 곳            |
+| `paper-notes/{foundational\|ssl-lab\|related}/*.md`                                                                                                     | 논문 분석, Resume Point와 Bridge가 쌓이는 곳     |
 | [`.github/workflows/learning-log-ingest.yml`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/.github/workflows/learning-log-ingest.yml) | Issue 내용을 실제 Markdown 파일로 바꾸는 자동화 |
+| [`.github/workflows/paper-note-ingest.yml`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/.github/workflows/paper-note-ingest.yml)     | 승인된 Paper Note 한 파일을 검증·갱신하는 자동화 |
 
-핵심적으로 GitHub에는 세 종류의 정보가 있습니다.
+핵심적으로 GitHub에는 네 종류의 정보가 있습니다.
 
 * `ROADMAP.md`: 어디로 갈 것인가
 * `PROGRESS.md`: 현재 어디에 있는가
 * `learning-logs/**`: 왜 그 위치에 있다고 판단할 수 있는가
+* `paper-notes/**`: 어떤 논문을 어디까지 읽었고 어느 선수지식에서 멈췄는가
 
 즉, Learning Log가 실제 학습의 증거이고 `PROGRESS.md`는 사용자가 승인한 공식 학습 위치만 가리킵니다. 최신 Log의 주제가 달라져도 Current Boundary는 자동으로 이동하지 않습니다.
 
@@ -55,7 +60,7 @@ system/CHATGPT_ENTRYPOINT.md
 → state/CURRENT_LEARNING_CONTEXT.md
 ```
 
-entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Roadmap Position, Exit Criteria, Blocking Gaps, Optional Open Questions와 Recommended Next Move를 제공합니다. 이어서 snapshot이 지정한 가장 가까운 Learning Log 또는 next-topic boundary 한 개를 읽고 사용자의 실제 설명 수준에 맞춰 작은 학습 단위를 시작합니다.
+entrypoint는 Tutor Loop, Learning Unit과 checkpoint를 알려 주고, context snapshot은 Roadmap Position과 `Current Paper Note` 경로를 제공합니다. Current Paper가 있으면 해당 Paper Note의 Resume Point와 Prerequisite Bridge를 먼저 읽습니다. 일반 학습이라면 snapshot이 지정한 Learning Log와 boundary를 읽고 사용자의 실제 설명 수준에 맞춰 작은 학습 단위를 시작합니다.
 
 아래 그림은 사용자가 이 과정을 이해하기 위한 안내도다. ChatGPT의 필수 입력은 아니며, 실제 동작 규칙은 `system/CHATGPT_ENTRYPOINT.md`와 생성된 context에 둔다.
 
@@ -426,15 +431,16 @@ Public repository에서 다른 사람이 임의로 Issue를 만들어 파일을 
 * Issue를 통한 긴 문서 전송
 * Actions를 통한 Markdown 파일 생성·수정
 * 성공 또는 실패 결과 회신
-* Learning Log 기반 `CURRENT_LEARNING_CONTEXT.md` 갱신
+* Paper Note create/update와 Reading Checkpoint 시간 기록
+* Learning Log, Paper Note와 roadmap 기반 `CURRENT_LEARNING_CONTEXT.md` 갱신
 
 ### `CURRENT_LEARNING_CONTEXT.md` 자동 갱신
 
-`learning-logs/**`, `roadmap/PROGRESS.md`, `roadmap/ROADMAP.md` 또는 `roadmap/LEARNING_BOUNDARIES.json`이 `main`에서 변경되면 별도 `learning-context-refresh.yml` workflow가 `scripts/build_learning_context.py`를 실행합니다. 이 deterministic builder는 Progress의 `Current Boundary`를 읽고 같은 boundary 정의에서 Stage, Topic, goal과 exit criteria를 산출한 뒤 유효한 Learning Log evidence와 비교해 `state/CURRENT_LEARNING_CONTEXT.md`를 갱신합니다. 최근 Learning Log의 Domain, 마지막 질문이나 Next Action은 공식 위치를 바꾸는 단독 기준이 아닙니다.
+`learning-logs/**`, `paper-notes/**`, `roadmap/PROGRESS.md`, `roadmap/ROADMAP.md` 또는 `roadmap/LEARNING_BOUNDARIES.json`이 `main`에서 변경되면 별도 `learning-context-refresh.yml` workflow가 `scripts/build_learning_context.py`를 실행합니다. 이 builder는 Progress의 `Current Boundary`에서 Stage, Topic, goal과 exit criteria를 만들고 Learning Log evidence와 비교합니다. 별도로 유효한 Paper Note의 `Checkpoint recorded at`을 비교해 가장 최근 Paper Reading Checkpoint의 경로만 `Current Paper Note`로 표시합니다. 최신 Learning Log의 주제나 Paper Note 파일명은 현재 논문 선택 기준이 아닙니다.
 
 추천은 `continue`, `review_then_advance`, `advance` 중 하나입니다. `optional_deep_dive`는 사용자가 명시적으로 더 깊게 공부하겠다고 선택했을 때만 세션에서 사용합니다. 자동 evidence 판정은 질문·다음 행동 section을 제외하고 자기 설명과 수정 이해에서 필요한 keyword 묶음이 모두 발견된 경우에만 exit criterion 후보를 완료로 표시합니다.
 
-Learning Log 저장과 context refresh는 서로 다른 commit입니다. Context refresh가 실패해도 이미 저장된 Learning Log는 취소되거나 되돌아가지 않으며, workflow는 state snapshot 이외의 파일을 자동 commit하지 않습니다. Progress 변경은 별도 사용자 승인과 `[progress-update]` Action으로만 실행됩니다.
+Learning Log 또는 Paper Note 저장과 context refresh는 서로 다른 commit입니다. Context refresh가 실패해도 이미 저장된 원본 기록은 취소되지 않습니다. Progress 변경은 별도 사용자 승인과 `[progress-update]` Action으로만 실행됩니다.
 
 다음은 아직 자동화되지 않았습니다.
 
@@ -452,9 +458,9 @@ GPT가 다음 조건을 감지하면 승격을 제안하는 방식이 적절합�
 
 그 후 사용자 승인으로 별도 정제 문서를 만드는 구조입니다.
 
-### Paper Note 및 Research Question 자동화
+### Research Question 자동화
 
-현재 저장 Workflow는 Learning Log 중심입니다. 논문 분석 문서와 Research Question 관리는 이후 버전에서 별도 저장 규칙이 필요합니다.
+Paper Note 저장과 논문 복귀는 자동화되어 있지만 Research Question을 별도 문서로 승격하는 규칙은 아직 자동화하지 않습니다.
 
 ---
 
@@ -476,7 +482,7 @@ GPT는 현재 진행 상황을 복구한 후 다음을 알려줘야 합니다.
 추천하는 다음 학습:
 ```
 
-학습 중에는 평소처럼 질문하고 자신의 언어로 설명하면 됩니다. 의미 있는 학습 단위가 완성되면 GPT가 저장을 제안하고, 사용자가 승인하면 Issue → Actions → Learning Log 순서로 저장됩니다.
+학습 중에는 평소처럼 질문하고 자신의 언어로 설명하면 됩니다. 의미 있는 일반 학습 단위는 Issue → Actions → Learning Log로 저장됩니다. 논문을 읽을 때는 같은 Paper Note에 분석, Resume Point와 Bridge를 갱신하며, 별도 선수지식 학습을 선택한 경우에만 Learning Log를 먼저 저장한 뒤 Paper Note에 그 경로를 연결합니다.
 
 결론적으로 이제부터는 **실제 학습을 시작해도 됩니다.** 다만 첫 실제 세션에서는 일반 ChatGPT가 entrypoint와 snapshot을 읽고, checkpoint 제안부터 Issue 생성·성공 댓글·실제 파일 확인까지 수행하는지 한 번 확인한 뒤 학습 자체에 집중합니다.
 
