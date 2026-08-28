@@ -14,17 +14,17 @@ permissions:
   contents: write
   issues: write
 
-concurrency:
-  # Serialize writes to main so separate Issues cannot race each other.
-  group: research-os-main
-  cancel-in-progress: false
-
 jobs:
   ingest:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.issue.user.login == github.repository_owner &&
       startsWith(github.event.issue.title, '[learning-log]'))
+    # Apply the shared writer queue only after this job accepts the Issue type.
+    concurrency:
+      group: research-os-main
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-latest
 
     steps:
@@ -75,6 +75,9 @@ jobs:
 
       - name: Run contract tests
         run: python -B scripts/test_ingest_learning_log.py
+
+      - name: Run writer concurrency contract tests
+        run: python -B scripts/test_workflow_concurrency.py
 
       - name: Preflight Learning Log
         run: |
