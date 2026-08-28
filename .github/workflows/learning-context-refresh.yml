@@ -13,6 +13,7 @@ on:
       - "scripts/build_learning_context.py"
       - "scripts/learning_boundaries.py"
       - "scripts/test_build_learning_context.py"
+      - "scripts/test_workflow_concurrency.py"
       - ".github/workflows/learning-context-refresh.yml"
   # GITHUB_TOKEN pushes do not emit new push workflow runs. This preserves the
   # separate workflow boundary while refreshing after a successful ingest.
@@ -24,16 +25,16 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  # Shared with Learning Log Ingest so writes to main are serialized.
-  group: research-os-main
-  cancel-in-progress: false
-
 jobs:
   refresh:
     if: >-
       github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'
+    # Failed or skipped producer runs never occupy the shared writer queue.
+    concurrency:
+      group: research-os-main
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-latest
     steps:
       - name: Check out latest main
@@ -43,6 +44,9 @@ jobs:
 
       - name: Run context builder tests
         run: python -B scripts/test_build_learning_context.py
+
+      - name: Run writer concurrency contract tests
+        run: python -B scripts/test_workflow_concurrency.py
 
       - name: Build current learning context
         run: python -B scripts/build_learning_context.py
