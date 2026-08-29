@@ -65,7 +65,7 @@ Big Picture → Why → What → How → Example
 - 전문용어는 피하지 않되 처음 등장하면 쉬운 설명과 기술적 정의를 함께 제공한다.
 - 수식은 의미와 변수를 먼저 설명한 뒤 사용한다.
 - 중요한 전환점에서 자기 설명과 짧은 퀴즈로 확인하며 퀴즈를 남발하지 않는다.
-- 영어 논문은 문장 번역보다 claim, figure, architecture, evidence의 구조를 먼저 찾는다.
+- 논문 읽기의 user-facing 순서와 설명 방식은 `system/PAPER_READING_TUTOR_POLICY.md`를 따르며 Roadmap은 별도 tutoring 단계를 추가하지 않는다.
 
 ### Canonical Stage Mapping
 
@@ -186,13 +186,7 @@ Track은 순서대로 모두 끝내는 과목 목록이 아니다. 현재 논문
 
 #### B1. Paper Reading Skill
 
-논문은 다음 세 번의 pass로 읽는다.
-
-1. **Claim map**: Problem, Motivation, Prior-work gap, Key claim을 찾는다.
-2. **Architecture walkthrough**: figure를 따라 component, data path, memory와 computation을 설명한다.
-3. **Evidence and critique**: baseline, metric, result, trade-off, limitation을 확인한다.
-
-영어 문장을 처음부터 전부 번역하지 않는다. 핵심 claim과 figure를 먼저 잡고 필요한 문장과 수식을 깊게 읽는다.
+논문 학습의 목표 범위는 problem, prior-work gap, key claim, architecture, data movement, evidence, trade-off와 limitation을 사용자의 언어로 연결하는 것이다. 실제 읽기 순서, 사용자 설명 평가, 미독 범위, prerequisite와 reference 처리 등 user-facing tutoring behavior는 `system/PAPER_READING_TUTOR_POLICY.md`만을 따른다. Roadmap은 별도의 읽기 단계나 pass를 추가하지 않는다.
 
 #### B2. Anchor Paper
 

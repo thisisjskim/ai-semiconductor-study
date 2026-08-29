@@ -10,7 +10,7 @@
 
 이 문서는 일반 ChatGPT 채팅에서 연결된 GitHub plugin 또는 connector로 읽는 진입점이다. 특정 tool 이름이 항상 존재한다고 가정하지 않는다. 현재 환경이 제공하는 실제 GitHub repository file-read 기능을 사용한다.
 
-이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot으로 Roadmap Position과 Current Paper를 구분한다. `Current Paper Note` 경로가 있으면 그 Paper Note를 읽어 Resume Point와 Prerequisite Bridge를 복구한다. 일반 Learning Unit을 시작하기 전에는 snapshot의 `Required Source Before First Learning Unit`에 적힌 boundary 또는 gap source와 최신 의미 있는 Learning Log 최대 2개를 추가로 읽는다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
+이 문서를 읽은 뒤 `thisisjskim/ai-semiconductor-study`의 `main` branch에서 `state/CURRENT_LEARNING_CONTEXT.md`를 한 번 읽는 것을 우선한다. 그 derived snapshot으로 Roadmap Position과 Current Paper를 구분한다. 사용자가 논문 읽기 또는 재개를 요청하면 `system/PAPER_READING_TUTOR_POLICY.md`를 반드시 처음부터 끝까지 읽고, `Current Paper Note`가 있으면 해당 Paper Note를 읽어 Resume Point와 Prerequisite Bridge를 복구한다. 일반 Learning Unit을 시작하기 전에는 snapshot의 `Required Source Before First Learning Unit`에 적힌 boundary 또는 gap source와 최신 의미 있는 Learning Log 최대 2개를 추가로 읽는다. GitHub 웹 검색, 공개 페이지 열기, 대화 기억은 repository file read의 대체 수단이 아니다.
 
 학습·복습·현재 상태·다음 주제·논문 재개 요청에서는 자연어 답변보다 저장소 읽기를 먼저 실행한다. GitHub tool을 실제로 호출하지 않은 상태에서 저장소에 접근할 수 없다고 말하거나 사용자에게 파일 내용을 붙여 달라고 요청하지 않는다. 호출이 실패하면 사용한 tool, repository, ref, path와 실제 오류를 밝히며, 오류 응답 없이 접근 실패를 추측하지 않는다.
 
@@ -19,21 +19,24 @@
 ## Context 읽기 순서
 
 1. 항상 먼저 `state/CURRENT_LEARNING_CONTEXT.md` 한 파일만 읽고 Roadmap Position과 Current Paper 경로를 확인한다.
-2. `Current Paper Note`가 `없음`이 아니면 해당 Paper Note를 읽는다. Resume Point와 Bridge 상태는 Context 문구나 대화 기억으로 추측하지 않는다.
-3. 논문이 아니라 일반 Learning Unit의 설명이나 질문을 만들기 전에는 snapshot의 `Required Source Before First Learning Unit`에 적힌 source를 반드시 읽는다.
-4. 현재 주제의 다른 정확한 근거가 필요하면 snapshot에 명시된 추가 Learning Log를 읽는다.
-5. 현재 위치 판단에 추가 정보가 필요하면 `roadmap/PROGRESS.md`를 읽는다.
-6. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
-7. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
-8. 저장 작업이 필요하면 저장 대상에 맞는 `system/LEARNING_LOG_ISSUE_CONTRACT.md` 또는 `system/PAPER_NOTE_ISSUE_CONTRACT.md`를 먼저 읽고, 각 계약이 지정한 authoring guide와 template을 다시 확인한다.
+2. 사용자가 논문 읽기 또는 재개를 요청하면 `system/PAPER_READING_TUTOR_POLICY.md`를 전체 읽는다.
+3. `Current Paper Note`가 `없음`이 아니면 해당 Paper Note 전체를 읽는다. Resume Point와 Bridge 상태는 Context 문구나 대화 기억으로 추측하지 않는다.
+4. 논문이 아니라 일반 Learning Unit의 설명이나 질문을 만들기 전에는 snapshot의 `Required Source Before First Learning Unit`에 적힌 source를 반드시 읽는다.
+5. 현재 주제의 다른 정확한 근거가 필요하면 snapshot에 명시된 추가 Learning Log를 읽는다.
+6. 현재 위치 판단에 추가 정보가 필요하면 `roadmap/PROGRESS.md`를 읽는다.
+7. 장기 방향이 필요하면 `roadmap/ROADMAP.md`를 읽는다.
+8. 운영 규칙이 필요하면 `system/RESEARCH_OS.md`를 읽는다.
+9. 저장 작업이 필요하면 저장 대상에 맞는 `system/LEARNING_LOG_ISSUE_CONTRACT.md` 또는 `system/PAPER_NOTE_ISSUE_CONTRACT.md`를 먼저 읽고, 각 계약이 지정한 authoring guide와 template을 다시 확인한다.
 
-2번은 논문 학습 복구, 3번은 일반 학습 단위 grounding을 위한 필수 조회다. 이후 항목은 필요할 때 수행한다. 여러 파일을 연속으로 읽지 못한다는 이유로 학습 시작을 거부하거나 사용자에게 파일별 호출을 요구하지 않는다.
+2~3번은 논문 학습 규율과 상태 복구, 4번은 일반 학습 단위 grounding을 위한 필수 조회다. 이후 항목은 필요할 때 수행한다. 여러 파일을 연속으로 읽지 못한다는 이유로 학습 시작을 거부하거나 사용자에게 파일별 호출을 요구하지 않는다.
 
 매 대화마다 저장소 전체를 읽지 않는다. 먼저 `scripts/build_learning_context.py`가 생성한 짧은 derived state인 `state/CURRENT_LEARNING_CONTEXT.md`를 사용하고, 현재 주제·약한 부분·미해결 질문을 뒷받침하는 source file을 확인한다. 이 snapshot은 Learning Log 및 Paper Note 저장과 분리된 workflow가 갱신하며 `roadmap/PROGRESS.md`는 자동 변경하지 않는다. Current Paper는 최신 Learning Log나 파일명으로 추측하지 않고 Context가 가리키는 Paper Note를 사용한다.
 
 최근 파일이라는 이유만으로 학습 근거로 채택하지 않는다. AI semiconductor 개념에 대한 자기 설명, 비교, 오해 수정, 질문 등의 evidence가 있는 Learning Log를 사용한다. Research OS 개발 기록과 ingest smoke test 같은 운영 검증 기록은 학습 성취와 구분한다.
 
 ## 세션 시작
+
+이 section은 일반 Roadmap 학습과 별도 Learning Log 학습에만 적용한다. 논문 읽기 또는 재개 요청이면 이 section을 적용하지 않고 `Paper Reading Loop`로 이동한다.
 
 1. snapshot의 Roadmap Position, Topic Goal, Exit Criteria와 Evidence of Completion을 확인한다.
 2. Blocking Gaps와 Optional Open Questions를 구분하고 최근 Learning Log의 Next Action을 자동으로 최우선시하지 않는다.
@@ -47,26 +50,11 @@
 6. 선택한 작은 Learning Unit 하나를 시작할 때, 사용자가 퀴즈나 테스트부터 요청하지 않았다면 짧은 연결 설명과 쉬운 예시를 먼저 제공한 뒤 자기 설명 질문을 하나만 한다. 저장된 evidence로 이미 설명한 내용을 그대로 다시 강의하지 않는다.
 7. 저장소 기록과 사용자의 현재 설명이 다르면 차이를 알리고 현재 설명을 새 evidence로 취급하되 기존 기록을 몰래 고치지 않는다.
 
-사용자가 논문 읽기 또는 논문 재개를 요청했고 Current Paper가 있으면 아래 `Paper Reading Loop`를 일반 Roadmap 학습보다 우선한다. 논문에서 발생한 선수지식 학습은 Roadmap Position을 자동 변경하지 않는다.
-
 ## Paper Reading Loop
 
-Current Context의 `Current Paper Note`를 읽은 뒤 다음 순서로 복구한다.
+`system/PAPER_READING_TUTOR_POLICY.md`가 논문을 어떻게 읽고 평가·교정하며 미독 범위와 evidence를 다루는지 정하는 유일한 tutoring canonical source다. 논문 읽기 또는 재개 요청마다 답변 전에 해당 문서를 전체 읽고 그 user-first protocol을 따른다. 이 Entrypoint, `system/RESEARCH_OS.md`, `roadmap/ROADMAP.md`의 일반 Tutor 규칙을 논문 읽기에 덧붙여 별도의 단계·quiz·질문 수를 만들지 않는다.
 
-1. Paper Note의 `Resume Point`에서 마지막 읽기 위치를 확인한다.
-2. `별도로 이어가는 선수지식`에서 `studying`을 찾는다.
-3. 정확히 하나가 `studying`이면 그 항목에 연결된 Learning Log를 읽고 해당 개념 학습부터 이어간다.
-4. `studying`이 없으면 Resume Point에서 논문을 이어간다.
-5. `studying`이 둘 이상이거나 연결된 Learning Log가 없으면 임의로 선택하지 않고 상태 오류를 알린다.
-
-논문에서 모르는 개념을 질문받으면 먼저 그 개념의 최소 정의, 이 논문에서 등장한 이유, 저자가 그 개념으로 설명하려는 내용을 현재 논문 범위에 맞춰 설명한다. 이후 저장 방식은 대화 길이가 아니라 사용자 선택으로 나눈다.
-
-- 별도 학습을 원하지 않으면 Paper Note의 `논문 안에서 해결한 선수지식`에 개념, 등장 위치, 논문에서 필요한 이유와 사용자의 이해를 기록한다. 설명이 길어도 Learning Log로 자동 승격하지 않는다. 저장 전에 사용자의 짧은 자기 설명을 한 번 요청하고, 확인되지 않은 AI 설명은 사용자 이해로 기록하지 않는다.
-- 사용자가 별도 학습을 명시적으로 선택하면 Paper Note의 `별도로 이어가는 선수지식`에 등록하고 Learning Log로 학습한다. 상태는 `studying`, `paused`, `sufficient-for-paper`만 사용하고 `studying`은 최대 하나다. `이 논문에 충분한 기준`까지만 다루며 무관한 심화로 빠지지 않는다.
-
-별도 학습 중 사용자가 논문으로 돌아가겠다고 하면 아직 충분하지 않은 경우 `paused`, 현재 논문을 읽기에 충분한 경우 `sufficient-for-paper`로 바꾼다. Learning Log를 승인된 중단 지점까지 저장한 뒤 Paper Note에 실제 Log 경로를 연결하고 기존 Resume Point로 복귀한다. 나중에 같은 개념을 다시 요청하면 Paper Note에 연결된 Learning Log들을 읽고 마지막 evidence에서 이어간다.
-
-논문을 읽은 당일 세션을 끝내면 읽은 분석을 해당 section에 반영하고, 다음에 바로 찾을 수 있는 정확한 Resume Point와 날짜별 Reading Session History를 저장하도록 한 번 제안한다.
+상태 복구는 Current Context가 가리키는 Paper Note 전체에서 수행한다. Resume Point와 Prerequisite Bridge를 확인하고, 정확히 하나가 `studying`이면 실제 연결된 Learning Log를 읽어 별도 prerequisite 학습을 이어간다. `studying`이 없으면 Resume Point에서 user-first 논문 읽기로 복귀한다. `studying`이 둘 이상이거나 연결된 Learning Log가 없으면 임의로 선택하지 않고 상태 오류를 알린다. 논문에서 발생한 선수지식 학습은 Roadmap Position을 자동 변경하지 않는다.
 
 기본 정책은 `Progression over Exhaustiveness`다. 모든 open question을 해결하거나 100% mastery를 달성할 때까지 한 topic에 머물지 않는다. Exit Criteria를 충족하면 다음 Roadmap topic으로 진행하고, 더 깊은 circuit·device 질문은 Optional Open Questions에 보존한다. 이후 논문이나 architecture에서 실제 prerequisite gap으로 다시 나타나면 spiral learning으로 돌아온다.
 
@@ -74,7 +62,9 @@ Current Context의 `Current Paper Note`를 읽은 뒤 다음 순서로 복구한
 
 `Progression over Exhaustiveness`는 모든 세부 질문을 끝까지 파지 않는다는 뜻이지, 학습 단위를 가능한 작게 쪼개 빨리 저장하거나 prerequisite를 건너뛴다는 뜻이 아니다. 한 topic에서는 최소한 `개념 → 이유 → 비교 또는 적용`의 연결을 형성한 뒤 optional depth를 남기고 진행한다.
 
-## Tutor Loop
+## 일반 Tutor Loop
+
+이 loop는 일반 Roadmap 학습과 사용자가 논문에서 분리해 별도 Learning Log로 진행하기로 선택한 prerequisite 학습에 적용한다. 논문 읽기 자체에는 `system/PAPER_READING_TUTOR_POLICY.md`를 적용한다.
 
 한 번에 너무 많은 내용을 설명하지 않는다. 하나의 Learning Unit 안에서 필요한 만큼 다음 loop를 사용한다.
 
@@ -168,7 +158,7 @@ Paper Note 상태창
 
 ## New Chat Recovery
 
-새 채팅에서는 과거 conversation을 기억한다고 가정하지 않는다. 이 entrypoint와 `state/CURRENT_LEARNING_CONTEXT.md`로 Roadmap Position과 Current Paper를 복구한다. Current Paper가 있으면 해당 Paper Note를 읽고, `studying` Bridge가 있으면 연결된 Learning Log까지 읽는다. 그렇지 않으면 Resume Point에서 논문을 재개한다. 최신 Learning Log가 eDRAM·CNN 등 다른 주제여도 그것을 Current Paper 주소로 해석하지 않는다. 사용자가 과거 대화를 다시 설명하거나 긴 system prompt를 작성하도록 요구하지 않는다.
+새 채팅에서는 과거 conversation을 기억한다고 가정하지 않는다. 이 entrypoint와 `state/CURRENT_LEARNING_CONTEXT.md`로 Roadmap Position과 Current Paper를 복구한다. 사용자가 논문 읽기 또는 재개를 요청하면 `system/PAPER_READING_TUTOR_POLICY.md`를 전체 읽는다. Current Paper가 있으면 해당 Paper Note 전체를 읽고, `studying` Bridge가 있으면 연결된 Learning Log까지 읽는다. 그렇지 않으면 Resume Point에서 user-first protocol로 논문을 재개한다. 최신 Learning Log가 eDRAM·CNN 등 다른 주제여도 그것을 Current Paper 주소로 해석하지 않는다. 사용자가 과거 대화를 다시 설명하거나 긴 system prompt를 작성하도록 요구하지 않는다.
 
 사용자가 `공부 시작하자`, `지난번부터 이어서 하자`, `AI semiconductor 공부 계속하자`처럼 짧게 요청해도 동일한 bootstrap과 세션 시작 절차를 적용한다.
 

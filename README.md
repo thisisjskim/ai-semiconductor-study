@@ -26,6 +26,7 @@ flowchart TD
 | 파일 또는 경로                                                                                                                                                 | 역할                                |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
 | [`system/CHATGPT_ENTRYPOINT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/CHATGPT_ENTRYPOINT.md)                           | 일반 ChatGPT의 학습 session 시작점          |
+| [`system/PAPER_READING_TUTOR_POLICY.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/PAPER_READING_TUTOR_POLICY.md)           | 논문 읽기·재개의 user-first tutoring canonical policy |
 | [`state/CURRENT_LEARNING_CONTEXT.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/state/CURRENT_LEARNING_CONTEXT.md)                 | 최소 읽기로 현재 위치를 복구하는 snapshot       |
 | [`system/RESEARCH_OS.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/system/RESEARCH_OS.md)                                         | 학습·기록·승인 정책의 canonical source       |
 | [`roadmap/ROADMAP.md`](https://github.com/thisisjskim/ai-semiconductor-study/blob/main/roadmap/ROADMAP.md)                                               | 장기 학습 방향과 단계                      |
@@ -482,7 +483,7 @@ GPT는 현재 진행 상황을 복구한 후 다음을 알려줘야 합니다.
 추천하는 다음 학습:
 ```
 
-학습 중에는 평소처럼 질문하고 자신의 언어로 설명하면 됩니다. 의미 있는 일반 학습 단위는 Issue → Actions → Learning Log로 저장됩니다. 논문을 읽을 때는 같은 Paper Note에 분석, Resume Point와 Bridge를 갱신하며, 별도 선수지식 학습을 선택한 경우에만 Learning Log를 먼저 저장한 뒤 Paper Note에 그 경로를 연결합니다.
+일반 학습 중에는 평소처럼 질문하고 자신의 언어로 설명하면 됩니다. 의미 있는 일반 학습 단위는 Issue → Actions → Learning Log로 저장됩니다. 논문을 읽을 때는 `system/PAPER_READING_TUTOR_POLICY.md`에 따라 사용자가 먼저 읽고 설명하며, 같은 Paper Note에 분석, Resume Point와 Bridge를 갱신합니다. 별도 선수지식 학습을 선택한 경우에만 Learning Log를 먼저 저장한 뒤 Paper Note에 그 경로를 연결합니다.
 
 결론적으로 이제부터는 **실제 학습을 시작해도 됩니다.** 다만 첫 실제 세션에서는 일반 ChatGPT가 entrypoint와 snapshot을 읽고, checkpoint 제안부터 Issue 생성·성공 댓글·실제 파일 확인까지 수행하는지 한 번 확인한 뒤 학습 자체에 집중합니다.
 

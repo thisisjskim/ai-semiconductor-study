@@ -534,9 +534,10 @@ def main() -> int:
     assert "prerequisite가 저장 evidence 또는 현재 conversation에서 확인되었는지" in entrypoint
     assert "추론 질문은 최소한 하나의 관련 seed fact" in entrypoint
     assert "현재 세션의 Tutor 운영 제약" in entrypoint
-    assert "`Current Paper Note`가 `없음`이 아니면 해당 Paper Note를 읽는다" in entrypoint
+    assert "`Current Paper Note`가 `없음`이 아니면 해당 Paper Note 전체를 읽는다" in entrypoint
     assert "Resume Point와 Bridge 상태는 Context 문구나 대화 기억으로 추측하지 않는다" in entrypoint
-    assert "Current Paper가 있으면 해당 Paper Note를 읽고" in entrypoint
+    assert "Current Paper가 있으면 해당 Paper Note 전체를 읽고" in entrypoint
+    assert "`system/PAPER_READING_TUTOR_POLICY.md`를 전체 읽는다" in entrypoint
 
     actual = context.build_context(repository_root)
     actual_progress = (repository_root / "roadmap/PROGRESS.md").read_text(

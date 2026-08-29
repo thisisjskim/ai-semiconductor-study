@@ -158,6 +158,55 @@ def assert_repository_contract() -> None:
     assert "Paper Reading Checkpoint 저장 계약" in agents
 
 
+def assert_paper_tutoring_policy_contract() -> None:
+    tutoring_path = ROOT / "system/PAPER_READING_TUTOR_POLICY.md"
+    assert tutoring_path.is_file()
+    tutoring = tutoring_path.read_text(encoding="utf-8")
+    for required in (
+        "사용자가 문장 또는 짧은 문단을 읽는다",
+        "사용자가 이해한 내용을 먼저 설명한다",
+        "논문 전체를 내부적으로 확인할 수는 있지만",
+        "사용자가 실제로 읽은 범위까지만 평가한다",
+        "잘못 이해한 개념",
+        "사용자 자기 설명: 아직 확인하지 않음",
+        "별도의 기계적 evidence status 필드를 새로 만들지 않고 자연어",
+        "Paper claim",
+        "User observation",
+        "다음 내용을 설명하지 않고 기다린다",
+        "이 문서에 없는 새로운 user-facing pedagogical framework",
+    ):
+        assert required in tutoring
+
+    entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
+    assert "`system/PAPER_READING_TUTOR_POLICY.md`를 반드시 처음부터 끝까지 읽고" in entrypoint
+    paper_loop = entrypoint.split("## Paper Reading Loop", 1)[1].split(
+        "## 일반 Tutor Loop", 1
+    )[0]
+    assert "user-first protocol" in paper_loop
+    assert "Explain → Example" not in paper_loop
+
+    research_os = (ROOT / "system/RESEARCH_OS.md").read_text(encoding="utf-8")
+    assert "논문 읽기와 논문 읽기 재개의 user-facing behavior" in research_os
+    assert "PAPER_READING_TUTOR_POLICY.md" in research_os
+
+    roadmap = (ROOT / "roadmap/ROADMAP.md").read_text(encoding="utf-8")
+    assert "PAPER_READING_TUTOR_POLICY.md" in roadmap
+    assert "논문은 다음 세 번의 pass로 읽는다" not in roadmap
+    assert "영어 논문은 문장 번역보다" not in roadmap
+
+    authoring = (ROOT / "system/PAPER_NOTE_AUTHORING_GUIDE.md").read_text(
+        encoding="utf-8"
+    )
+    assert "별도 evidence status 필드를 추가하지 않고" in authoring
+    assert "저장 전에 사용자의 짧은 자기 설명을 한 번 요청한다" not in authoring
+
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    architecture = (ROOT / "system/ARCHITECTURE.md").read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    for document in (agents, architecture, readme):
+        assert "PAPER_READING_TUTOR_POLICY.md" in document
+
+
 def assert_ingest_contract() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
@@ -376,6 +425,7 @@ def assert_cli_report() -> None:
 def main() -> int:
     assert_template_contract()
     assert_repository_contract()
+    assert_paper_tutoring_policy_contract()
     assert_ingest_contract()
     assert_bridge_validation()
     assert_identity_and_checkpoint_validation()
