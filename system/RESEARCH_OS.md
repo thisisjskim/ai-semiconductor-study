@@ -27,6 +27,8 @@
 
 ## 3. Learning Method
 
+이 section은 일반 Roadmap 학습과 별도 Learning Log 학습의 기본 방법이다. 논문 읽기와 논문 읽기 재개의 user-facing behavior는 `system/PAPER_READING_TUTOR_POLICY.md`만을 canonical source로 사용하며 이 section을 추가 규율로 합성하지 않는다.
+
 기본 흐름은 Big Picture → Why → What → How → Example → AI Semiconductor Connection → Self Explanation → Misconception Check다. 기계적으로 전부 적용하지 말고 필요한 단계만 강조한다.
 
 중요 개념에서는 사용자가 먼저 자기 언어로 설명하도록 유도한다. 피드백은 정확한 부분, 불완전한 부분, 잘못된 부분, 더 깊게 생각할 부분으로 구분한다. 사용자의 초기 오해를 몰래 수정하거나 삭제하지 않고 다음을 분리한다.
@@ -208,16 +210,9 @@ Roadmap은 강제 syllabus가 아니라 navigation map이다. 기초 학습 → 
 
 Roadmap Position과 Paper Position은 서로 다른 축이다. Roadmap Position은 장기 학습 지도의 공식 위치이고, Current Paper는 지금 읽는 논문의 작업 위치다. 논문에서 CNN이나 eDRAM을 보충해도 Current Boundary를 임의로 바꾸지 않는다.
 
-`state/CURRENT_LEARNING_CONTEXT.md`의 `Current Paper Note`는 상세 상태를 복제하지 않고 최신 Paper Reading Checkpoint의 경로 하나만 가리킨다. 새 채팅에서 이 경로가 있으면 해당 Paper Note를 반드시 읽어 `Resume Point`와 `Prerequisite Bridge`를 복구한다. 최신 Learning Log가 다른 주제라는 이유로 Current Paper를 바꾸거나, Learning Log의 Next Action을 논문 복귀 위치로 사용하지 않는다.
+`state/CURRENT_LEARNING_CONTEXT.md`의 `Current Paper Note`는 상세 상태를 복제하지 않고 최신 Paper Reading Checkpoint의 경로 하나만 가리킨다. 논문 읽기 또는 재개 요청에서는 `system/PAPER_READING_TUTOR_POLICY.md`를 전체 읽은 뒤 해당 Paper Note 전체에서 `Resume Point`, `Prerequisite Bridge`, 마지막 `Reading Session History`와 사용자 evidence를 복구한다. 최신 Learning Log가 다른 주제라는 이유로 Current Paper를 바꾸거나, Learning Log의 Next Action을 논문 복귀 위치로 사용하지 않는다.
 
-Paper Note의 Bridge는 두 종류다.
-
-- `논문 안에서 해결한 선수지식`: 별도 Learning Log를 만들지 않는다. 논문에서의 의미와 사용자의 이해를 Paper Note에 직접 기록한다. 저장 전에는 사용자의 짧은 자기 설명을 한 번 요청하며, 확인되지 않은 AI 설명을 사용자 이해로 쓰지 않는다.
-- `별도로 이어가는 선수지식`: 사용자가 명시적으로 선택했을 때만 Learning Log로 저장하고 Paper Note에 실제 경로를 연결한다. `studying`, `paused`, `sufficient-for-paper` 중 하나를 사용하며 `studying`은 최대 하나다.
-
-새 채팅에서 Paper Note를 읽은 뒤 정확히 하나의 Bridge가 `studying`이면 연결된 Learning Log를 읽고 그 지점부터 선수지식 학습을 이어간다. `studying`이 없으면 `Resume Point`에서 논문을 계속 읽는다. `studying`이 둘 이상이거나 연결 경로가 없으면 추측하지 않고 상태 오류를 사용자에게 알린다. 사용자가 별도 학습을 잠시 멈추고 논문으로 돌아가면 해당 Bridge를 `paused`, 논문 읽기에 충분해졌으면 `sufficient-for-paper`로 저장하고 기존 `Resume Point`에서 복귀한다. 일반적 완전 숙련을 요구하지 않고 Paper Note의 `이 논문에 충분한 기준`까지만 학습한다.
-
-사용자가 당일 논문 읽기를 종료하면 Paper Note의 분석 section, 정확한 `Resume Point`, 그날의 `Reading Session History`와 Bridge 변화를 함께 갱신하도록 제안한다. Paper Note 저장은 자동 추측이 아니라 사용자 승인 뒤 Issue → Actions로 처리한다.
+Bridge status와 연결 경로, Paper Note 저장 transport의 canonical source는 `system/PAPER_NOTE_ISSUE_CONTRACT.md`, `system/PAPER_NOTE_AUTHORING_GUIDE.md`, `templates/paper-note.md`다. 논문을 실제로 어떻게 읽고 평가·교정하며 미독 범위를 다루는지는 이 문서에서 중복 정의하지 않고 `system/PAPER_READING_TUTOR_POLICY.md`만 따른다.
 
 ## 11. Ultimate Principle
 

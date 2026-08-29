@@ -136,7 +136,7 @@ def assert_general_session_protocol_contract() -> None:
     required_sections = (
         "## Purpose",
         "## 세션 시작",
-        "## Tutor Loop",
+        "## 일반 Tutor Loop",
         "## Learning Unit",
         "## Checkpoint",
         "## Continue Session",

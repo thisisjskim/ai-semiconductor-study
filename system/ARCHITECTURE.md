@@ -6,6 +6,7 @@
 | --- | --- |
 | GitHub Repository | 장기 기록의 Source of Truth. 정책, 상태 근거, 코드와 변경 이력을 보존한다. |
 | 일반 ChatGPT | 학습 대화, 설명, 자기 설명 점검을 담당하는 Tutor Interface다. `system/CHATGPT_ENTRYPOINT.md`에서 시작하고 연결된 GitHub plugin의 capability로 repository를 읽고 Issue를 처리한다. |
+| `system/PAPER_READING_TUTOR_POLICY.md` | 논문 읽기·재개의 user-first interaction, 평가, reading boundary, prerequisite와 evidence 처리의 단일 canonical source다. |
 | Codex | 코드, 지침, 테스트, workflow를 branch에서 개발하는 Developer Interface다. |
 | GitHub Issue | 승인된 Learning Log, Paper Reading Checkpoint 또는 Progress Update 요청과 versioned envelope를 전달하는 queue다. Issue 생성·닫기는 처리 완료가 아니다. |
 | GitHub Actions | Issue와 comments를 payload로 만들고 검증·저장·결과 회신을 연결하는 orchestration layer다. |
@@ -38,11 +39,11 @@ GitHub context load
 
 일반 ChatGPT는 entrypoint와 snapshot을 먼저 읽고 필요할 때만 관련 Learning Log와 roadmap을 확인한다. Learning Unit checkpoint에서 저장 승인을 받으면 `system/LEARNING_LOG_ISSUE_CONTRACT.md`의 tool-independent 계약과 연결된 GitHub plugin의 Issue capability로 요청을 enqueue한다. `.github/workflows/learning-log-ingest.yml`은 Issue와 comments를 모아 `scripts/ingest_learning_log.py`에 전달한다. Python 검증을 통과한 한 개의 `learning-logs/**` 파일만 commit하며, 결과 comment의 path와 commit 및 실제 파일까지 확인해야 저장이 끝난다.
 
-논문을 읽는 동안에는 한 논문당 하나의 `paper-notes/**` living note를 사용한다. Paper Reading Checkpoint 저장을 승인하면 `system/PAPER_NOTE_ISSUE_CONTRACT.md`에 따라 `[paper-note]` Issue를 enqueue한다. `.github/workflows/paper-note-ingest.yml`은 `intent: paper-reading-checkpoint`만 받아 `scripts/ingest_paper_note.py`로 검증하고 정확히 한 Paper Note만 생성하거나 수정한다. Workflow는 Issue의 `created_at`을 `Checkpoint recorded at`으로 기록한다. 별도 선수지식 Learning Log도 저장해야 하면 Log를 먼저 저장·검증하고, 실제 경로를 연결한 Paper Note를 두 번째로 저장한다.
+논문 읽기 또는 재개 요청에서 일반 ChatGPT는 `system/PAPER_READING_TUTOR_POLICY.md`를 전체 읽고 Current Paper Note의 상태를 복구한 뒤 user-first protocol을 적용한다. 한 논문당 하나의 `paper-notes/**` living note를 사용한다. Paper Reading Checkpoint 저장을 승인하면 `system/PAPER_NOTE_ISSUE_CONTRACT.md`에 따라 `[paper-note]` Issue를 enqueue한다. `.github/workflows/paper-note-ingest.yml`은 `intent: paper-reading-checkpoint`만 받아 `scripts/ingest_paper_note.py`로 검증하고 정확히 한 Paper Note만 생성하거나 수정한다. Workflow는 Issue의 `created_at`을 `Checkpoint recorded at`으로 기록한다. 별도 선수지식 Learning Log도 저장해야 하면 Log를 먼저 저장·검증하고, 실제 경로를 연결한 Paper Note를 두 번째로 저장한다.
 
 Learning Log 저장이 확인된 뒤 ChatGPT는 공식 목표가 달라졌는지 또는 현재 boundary의 exit criteria를 충족했는지 검토한다. 최신 log만으로 위치를 이동하지 않는다. 필요한 경우에만 Current Boundary 전환을 별도로 제안하고 두 번째 사용자 승인을 받는다. `[progress-update]` Issue를 닫으면 `.github/workflows/progress-update.yml`이 요청을 검증하고 `roadmap/PROGRESS.md`의 boundary 한 줄만 바꾼다. Stage와 Topic은 후속 context refresh가 boundary 정의에서 계산한다.
 
-Learning Log, Paper Note 또는 Progress Update commit 이후 `.github/workflows/learning-context-refresh.yml`이 별도로 실행되어 `state/CURRENT_LEARNING_CONTEXT.md`만 다시 생성하고 별도 commit한다. Roadmap, learning boundary 또는 context builder가 변경되어도 같은 refresh를 실행한다. builder는 사용한 `roadmap/PROGRESS.md`의 Git blob SHA를 snapshot 상단의 `Progress source SHA`로 기록한다. 따라서 ChatGPT는 최신 Progress의 blob SHA와 이 값을 비교해 후속 refresh가 정확히 어느 Progress를 반영했는지 확인할 수 있다. builder는 Progress에서 현재 위치를 정하고, boundary의 exit criteria를 관련 Learning Log evidence와 비교한 뒤 Blocking Gap과 Optional Open Question을 분리한다. 이와 별도로 유효한 Paper Note의 `Checkpoint recorded at`을 비교해 가장 최근 Paper Reading Checkpoint의 경로 하나만 `Current Paper Note`로 표시한다. 최신 Learning Log나 파일명 순서는 Current Paper 선택에 사용하지 않는다. `Required Source Before First Learning Unit`에는 다음 topic의 boundary 또는 첫 Blocking Gap과 가장 가까운 evidence를 넣고, 최신 의미 있는 Learning Log도 최대 2개 추가해 최근 이해와 오해 수정을 함께 복구한다. 일반 ChatGPT는 두 SHA가 일치하는 최신 snapshot으로 방향을 정하고, Current Paper가 있으면 해당 Paper Note를 읽은 뒤 첫 설명이나 질문을 만든다. main writer의 실제 Job만 공용 `research-os-main` queue에 들어가며 `queue: max`로 최대 100개의 pending 요청을 보존한다. 제목이나 선행 결과가 맞지 않아 skip되는 Job은 이 queue를 점유하지 않는다. Context refresh 실패는 이미 성공한 Learning Log, Paper Note 저장이나 Progress 변경을 되돌리지 않으며 `roadmap/PROGRESS.md`도 수정하지 않는다.
+Learning Log, Paper Note 또는 Progress Update commit 이후 `.github/workflows/learning-context-refresh.yml`이 별도로 실행되어 `state/CURRENT_LEARNING_CONTEXT.md`만 다시 생성하고 별도 commit한다. Roadmap, learning boundary 또는 context builder가 변경되어도 같은 refresh를 실행한다. builder는 사용한 `roadmap/PROGRESS.md`의 Git blob SHA를 snapshot 상단의 `Progress source SHA`로 기록한다. 따라서 ChatGPT는 최신 Progress의 blob SHA와 이 값을 비교해 후속 refresh가 정확히 어느 Progress를 반영했는지 확인할 수 있다. builder는 Progress에서 현재 위치를 정하고, boundary의 exit criteria를 관련 Learning Log evidence와 비교한 뒤 Blocking Gap과 Optional Open Question을 분리한다. 이와 별도로 유효한 Paper Note의 `Checkpoint recorded at`을 비교해 가장 최근 Paper Reading Checkpoint의 경로 하나만 `Current Paper Note`로 표시한다. 최신 Learning Log나 파일명 순서는 Current Paper 선택에 사용하지 않는다. `Required Source Before First Learning Unit`에는 다음 topic의 boundary 또는 첫 Blocking Gap과 가장 가까운 evidence를 넣고, 최신 의미 있는 Learning Log도 최대 2개 추가해 최근 이해와 오해 수정을 함께 복구한다. 일반 ChatGPT는 두 SHA가 일치하는 최신 snapshot으로 방향을 정한다. 논문 읽기 요청이면 Paper Tutor Policy와 Current Paper Note를 모두 읽은 뒤 미독 내용을 선행 설명하지 않고 user-first interaction을 시작한다. main writer의 실제 Job만 공용 `research-os-main` queue에 들어가며 `queue: max`로 최대 100개의 pending 요청을 보존한다. 제목이나 선행 결과가 맞지 않아 skip되는 Job은 이 queue를 점유하지 않는다. Context refresh 실패는 이미 성공한 Learning Log, Paper Note 저장이나 Progress 변경을 되돌리지 않으며 `roadmap/PROGRESS.md`도 수정하지 않는다.
 
 ## B. Research OS 개발 흐름
 
@@ -62,7 +63,8 @@ OS 정책·문서·코드·workflow 변경은 Learning Log Issue 경로와 분�
 
 Canonical source는 판단을 다시 만들 수 있는 원본이다.
 
-- 운영·학습 정책: `system/RESEARCH_OS.md`
+- 일반 운영·학습 정책: `system/RESEARCH_OS.md`
+- 논문 학습 튜터링 정책: `system/PAPER_READING_TUTOR_POLICY.md`
 - 일반 ChatGPT 저장 계약: `system/LEARNING_LOG_ISSUE_CONTRACT.md`
 - Paper Note 저장 계약: `system/PAPER_NOTE_ISSUE_CONTRACT.md`
 - 저장 검증 구현: `scripts/ingest_learning_log.py`, `scripts/ingest_paper_note.py`, `scripts/apply_progress_update.py`

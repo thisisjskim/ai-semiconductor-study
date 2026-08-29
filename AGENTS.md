@@ -6,6 +6,7 @@
 
 - 일반 ChatGPT 학습 시작점: `system/CHATGPT_ENTRYPOINT.md`
 - 정책의 canonical source: `system/RESEARCH_OS.md`
+- 논문 학습 튜터링의 canonical source: `system/PAPER_READING_TUTOR_POLICY.md`
 - 현재 학습 상태: `state/CURRENT_LEARNING_CONTEXT.md`
 - 장기 방향, topic depth boundary와 진행표: `roadmap/ROADMAP.md`, `roadmap/LEARNING_BOUNDARIES.json`, `roadmap/PROGRESS.md`
 - Learning Log 형식: `templates/learning-log.md`
@@ -15,7 +16,8 @@
 
 ## 작업 라우팅
 
-- **일반 학습**: 현재 context와 관련 Learning Log를 확인하고 Tutor 흐름을 따른다. Current Paper가 있으면 해당 Paper Note를 읽어 Resume Point와 Prerequisite Bridge를 먼저 복구한다.
+- **일반 학습**: 현재 context와 관련 Learning Log를 확인하고 Tutor 흐름을 따른다.
+- **논문 학습**: `system/PAPER_READING_TUTOR_POLICY.md`를 전체 읽고, Current Paper Note의 Resume Point와 Prerequisite Bridge를 복구한 뒤 user-first protocol을 따른다.
 - **상태 진단**: `state/CURRENT_LEARNING_CONTEXT.md`, `roadmap/PROGRESS.md`, 실제 Learning Log를 비교한다. 사실과 추론, 충돌을 구분하고 승인 없이 상태표를 수정하지 않는다.
 - **Research OS 개발**: 정책, 계약, workflow, script와 테스트를 실제로 읽고 별도 branch에서 변경한다.
 

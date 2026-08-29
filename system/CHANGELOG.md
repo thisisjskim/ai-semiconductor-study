@@ -5,6 +5,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 ## v0.3.0 — Current
 
 ### Added
+- 논문 읽기·재개 시 사용자가 먼저 읽고 설명하며 ChatGPT가 읽은 범위 안에서 평가·교정하는 `system/PAPER_READING_TUTOR_POLICY.md` canonical policy
 - 논문 한 편을 여러 세션에 걸쳐 갱신하는 `paper-notes/{foundational|ssl-lab|related}/YYYY-MM-DD-slug.md` living note 구조
 - `[paper-note]` Issue와 `research-os-paper-note:v1` 계약으로 Paper Reading Checkpoint를 검증·저장하는 GitHub Actions
 - Issue `created_at` 기반 `Checkpoint recorded at`, Resume Point와 Prerequisite Bridge 상태 검증
@@ -44,6 +45,8 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 성공 comment뿐 아니라 결과 commit의 실제 target file까지 확인해야 저장 완료로 판정
 
 ### Changed
+- 논문 tutoring을 일반 Explain-first Tutor Loop와 분리하고 Current Context → Paper Tutor Policy → Current Paper Note 순서로 복구하도록 routing 통합
+- Roadmap과 Research OS에 분산돼 있던 논문 읽기 pass·세부 tutoring 규율을 새 canonical policy 참조로 축소
 - 새 채팅의 논문 복구 경로를 `Current Context → Current Paper Note → Resume Point 또는 studying Bridge의 Learning Log` 순서로 명시
 - Paper Note와 Learning Log를 함께 저장할 때 한 번 승인받되 한 파일씩 순차 검증·저장하도록 분리
 - `roadmap/PROGRESS.md`의 Current Focus를 승인된 Current Boundary 한 줄로 축소하고, 기존 계획·현황 section은 보존하며 Stage·Topic은 Context에서만 산출
