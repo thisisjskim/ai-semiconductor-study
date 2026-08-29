@@ -28,6 +28,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
+- Issue 하나가 닫힐 때 관련 없는 ingest Workflow들이 workflow-level concurrency를 먼저 점유해 실제 writer run을 취소할 수 있던 경쟁 조건
 - 현재 boundary에 해당하는 Learning Log가 아직 없을 때 Current Learning Context 생성이 실패하던 빈 evidence 처리
 - 실제 학습 진도가 다음 boundary로 이동해도 과거 SRAM 문구를 고정 검사해 Context Refresh가 실패하던 저장소 상태 테스트
 - Progress 반영 성공과 후속 `CURRENT_LEARNING_CONTEXT.md` 갱신 완료를 구분하지 않아 stale snapshot으로 다음 학습을 제안할 수 있던 실행 경로
@@ -56,6 +57,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - GitHub 저장 절차의 특정 Action 이름을 연결된 plugin이 제공하는 capability 기반 표현으로 일반화
 
 ### Safety
+- main writer concurrency를 accept 조건 뒤의 Job 수준으로 이동하고 `queue: max`를 사용해 실제 쓰기는 직렬화하면서 최대 100개의 pending 요청을 보존
 - 지원 날짜, 실행 계획 필드, milestone, deadline, Roadmap 구조는 자동 변경하지 않음
 - Dashboard의 `Review`와 `Completed`는 자동 판정하지 않음
 - 모든 main 쓰기 workflow를 하나의 concurrency group으로 직렬화하고 각 Issue 유형을 제목으로 분리함
