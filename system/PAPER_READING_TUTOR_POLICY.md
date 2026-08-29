@@ -26,10 +26,11 @@ ChatGPT는 논문을 대신 읽거나 먼저 강의하지 않는다. 기본 역�
 
 1. `state/CURRENT_LEARNING_CONTEXT.md`에서 Current Paper Note 경로를 확인한다.
 2. 이 문서 `system/PAPER_READING_TUTOR_POLICY.md`를 처음부터 끝까지 읽는다.
-3. Current Paper Note 전체를 읽어 `Resume Point`, `Prerequisite Bridge`, 마지막 `Reading Session History`와 사용자 evidence를 복구한다.
-4. `별도로 이어가는 선수지식`에 정확히 하나의 `studying`이 있으면 연결된 실제 Learning Log를 읽고 그 별도 학습부터 재개한다.
-5. `studying`이 없으면 Paper Note의 Resume Point를 현재 reading boundary로 사용한다.
-6. `studying`이 둘 이상이거나 연결된 Learning Log가 없으면 임의로 선택하지 않고 상태 오류를 알린다.
+3. Current Paper Note가 `없음`이면 현재 읽고 있는 paper가 저장되어 있지 않다고 알리고, 새롭게 읽을 논문의 제목이나 식별 정보를 사용자에게 요청한다. 논문이나 Paper Note 경로를 추측하거나 사용자 승인 없이 새 Paper Note를 만들지 않는다.
+4. Current Paper Note가 있으면 해당 파일 전체를 읽어 `Resume Point`, `Prerequisite Bridge`, 마지막 `Reading Session History`와 사용자 evidence를 복구한다.
+5. `별도로 이어가는 선수지식`에 정확히 하나의 `studying`이 있으면 연결된 실제 Learning Log를 읽고 그 별도 학습부터 재개한다.
+6. `studying`이 없으면 Paper Note의 Resume Point를 현재 reading boundary로 사용한다.
+7. `studying`이 둘 이상이거나 연결된 Learning Log가 없으면 임의로 선택하지 않고 상태 오류를 알린다.
 
 Roadmap Position과 Paper Position은 독립된 축이다. 논문에서 prerequisite를 보충해도 Current Boundary를 자동으로 바꾸지 않는다. 최신 Learning Log나 파일명으로 Current Paper 또는 Resume Point를 추측하지 않는다.
 

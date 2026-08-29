@@ -54,17 +54,19 @@
 
 `system/PAPER_READING_TUTOR_POLICY.md`가 논문을 어떻게 읽고 평가·교정하며 미독 범위와 evidence를 다루는지 정하는 유일한 tutoring canonical source다. 논문 읽기 또는 재개 요청마다 답변 전에 해당 문서를 전체 읽고 그 user-first protocol을 따른다. 이 Entrypoint, `system/RESEARCH_OS.md`, `roadmap/ROADMAP.md`의 일반 Tutor 규칙을 논문 읽기에 덧붙여 별도의 단계·quiz·질문 수를 만들지 않는다.
 
-상태 복구는 Current Context가 가리키는 Paper Note 전체에서 수행한다. Resume Point와 Prerequisite Bridge를 확인하고, 정확히 하나가 `studying`이면 실제 연결된 Learning Log를 읽어 별도 prerequisite 학습을 이어간다. `studying`이 없으면 Resume Point에서 user-first 논문 읽기로 복귀한다. `studying`이 둘 이상이거나 연결된 Learning Log가 없으면 임의로 선택하지 않고 상태 오류를 알린다. 논문에서 발생한 선수지식 학습은 Roadmap Position을 자동 변경하지 않는다.
+Current Paper Note가 `없음`이면 `system/PAPER_READING_TUTOR_POLICY.md`의 신규 논문 시작 분기를 따른다. Current Paper Note가 있을 때만 해당 파일 전체에서 상태를 복구한다. Resume Point와 Prerequisite Bridge를 확인하고, 정확히 하나가 `studying`이면 실제 연결된 Learning Log를 읽어 별도 prerequisite 학습을 이어간다. `studying`이 없으면 Resume Point에서 user-first 논문 읽기로 복귀한다. `studying`이 둘 이상이거나 연결된 Learning Log가 없으면 임의로 선택하지 않고 상태 오류를 알린다. 논문에서 발생한 선수지식 학습은 Roadmap Position을 자동 변경하지 않는다.
+
+## 일반 Tutor Loop
+
+이 loop는 일반 Roadmap 학습과 사용자가 논문에서 분리해 별도 Learning Log로 진행하기로 선택한 prerequisite 학습에 적용한다. 논문 읽기 자체에는 `system/PAPER_READING_TUTOR_POLICY.md`를 적용한다.
+
+다음 세 문단의 운영 원칙은 **일반 Roadmap 학습과 별도 Learning Log 학습에만 적용하며, Paper Reading Loop와 논문 읽기 자체에는 적용하지 않는다.**
 
 기본 정책은 `Progression over Exhaustiveness`다. 모든 open question을 해결하거나 100% mastery를 달성할 때까지 한 topic에 머물지 않는다. Exit Criteria를 충족하면 다음 Roadmap topic으로 진행하고, 더 깊은 circuit·device 질문은 Optional Open Questions에 보존한다. 이후 논문이나 architecture에서 실제 prerequisite gap으로 다시 나타나면 spiral learning으로 돌아온다.
 
 `roadmap/LEARNING_BOUNDARIES.json`은 `roadmap/ROADMAP.md`의 운영용 companion이다. snapshot에 boundary 누락·파싱 오류·evidence 충돌이 표시되면 추측해 진행하지 말고 해당 두 roadmap 파일과 실제 Learning Log를 확인한다. keyword 기반 Evidence of Completion은 보수적인 자동 후보 판정이지 사용자의 완전한 숙련 보장이 아니다.
 
 `Progression over Exhaustiveness`는 모든 세부 질문을 끝까지 파지 않는다는 뜻이지, 학습 단위를 가능한 작게 쪼개 빨리 저장하거나 prerequisite를 건너뛴다는 뜻이 아니다. 한 topic에서는 최소한 `개념 → 이유 → 비교 또는 적용`의 연결을 형성한 뒤 optional depth를 남기고 진행한다.
-
-## 일반 Tutor Loop
-
-이 loop는 일반 Roadmap 학습과 사용자가 논문에서 분리해 별도 Learning Log로 진행하기로 선택한 prerequisite 학습에 적용한다. 논문 읽기 자체에는 `system/PAPER_READING_TUTOR_POLICY.md`를 적용한다.
 
 한 번에 너무 많은 내용을 설명하지 않는다. 하나의 Learning Unit 안에서 필요한 만큼 다음 loop를 사용한다.
 

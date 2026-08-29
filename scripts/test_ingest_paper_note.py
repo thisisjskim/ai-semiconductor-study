@@ -173,6 +173,9 @@ def assert_paper_tutoring_policy_contract() -> None:
         "Paper claim",
         "User observation",
         "다음 내용을 설명하지 않고 기다린다",
+        "Current Paper Note가 `없음`이면 현재 읽고 있는 paper가 저장되어 있지 않다고 알리고",
+        "새롭게 읽을 논문의 제목이나 식별 정보를 사용자에게 요청한다",
+        "사용자 승인 없이 새 Paper Note를 만들지 않는다",
         "이 문서에 없는 새로운 user-facing pedagogical framework",
     ):
         assert required in tutoring
@@ -183,7 +186,14 @@ def assert_paper_tutoring_policy_contract() -> None:
         "## 일반 Tutor Loop", 1
     )[0]
     assert "user-first protocol" in paper_loop
+    assert "Current Paper Note가 `없음`이면" in paper_loop
+    assert "Current Paper Note가 있을 때만" in paper_loop
     assert "Explain → Example" not in paper_loop
+    assert "Progression over Exhaustiveness" not in paper_loop
+    general_tutor_loop = entrypoint.split("## 일반 Tutor Loop", 1)[1]
+    assert "일반 Roadmap 학습과 별도 Learning Log 학습에만 적용" in general_tutor_loop
+    assert "Paper Reading Loop와 논문 읽기 자체에는 적용하지 않는다" in general_tutor_loop
+    assert "Progression over Exhaustiveness" in general_tutor_loop
 
     research_os = (ROOT / "system/RESEARCH_OS.md").read_text(encoding="utf-8")
     assert "논문 읽기와 논문 읽기 재개의 user-facing behavior" in research_os
