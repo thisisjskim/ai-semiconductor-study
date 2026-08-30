@@ -7,7 +7,7 @@
 
 ## Roadmap Position
 
-- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md`
+- 최신 의미 있는 학습 기록: `learning-logs/2026/08/2026-08-30-nvm-fundamentals.md`
 - Current Boundary: `paper-analysis-foundations`
 - Current Stage: Stage 6 — Foundational Papers
 - Current Topic: 중심 Foundational Paper의 claim map과 architecture walkthrough
@@ -16,7 +16,7 @@
 
 ### 같은 날짜의 의미 있는 학습 단위
 
-- `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md` — PIM/CIM Tiling, Bottleneck과 Roofline 기초
+- `learning-logs/2026/08/2026-08-30-nvm-fundamentals.md` — NVM Fundamentals — ReRAM, MRAM, PCM과 NVM-CIM
 
 ## Current Paper
 
@@ -62,8 +62,8 @@
 ## Required Source Before First Learning Unit
 
 - `roadmap/LEARNING_BOUNDARIES.json`
-- `learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md`
 - `learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md`
+- `learning-logs/2026/08/2026-08-30-nvm-fundamentals.md`
 - 이유: 첫 Blocking Gap과 가장 가까운 저장 evidence를 확인해 사용자의 실제 설명 수준에 맞춘다.
 - 이유: 최신 의미 있는 Learning Log를 최대 2개 읽어 최근 이해·오해 수정·다음 행동을 실제 evidence로 확인한다.
 - 이 source를 읽기 전에는 일반 지식만으로 첫 설명이나 진단 질문을 만들지 않는다.
@@ -74,14 +74,14 @@
 
 ## 현재 확인된 핵심 개념
 
-- CIM K-tiling과 reduction dimension
-- Partial sum과 inter-array accumulation
-- M/N tiling과 K-tiling의 차이
-- CIM array size와 mapping capacity
-- Bitline/wordline parasitic resistance와 capacitance
-- I=C·dV/dt와 sensing latency 직관
-- Analog CIM과 Digital CIM
-- Multi-bit representation, bit-serial, bit-slicing, shift-and-add
+- NVM 공통 구조: physical state → resistance state → read current
+- LRS / HRS와 Ohm's law 기반 current sensing
+- ReRAM: MIM, metal oxide, conductive filament, SET/RESET
+- MRAM: MTJ, fixed/free layer, parallel/antiparallel, spin-dependent tunneling, TMR 직관
+- PCM: chalcogenide, crystalline/amorphous, Joule heating, crystallization, melting, quenching
+- Conductance: G=1/R
+- NVM-CIM multiplication: I=VG
+- Column current summation과 MAC
 
 ## 미완료 자기 설명 점검
 
@@ -89,9 +89,9 @@
 
 ## 최근 Learning Log의 다음 행동 (참고용)
 
-- 중심 Foundational PIM/CIM 논문 한 편을 선정하고 abstract와 주요 architecture figure를 읽으면서 `problem → prior bottleneck → proposed compute location → data path → claimed benefit`의 claim map을 만든다.
-- 논문의 주요 figure에서 weight, activation, partial sum, ADC/digital accumulation이 각각 어디에 위치하고 어떻게 이동하는지 직접 표시한다.
-- 논문의 성능/에너지 결과를 읽을 때 array peak만 보지 않고 ADC/peripheral overhead, data movement, precision, utilization을 함께 확인하고, 가능하면 Arithmetic Intensity 또는 Roofline 관점으로 memory-bound/compute-bound 가능성을 추론한다.
+- 현재 읽고 있는 overview 논문의 Section III NVM-CIM으로 복귀해 NVM의 non-volatility, density, current-based computing advantage와 각 기술의 circuit-level trade-off를 user-first 방식으로 읽는다.
+- 논문에서 low signal margin, nonlinearity, variation이 실제 architecture에서 어떻게 나타나고 어떤 circuit technique으로 완화되는지 연결한다.
+- 이 Learning Log가 저장된 뒤 현재 Paper Note의 prerequisite bridge에 연결할지 별도 checkpoint로 결정한다.
 - 위 항목은 source evidence이며 Roadmap-aware 추천보다 우선하지 않음
 
 ## 제외한 기록과 이유
