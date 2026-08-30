@@ -9,7 +9,7 @@
 - Authors: Sangjin Kim, Hoi-Jun Yoo
 - Paper link: https://doi.org/10.1109/TCSII.2023.3333851
 - Started: 2026-08-28
-- Checkpoint recorded at: 2026-08-28T15:37:05Z
+- Checkpoint recorded at: 2026-08-30T07:24:35Z
 - Related notes: learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md; learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md
 
 ## 1. Citation
@@ -18,7 +18,7 @@ S. Kim and H.-J. Yoo, “An Overview of Computing-in-Memory Circuits With DRAM a
 
 ## 2. Reading Checkpoint
 
-- Resume Point: Section II. DRAM-CIM, B. Gain-Cell DRAM, PDF page 2 — 1T-1C의 destructive read, frequent SA recovery power overhead, Gain-Cell의 RBL/WBL 분리와 non-destructive read path의 장단점을 읽고 이해한 직후. 다음 세션에서는 “The 4T-2C cell proposed in [20] is a pair of 2T-1C gain-cells…” 문장부터 Fig. 2(a)의 4T-2C structure와 1-b IA / ternary W multiplication을 읽는다. 아직 읽지 않은 4T-2C 회로 세부는 미리 가정하지 않는다.
+- Resume Point: Section III. NVM-CIM, PDF page 3 — ReRAM, MRAM, PCM이 cell data를 resistance로 표현하며 각각 metal-oxide ReRAM, MTJ-based MRAM, chalcogenide phase-change PCM을 사용한다는 도입 문장까지 읽음. 다음 논문 읽기는 “NVM brings unique advantages to CIM, non-volatility...” 문장부터 재개한다. 다만 그 전에 ReRAM/MRAM/PCM의 device-level 동작, LRS/HRS와 sensing을 별도 prerequisite Learning Log로 학습하기로 결정했으며, 해당 Log가 실제 저장되기 전까지 Paper Note에는 studying Bridge로 연결하지 않는다.
 
 ## 3. Prerequisite Bridge
 
@@ -109,6 +109,47 @@ S. Kim and H.-J. Yoo, “An Overview of Computing-in-Memory Circuits With DRAM a
 - 논문에서 필요한 이유: “during every read or computation”에서 computation이 일반 DRAM의 read/write 외 별도 memory primitive인지 구분하기 위해 필요하다.
 - 사용자의 이해: 여기서 computation은 일반 DRAM의 기본 read/write operation에 추가된 독립 memory primitive가 아니라, DRAM-CIM에서 cell data/charge를 이용해 Boolean operation, analog MAC, SNN integration 등을 수행하는 CIM computation을 가리킨다는 설명을 듣고 이해를 확인했다. 사용자 자기 설명: 아직 확인하지 않음.
 
+
+#### 4T-2C Gain-Cell / signed ternary multiplication
+- 등장 위치: Section II-B Gain-Cell DRAM, Fig. 2(a)
+- 논문에서 필요한 이유: complementary 2T-1C pair가 signed weight와 1-b IA multiplication을 어떻게 표현하는지 이해하기 위해 필요하다.
+- 사용자의 이해: 4T-2C가 두 개의 2T-1C gain-cell pair로 구성되고 complementary storage를 이용해 signed representation을 지원한다는 점을 확인했다. 1-b IA는 1-bit input activation, ternary W는 {-1, 0, +1}의 세 weight state라는 점을 문답으로 수정·확인했다. signed representation을 일반 binary sign-bit와 동일시하지 않도록 구분했다.
+
+#### Current-based row-parallel accumulation / process variation
+- 등장 위치: Section II-B, Fig. 2(a)
+- 논문에서 필요한 이유: 64-row parallel multiplication의 accumulation 방식과 variation-induced current mismatch를 이해하기 위해 필요하다.
+- 사용자의 이해: 각 row의 multiplication 결과가 current contribution으로 나타나 shared RBL에서 합산되어 accumulation을 형성하며, cell-to-cell current mismatch가 그대로 합산 오차로 들어갈 수 있다고 자기 언어로 설명했다. Fig. 2(a)의 driving transistor가 Q1이며 storage node 상태에 따라 RBL current path를 구동하는 역할이라는 점도 확인했다.
+
+#### Voltage clipping / column-only accumulation
+- 등장 위치: Section II-B, Fig. 2(b), reference [17]
+- 논문에서 필요한 이유: row parallelism을 제거하고 variation/leakage robustness를 얻는 구조를 이해하기 위해 필요하다.
+- 사용자의 이해: self-detect voltage clipper는 모든 전압을 임의의 값으로 변환하는 회로가 아니라 RBL voltage를 predefined reference level에 제한해 cell variation/leakage가 accumulation에 직접 전달되는 영향을 줄이는 회로라는 점을 문답으로 이해했다. Fig. 2(b)는 individual multiplication result를 clipping한 뒤 column 방향 charge-sharing accumulation을 사용하며, clipper 자체가 일반적으로 row parallelism을 불가능하게 만드는 것은 아니라는 점을 구분했다.
+
+#### Segmented RBL / row-segment parallelism
+- 등장 위치: Section II-B, Fig. 2(c), reference [19]
+- 논문에서 필요한 이유: variation/leakage를 줄이면서 row parallelism을 다시 확보하는 방법을 이해하기 위해 필요하다.
+- 사용자의 이해: 하나의 긴 RBL을 transmission gate로 여러 segment로 나누고, 각 segment에서 한 row가 1-b multiplication을 동시에 수행한 뒤 segment RBL voltages를 charge sharing으로 accumulate한다는 구조로 이해했다. “두 segment”가 아니라 multiple row segments라는 점을 수정했다.
+
+#### Common-mode error / reference cell array
+- 등장 위치: Section II-B, Fig. 2(c), reference [19]
+- 논문에서 필요한 이유: leakage-induced error와 coupling noise를 reference array로 줄이는 원리를 이해하기 위해 필요하다.
+- 사용자의 이해: common-mode error는 signal과 reference에 비슷한 방향과 크기로 공통으로 들어가는 error이며, reference cell array가 ADC 자체가 아니라 ADC의 reference voltage를 제공하는 기준점이라는 점을 수정·확인했다. 사용자는 Vsignal과 Vref에 같은 error가 들어오면 비교 과정에서 공통 error가 상쇄되어 ADC 결과에 미치는 영향이 줄어든다고 자기 언어로 설명했다.
+
+#### 3T-1C 4b weight / pulse-width IA multiplication
+- 등장 위치: Section II-B, Fig. 2(d), reference [18]
+- 논문에서 필요한 이유: 3T gain-cell이 4b weight와 4b IA의 analog multiplication을 구현하는 방식을 이해하기 위해 필요하다.
+- 사용자의 이해: 4-bit는 4 level이 아니라 16개의 distinguishable value를 의미하며, storage capacitor의 4b analog weight가 Q1 current magnitude를 조절하고 4b IA가 Q2의 pulse width/turn-on time을 조절한다고 이해했다. Q1-Q2 serial path를 통해 전달되는 charge가 직관적으로 I(W)×T(IA)에 비례해 multiplication을 표현한다는 설명을 듣고, IA가 커지면 Q2 ON time이 길어져 RBL에 전달되는 total charge가 증가한다고 자기 설명했다.
+
+#### 3T-1C analog storage trade-off
+- 등장 위치: Section II-B, Fig. 2(d)
+- 논문에서 필요한 이유: multi-level analog storage와 cell density/accuracy trade-off를 이해하기 위해 필요하다.
+- 사용자의 이해: 4b analog weight는 16개 voltage state를 구분해야 하므로 leakage/noise에 의한 state overlap을 줄이기 위해 큰 capacitor가 필요하고, 이 때문에 cell density가 낮아질 수 있다고 자기 설명했다. current-based operation은 transistor non-linearity와 process variation 때문에 multiplication accuracy가 제한될 수 있다는 점도 확인했다.
+
+#### 3T-2C capacitive coupling / leakage-tolerant computing
+- 등장 위치: Section II-B, Fig. 2(e), references [21], [22]
+- 논문에서 필요한 이유: storage-node leakage가 multiplication result에 직접 영향을 주지 않도록 voltage domain을 분리하는 구조를 이해하기 위해 필요하다.
+- 사용자의 이해: Fig. 2(e)는 storage node와 multiplication logic의 voltage domain을 분리하고, cell 내부 transistor logic에서 1-b multiplication을 digital domain에서 수행한 뒤 coupling capacitor를 통해 결과를 RBL accumulation에 전달한다는 overview-level 흐름을 이해했다. leakage robustness의 핵심은 “capacitor를 사용했다”는 사실 자체가 아니라 storage voltage가 analog current magnitude에 직접 연결되지 않도록 storage domain과 compute domain을 분리한 것이라고 자기 설명으로 수정·확인했다. exact transistor truth table, switching sequence, IA/W mapping과 coupling mechanism은 overview에 충분히 제시되지 않아 reference [21] DynaPlasia 원 논문을 확보한 뒤 transistor-level deep dive하기로 했다.
+
 ### 별도로 이어가는 선수지식
 
 없음.
@@ -147,6 +188,14 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 | Cell column | 문답으로 이해 확인 | 구체 charge path는 overview 범위 밖 |
 | Destructive read / Gain-Cell | 사용자 설명 + 문답 수정으로 확인 | 다음 4T-2C gain-cell circuit과 연결 |
 | DRAM-CIM computation | AI 설명 후 사용자 이해 확인 | 필요 시 실제 circuit example과 연결 |
+| 4T-2C signed/ternary multiplication | 문답으로 수정·확인 | exact encoding은 reference [20] 필요 시 확인 |
+| Current accumulation / variation | 사용자 자기 설명 확인 | reference [20] 정량 회로는 필요 시 확인 |
+| Voltage clipper / Fig. 2(b) | 문답으로 이해 확인 | transistor-level clipper는 reference [17] 필요 |
+| Segmented RBL / Fig. 2(c) | 구조적 이해 확인 | [19]의 세부 timing/charge path는 원 논문 필요 |
+| Common-mode / reference cell array | 사용자 자기 설명 확인 | ADC 세부 구조는 overview 범위 밖 |
+| 3T-1C 4b-4b multiplication | 사용자 자기 설명 확인 | [18]의 transistor equation/timing은 원 논문 필요 |
+| 3T-2C capacitive coupling | overview-level 이해 확인 | [21]/[22] 원 논문으로 truth table·switching deep dive 예정 |
+| NVM device fundamentals | 별도 prerequisite 학습 예정 | ReRAM/MRAM/PCM 동작, LRS/HRS, sensing을 Learning Log로 학습 |
 
 ## 7. Key Idea
 
@@ -156,18 +205,18 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 
 ## 8. Architecture
 
-부분 분석 중 — Section II-B Gain-Cell 첫 문단까지 확인한 범위만 기록한다.
+부분 분석 중 — Section II DRAM-CIM을 완료하고 Section III NVM-CIM 도입부까지 확인한 범위만 기록한다.
 
-- 주요 component: 1T1C DRAM cell array, WL, BL, SA, digital-PIM compute logic, PNM의 memory-near buffer/compute 영역, Gain-Cell의 RBL/WBL
-- Data path: conventional/digital-PIM은 cell → BL/SA sensing → digital data → compute 경로를 유지한다. cell-array-level 1T-1C DRAM-CIM은 multiple rows와 shared BL 또는 capacitor charge sharing을 computation에 활용한다. Gain-Cell은 read path와 write path를 분리해 non-destructive read path를 computing datapath로 사용할 수 있다.
-- Control: multiple-row activation이 Boolean computation에 사용된다. [15]는 weight value에 따른 charge sharing, [16]은 SNN spike 처리에서 integration/firing mapping을 사용한다. Gain-Cell의 세부 4T-2C control은 아직 분석하지 않음.
-- Memory organization: 1T1C DRAM array는 여러 rows가 BL을 공유한다. Gain-Cell은 additional transistor를 사용해 RBL과 WBL을 분리한다.
-- Parallelism: 여러 BL의 bitwise operation, analog charge-sharing operation, SNN cell-column integration이 소개됨.
-- Dataflow: cell array 내부에서 computation을 수행해 외부 이동 data를 줄이며, Gain-Cell은 non-destructive read path를 이용해 frequent SA recovery를 줄이는 방향을 취한다.
+- 주요 component: 1T1C DRAM cell array, WL, BL/RBL/WBL, SA, digital-PIM/PNM compute logic, 2T-1C/4T-2C Gain-Cell, voltage clipper, segmented RBL/transmission gate, reference cell array/ADC reference path, 3T-1C current-based cell, 3T-2C capacitive-coupling cell
+- Data path: conventional/digital-PIM은 cell → BL/SA sensing → digital compute 경로를 유지한다. cell-array-level DRAM-CIM은 shared BL current, charge sharing 또는 segmented BL을 computation/accumulation에 활용한다. 3T-2C는 storage node와 compute voltage domain을 분리하고 cell 내부 1-b multiplication result를 coupling capacitor를 통해 RBL accumulation으로 전달한다.
+- Control: Fig. 2(a)는 64-row parallel current accumulation, Fig. 2(b)는 row parallelism을 제거하고 clipping 후 column charge sharing, Fig. 2(c)는 segmented RBL에서 segment당 한 row를 병렬 activation한 뒤 segment voltages를 charge sharing, Fig. 2(d)는 Q1 current amplitude와 Q2 pulse width를 이용한 4b-4b multiplication, Fig. 2(e)는 digital-domain 1-b multiplication과 capacitive coupling을 사용한다.
+- Memory organization: 1T1C는 shared BL 구조, Gain-Cell은 RBL/WBL 분리, [19]는 RBL segmentation과 reference cell array를 사용한다.
+- Parallelism: multiple-row current accumulation, column charge sharing, segment-level row parallelism이 서로 다른 robustness/parallelism trade-off를 형성한다.
+- Dataflow: 각 cell/row에서 multiplication contribution을 생성하고 BL/RBL에서 current 또는 charge-domain accumulation을 수행한다. reference cell array는 ADC reference voltage를 제공해 common-mode error 영향을 줄인다.
 
 ### Architecture Walkthrough
 
-현재까지 이해한 흐름: conventional DRAM은 선택된 row의 cell signal을 BL/SA로 sensing해 digital data로 읽는다. Digital-PIM은 이 read 이후 computing logic을 수행하고, PNM은 DIMM buffer device와 같은 memory-near 위치에 compute를 둔다. cell-array-level 1T-1C DRAM-CIM은 multiple-row activation을 이용한 bitwise Boolean computation을 수행할 수 있고, 최근 analog approaches에서는 capacitor charge sharing을 이용해 [15]의 multi-bit IA/W MAC 또는 [16]의 SNN integration을 구현한다. [16]의 firing은 SA operation으로 mapping된다. 그러나 1T-1C는 read/computation 시 charge sharing 때문에 destructive read가 발생해 SA recovery가 자주 필요하고 power를 소비한다. Gain-Cell은 RBL과 WBL을 분리하여 non-destructive read path를 computing datapath로 사용하고 SA operation 빈도를 낮추는 대신 1T-1C보다 cell density가 낮아진다. 다음 세션에서 4T-2C Gain-Cell의 구체적인 multiplication/accumulation 구조를 분석한다.
+현재까지의 DRAM-CIM 흐름은 1T1C의 높은 density와 cell-array parallelism을 활용하는 대신 destructive read, leakage/noise, SA overhead와 analog variation이 문제로 등장하고, Gain-Cell 계열이 read/write path 분리와 새로운 computation datapath로 이를 완화하는 방향이다. Fig. 2(a)는 complementary 4T-2C pair가 1-b IA × ternary W를 수행하고 64 rows의 current를 RBL에서 accumulate하지만 process variation에 민감하다. Fig. 2(b)는 self-detect voltage clipping으로 row parallelism을 희생하고 robustness를 높인다. Fig. 2(c)는 RBL segmentation으로 segment마다 한 row를 동시에 계산하고 이후 charge sharing으로 accumulate하여 row parallelism을 일부 회복하며, reference cell array를 ADC reference로 사용해 common-mode leakage/coupling error를 줄인다. Fig. 2(d)는 4b analog weight가 Q1 current magnitude를, 4b IA가 Q2 pulse width를 제어하는 current-time multiplication을 사용하지만 large capacitor, non-linearity와 variation trade-off가 있다. Fig. 2(e)는 capacitive-coupling과 voltage-domain separation을 사용해 storage leakage가 1-b multiplication/accumulation에 직접 영향을 주는 것을 줄이고 큰 storage capacitor 요구를 완화한다. Section III에서는 ReRAM/MRAM/PCM이 resistance state를 사용하는 NVM이라는 도입부까지 읽었으며, device fundamentals를 별도 prerequisite로 학습한 뒤 논문으로 복귀한다.
 
 ## 9. Method
 
@@ -177,7 +226,12 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - [15]는 cell capacitors의 charge sharing으로 IA에 대응하는 analog voltage를 만들고, weight value에 따라 cells 사이의 charge sharing을 수행해 multi-bit IA와 W의 MAC을 구현한다. 구체 circuit은 overview에 충분히 제시되지 않음.
 - [16]은 SNN을 채택하여 scalar IA 대신 spike를 사용하고, cell-column charge sharing으로 integration을, SA operation으로 firing을 구현한다. 구체 threshold circuit은 overview에 충분히 제시되지 않음.
 - 1T-1C read/computation의 destructive read와 frequent SA recovery overhead를 줄이기 위해 Gain-Cell은 RBL과 WBL을 분리하여 non-destructive read path를 computing datapath로 사용한다.
-- 4T-2C Gain-Cell 이후의 구체 multiplication, row/column parallelism, variation mitigation은 아직 분석하지 않음.
+- Fig. 2(a)의 4T-2C complementary pair는 1-b IA와 ternary W multiplication을 수행하고, 64 rows의 current contributions를 병렬 accumulate한다. process variation에 따른 cell current mismatch가 accuracy 문제로 이어질 수 있다.
+- Fig. 2(b)는 row parallelism을 제거하고 각 1-b multiplication 뒤 RBL voltage를 predefined reference voltage로 clipping한 후 column charge sharing으로 accumulation해 leakage/variation 영향을 줄인다.
+- Fig. 2(c)는 RBL을 transmission gate로 여러 row segments로 나누고 segment당 한 row를 동시에 계산한 뒤 segment RBL voltages를 charge sharing한다. [19]는 reference cell array를 ADC reference로 사용해 common-mode leakage/coupling error를 완화한다.
+- Fig. 2(d)는 storage capacitor의 4b analog W가 Q1 current amount를, pulse-width encoded 4b IA가 Q2 turn-on time을 결정하는 current-time multiplication으로 4b-4b operation을 구현한다.
+- Fig. 2(e)는 storage node와 multiplication voltage domain을 분리하고 digital-domain 1-b multiplication result를 capacitive coupling으로 RBL에 전달해 leakage-tolerant computation을 구현한다. exact truth table/switching은 overview 범위 밖이며 [21]/[22] deep dive가 필요하다.
+- Section III 도입부에서 ReRAM, MRAM, PCM이 각각 metal-oxide MIM, MTJ magnetization, chalcogenide phase change를 사용하지만 공통적으로 resistance state로 data를 표현한다는 점까지 읽었다.
 
 ## 10. Experiments
 
@@ -217,6 +271,11 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 | 1T-1C analog charge sharing으로 multi-bit MAC/SNN operation 지원 | overview만으로 [15]/[16]의 구체 circuit mechanism은 완전히 확인할 수 없음 | Section II-A |
 | Gain-Cell의 non-destructive read path로 SA operation 빈도와 power overhead 감소 가능 | 1T-1C보다 낮은 memory density | Section II-B |
 | Gain-Cell DRAM-CIM의 2–4 transistor/cell | 1T-1C의 minimal cell보다 transistor 수 증가 | Section II-B |
+| Fig. 2(a) 64-row current accumulation의 높은 row parallelism | cell-to-cell current mismatch와 process variation이 accumulation error로 직접 반영될 수 있음 | Section II-B, Fig. 2(a) |
+| Fig. 2(b) clipping으로 leakage/variation robustness 향상 | row parallelism을 제거하고 column parallelism만 사용 | Section II-B, Fig. 2(b) |
+| Fig. 2(c) segmented RBL로 row parallelism 일부 회복 | segmented BL, transmission gate, reference array 등 추가 회로/조직 복잡도 | Section II-B, Fig. 2(c) |
+| 3T-1C single-cell 4b W와 4b IA analog multiplication | large storage capacitor로 density 감소, transistor non-linearity/variation으로 accuracy 제한 | Section II-B, Fig. 2(d) |
+| 3T-2C leakage-tolerant capacitive-coupling operation으로 smaller storage capacitor와 higher density 가능 | exact circuit mechanism은 overview에 충분히 설명되지 않아 [21]/[22] reference 확인 필요 | Section II-B, Fig. 2(e) |
 
 ## 13. Limitations
 
@@ -229,6 +288,8 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - Digital-PIM/PNM: cell array에서 직접 computation하지 않고 conventional sensing/read path가 남아 있어 energy/latency improvement가 제한될 수 있음
 - 1T-1C DRAM-CIM: destructive read 때문에 frequent SA recovery가 필요해 considerable power를 소비할 수 있음
 - Gain-Cell: additional transistor와 separated read/write path로 1T-1C보다 density가 낮음
+- 4T-2C current-based row-parallel accumulation: process variation으로 cell current mismatch가 생길 수 있음
+- 3T-1C analog 4b weight storage: large capacitor 요구로 cell density 제한, transistor non-linearity/variation으로 accuracy 제한
 
 ### My Observations
 
@@ -237,6 +298,9 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - cell-array-level DRAM-CIM의 이점은 external bandwidth를 단순히 높이는 것보다, memory array 내부의 병렬성을 computation에 활용해 외부 data movement 요구량을 줄이는 관점으로 이해하는 것이 적절하다.
 - 사용자는 memory-bound NPU에서 MAC utilization이 낮다면 일부 compute area를 on-chip memory capacity에 재배분해 off-chip access를 줄이는 것이 전체 inference throughput을 높일 수도 있다고 architecture-level로 연결했다. 이는 논문의 직접 주장이라기보다 기존 학습과 연결한 사용자 관찰이다.
 - [15], [16]의 overview 문장은 핵심 computation mapping은 보여 주지만 exact capacitor connection, weight-dependent charge-sharing path, SNN firing threshold circuit까지는 충분히 설명하지 않는다. 현재 단계에서는 reference를 모두 따라가지 않고 overview의 design-space map을 먼저 완성하기로 했다.
+- Fig. 2(a)→(b)→(c)는 row parallelism과 analog robustness 사이의 trade-off를 보여 준다: direct current accumulation은 높은 parallelism을 주지만 variation에 민감하고, clipping은 robustness를 높이는 대신 row parallelism을 희생하며, segmented RBL은 segment-level parallelism을 다시 확보한다.
+- Fig. 2(e)의 leakage robustness는 단순히 capacitor를 사용했기 때문이 아니라 storage-node analog voltage가 multiplication magnitude에 직접 연결되지 않도록 storage domain과 compute domain을 분리한 데 핵심이 있다.
+- Fig. 2(e)의 exact transistor truth table, IA/W switching sequence와 coupling mechanism은 overview로 확정할 수 없어 [21] DynaPlasia 원 논문을 확보한 뒤 별도 deep dive하기로 했다.
 
 ## 14. Questions
 
@@ -254,6 +318,11 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - SNN의 spike, integrate-and-firing과 [16]의 cell-column charge sharing / SA mapping을 확인했다.
 - 1T-1C destructive read와 Gain-Cell의 RBL/WBL separation, SA recovery overhead 관계를 확인했다.
 - Section II-B의 “computation”은 일반 DRAM의 새로운 memory primitive가 아니라 DRAM-CIM computation을 뜻함을 확인했다.
+- 4T-2C의 signed representation은 일반 binary sign-bit가 아니라 complementary gain-cell pair를 이용한 signed weight 표현임을 확인했다.
+- 1-b IA와 ternary W, 4-bit=16 levels의 의미를 수정·확인했다.
+- Fig. 2(a) current accumulation과 process variation mismatch, Fig. 2(b) voltage clipping, Fig. 2(c) segmented RBL 및 common-mode/reference array의 역할을 확인했다.
+- Fig. 2(d)의 Q1 current amplitude × Q2 pulse duration으로 4b-4b multiplication이 표현되는 직관을 확인했다.
+- Fig. 2(e)의 capacitive coupling, storage/compute voltage-domain separation과 leakage-tolerant computing의 overview-level 의미를 확인했다.
 
 ### 비판적 질문
 
@@ -264,13 +333,14 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 
 - memory-bound AI accelerator에서 compute area와 on-chip memory area를 어떻게 배분해야 utilization/throughput/energy가 최적화되는가? 논문의 직접 범위를 넘어선 사용자 연결 질문으로 보존한다.
 - [15]/[16] 같은 analog/SNN DRAM-CIM에서 charge sharing의 정확도와 leakage/noise robustness가 실제 multi-bit computation에 어떤 제약을 주는지 원 논문 deep-dive 후보로 보존한다.
+- [21] DynaPlasia 원 논문을 확보한 뒤 Fig. 2(e) 3T-2C cell의 transistor/capacitor 역할, IA/W 입력 위치, truth table, switching sequence, storage/compute-domain separation, coupling capacitor의 ΔV/ΔQ 전달과 leakage-tolerant mechanism을 transistor-level로 분석한다.
 
 ## 15. Connection to My Research Interest
 
 부분 분석 중.
 
 - 흥미로운 점: memory hierarchy에서 단순히 external bandwidth를 높이는 것뿐 아니라 cell-array internal parallelism과 charge sharing을 computation에 활용해 data movement 자체를 줄일 수 있다는 점
-- 더 탐구하고 싶은 부분: multiple-row activation의 Boolean sensing mechanism, analog charge-sharing MAC/SNN integration, Gain-Cell의 non-destructive computing datapath와 leakage/noise robustness
+- 더 탐구하고 싶은 부분: multiple-row activation의 Boolean sensing mechanism, analog charge-sharing MAC/SNN integration, Gain-Cell의 non-destructive computing datapath와 leakage/noise robustness, [21] DynaPlasia 3T-2C의 transistor-level capacitive-coupling truth table
 - 다른 논문과의 연결: 기존 memory-wall, analog/digital CIM, tiling/Roofline 학습에서 다룬 data movement와 memory-bound/utilization 개념과 연결됨
 - 가능한 research direction: compute-resource와 on-chip memory capacity/bandwidth의 area allocation trade-off, DRAM-CIM의 robustness-aware circuit/architecture 설계, destructive-read/SA-overhead와 density의 trade-off
 
@@ -288,7 +358,7 @@ DRAM/NVM의 memory 특성을 CIM에 활용하되 각 technology의 circuit chall
 
 ### Architecture
 
-현재까지 1T1C DRAM array의 shared BL, WL multiple activation, SA/conventional read path, digital-PIM/PNM과 cell-array-level CIM의 위치 차이를 분석했다. 또한 [15]의 charge-sharing multi-bit MAC, [16]의 SNN integration/firing mapping, Gain-Cell의 RBL/WBL separation과 non-destructive read path까지 확인했다. 4T-2C Gain-Cell의 구체 회로는 아직 분석하지 않음.
+현재까지 1T1C DRAM array의 shared BL, WL multiple activation, SA/conventional read path, digital-PIM/PNM과 cell-array-level CIM의 위치 차이를 분석했다. 또한 [15]의 charge-sharing multi-bit MAC, [16]의 SNN integration/firing mapping, Gain-Cell의 RBL/WBL separation과 non-destructive read path를 확인했다. Fig. 2(a) 4T-2C current-based row-parallel accumulation, Fig. 2(b) voltage clipping, Fig. 2(c) segmented RBL/reference array, Fig. 2(d) 3T-1C 4b-4b current-time multiplication, Fig. 2(e) 3T-2C capacitive-coupling/leakage-tolerant operation까지 overview-level로 분석했다. Section III NVM-CIM은 ReRAM/MRAM/PCM resistance-storage mechanism 도입부까지 읽었다.
 
 ### Main Result
 
@@ -296,7 +366,7 @@ DRAM/NVM의 memory 특성을 CIM에 활용하되 각 technology의 circuit chall
 
 ### Main Trade-off
 
-cell array에 computation을 더 가까이 가져갈수록 conventional data movement를 줄이고 internal parallelism을 활용할 가능성이 커지지만, 1T-1C에서는 leakage/noise와 destructive read/frequent SA recovery가 문제가 될 수 있다. Gain-Cell은 SA overhead를 줄이는 대신 1T-1C보다 density를 희생한다.
+cell array에 computation을 더 가까이 가져갈수록 conventional data movement와 SA overhead를 줄이고 internal parallelism을 활용할 수 있지만, analog current/charge-domain computation에서는 variation, leakage, non-linearity와 density trade-off가 생긴다. Fig. 2(a)는 높은 row parallelism 대신 current mismatch에 민감하고, Fig. 2(b)는 clipping robustness 대신 row parallelism을 희생하며, Fig. 2(c)는 segmented BL로 이를 절충한다. Fig. 2(d)는 4b-4b functionality 대신 large capacitor와 analog accuracy cost가 있고, Fig. 2(e)는 voltage-domain separation/capacitive coupling으로 leakage tolerance와 density를 개선한다.
 
 ### Limitation
 
@@ -304,7 +374,7 @@ cell array에 computation을 더 가까이 가져갈수록 conventional data mov
 
 ### 내가 기억할 한 문장
 
-DRAM-CIM은 1T-1C의 높은 density와 charge/BL 병렬성을 직접 계산에 활용할 수 있지만 destructive read와 SA overhead가 생기며, Gain-Cell은 read/write path를 분리해 이 문제를 줄이는 대신 density를 희생한다.
+DRAM-CIM은 cell/BL 내부 병렬성을 이용해 data movement를 줄일 수 있지만 destructive read, leakage, variation과 non-linearity가 새 bottleneck이 되며, Gain-Cell 계열은 clipping, segmented BL, current-time multiplication, capacitive coupling과 voltage-domain separation으로 parallelism·accuracy·density 사이의 trade-off를 설계한다.
 
 ## 17. Reading Session History
 
@@ -323,6 +393,15 @@ DRAM-CIM은 1T-1C의 높은 density와 charge/BL 병렬성을 직접 계산에 �
 - 새롭게 발생한 질문: [15]에서 exact weight-dependent charge-sharing circuit이 어떻게 구현되는지, SNN의 integrate-and-firing이 무엇인지, cell column이 무엇인지, [16]의 exact firing threshold circuit이 어떻게 구현되는지, DRAM-CIM 문맥의 computation이 무엇을 뜻하는지.
 - Bridge 변화: analog DRAM-CIM/charge sharing은 문답으로 수정·확인, SNN integrate-and-firing은 사용자 자기 설명으로 확인, cell column과 destructive read/Gain-Cell은 문답 및 사용자 설명으로 확인. exact [15]/[16] circuit은 overview 범위 밖으로 남기고 별도 Learning Log로 승격하지 않음. DRAM internal bandwidth의 evidence 상태를 “사용자 설명으로 확인”에서 “문답으로 수정·확인”으로 엄밀하게 수정.
 - 종료 당시 Resume Point: Section II-B Gain-Cell DRAM, PDF page 2 — “The 4T-2C cell proposed in [20] is a pair of 2T-1C gain-cells…” 문장부터 Fig. 2(a)와 함께 재개.
+
+
+### 2026-08-30
+
+- 읽은 범위: Section II-B Gain-Cell DRAM의 Fig. 2(a)~(e) 전체와 Section III NVM-CIM 도입부의 ReRAM/MRAM/PCM resistance-storage mechanism 소개 문장까지.
+- 이해한 내용: 4T-2C complementary pair의 1-b IA × ternary W, Q1 driving transistor와 64-row current accumulation, process-variation current mismatch, Fig. 2(b) voltage clipping과 column-only charge sharing, Fig. 2(c) segmented RBL/segment-level row parallelism 및 reference cell array의 common-mode error cancellation, Fig. 2(d) 4b analog W × 4b pulse-width IA의 current-time multiplication과 capacitor-size/non-linearity trade-off, Fig. 2(e) storage/compute voltage-domain separation과 capacitive-coupling 기반 leakage-tolerant operation을 문답과 자기 설명으로 확인했다.
+- 새롭게 발생한 질문: Fig. 2(e)의 exact 3T-2C transistor truth table, IA/W 입력과 switching sequence, coupling capacitor의 실제 ΔV/ΔQ 전달 방식과 leakage-tolerant mechanism을 [21] DynaPlasia 원 논문에서 transistor-level로 확인하고 싶다. Section III를 읽기 위해 ReRAM/MRAM/PCM의 MIM/MTJ/phase-change 구조, LRS/HRS와 sensing에 대한 NVM fundamentals 학습이 필요하다고 판단했다.
+- Bridge 변화: Fig. 2(a)~(e) 관련 개념은 논문 안에서 overview-level prerequisite로 해결·확인했다. NVM fundamentals는 별도 Learning Log로 학습하기로 사용자와 결정했으나 아직 실제 Learning Log가 생성되지 않았으므로 이번 checkpoint에는 studying Bridge로 연결하지 않는다.
+- 종료 당시 Resume Point: Section III. NVM-CIM, PDF page 3 — ReRAM/MRAM/PCM이 resistance state를 이용한다는 도입 문장까지 읽음. 다음 논문 문장은 “NVM brings unique advantages to CIM, non-volatility...”이며, 그 전에 별도 NVM fundamentals 학습을 진행한다.
 
 ## 사용자 분석 근거
 
@@ -365,3 +444,21 @@ DRAM-CIM은 1T-1C의 높은 density와 charge/BL 병렬성을 직접 계산에 �
 > “1T-1C cell은 오직 single-bit line로 read,write operation을 구현한다 ... read, computing 할 때 cell에 저장된 charge가 destroyed ... SA operation을 통해 다시 DRAM cell에 값을 recover ... gain-cell structure는 RBL과 WBL을 추가의 transistor를 사용하여 분리 ... non-destructive read path ... SA operation의 빈도를 낮춤 ... 1T-1C cell 보다는 memory density가 낮다.”
 
 > “그 전에, DRAM에서 computation 과정이 의미하는게 무엇이야? ... DRAM-CIM에서의 특성을 말하고 있는 것인가?”
+
+> “64개의 cell에서 병렬로 IA, W의 곱 연산을 해서 BL에서 accumulate 하는 과정에서, 각각의 cell에서 나오는 current의 양이 일정하지 않기에 ... BL에서 다 더해버리면 분명 오류가 발생할 것” — Fig. 2(a) current mismatch의 accumulation error를 자기 언어로 설명함.
+
+> “reference cell array가 있다면 Vsignal과 Vref를 비교하여 ADC를 적용하기 때문에 오류의 영향이 줄어듬 ... Vsignal, Vreference 모두 같은 error가 발생하였고, 이 값을 서로 비교하면 ... error를 소거할 수 있기 때문에” — common-mode error와 reference voltage의 역할을 자기 설명으로 확인함.
+
+> “IA를 더 큰 값으로 바꾸면 IA의 pulse가 더 길어진다 ... Q2가 active되는 시간이 늘어난다 ... BL에 더 많은 charge가 흐르게 된다. 따라서 BL은 multiplication 결과를 더 크게 인식한다.” — Fig. 2(d)의 pulse-width IA와 current-time multiplication을 자기 설명함.
+
+> “1개의 bit는 0/1로 구분되니깐 2bit weight는 4개의 서로 다른 값, 4bit weight는 16개의 서로 다른 값을 표현할 수 있고, Q1이 4bit weight를 구분하려면 총 16개의 전류 ... 를 구분할 수 있어야 한다” — 4-bit와 16 distinguishable levels의 관계를 수정 후 자기 설명함.
+
+> “하나의 capacitor에 많은 bit를 저장해야 하기 때문에, 4bit라면 16개의 상태를 capacitor에서 구분할 수 있어야 함 ... capacitor size를 키워서 이러한 오류를 줄여야함.” — 4b analog storage와 capacitor-size/density trade-off를 자기 설명함.
+
+> “multiplication은 weight가 저장되어 있는 capacitor 오른쪽에 있는 CMOS에서 발생함 ... 이 값이 capacitor를 통해 RBL에 전달됨 ... RBL에서는 여러 다른 cell에서의 결과를 accumulation함.” — Fig. 2(e)의 in-cell multiplication과 RBL accumulation을 구분했으며, 이후 leakage robustness의 원인을 voltage-domain separation으로 수정함.
+
+> “기존에는 storage voltage를 통해 발생된 current를 직접적으로 연산에 사용하여 storage voltage에서 leakage가 발생하면 ... 연산값에 오류를 일으켰다. 그러나 figure2(e)에서는 storage domain과 compute domain을 분리했다.” — leakage-tolerant computing의 핵심을 storage/compute-domain separation으로 자기 설명함.
+
+> “fig2(e)의 회로적 특징도 궁금함. truth table이 어떤식으로 작용되는지, 회로적으로 어떻게 구현되는지 궁금해 reference에 적힌 논문을 읽고 ... 설명해줄 수 있니?” — [21] DynaPlasia 원 논문 확보 후 transistor-level deep dive 후보로 보존함.
+
+> “NVM에 대한 기본적인 학습이 필요하다고 생각하니? 그러면 새로운 학습 세션을 통해 NVM의 동작원리나 기본적인 특징등을 학습하는 것을 도와줘” — Section III 진행 전 ReRAM/MRAM/PCM fundamentals를 별도 Learning Log로 학습하기로 결정함.
