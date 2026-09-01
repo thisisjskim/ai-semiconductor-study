@@ -9,8 +9,8 @@
 - Authors: Sangjin Kim, Hoi-Jun Yoo
 - Paper link: https://doi.org/10.1109/TCSII.2023.3333851
 - Started: 2026-08-28
-- Checkpoint recorded at: 2026-08-30T07:24:35Z
-- Related notes: learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md; learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md
+- Checkpoint recorded at: 2026-09-01T13:03:01Z
+- Related notes: learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md; learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md; learning-logs/2026/08/2026-08-30-nvm-fundamentals.md
 
 ## 1. Citation
 
@@ -18,7 +18,7 @@ S. Kim and H.-J. Yoo, “An Overview of Computing-in-Memory Circuits With DRAM a
 
 ## 2. Reading Checkpoint
 
-- Resume Point: Section III. NVM-CIM, PDF page 3 — ReRAM, MRAM, PCM이 cell data를 resistance로 표현하며 각각 metal-oxide ReRAM, MTJ-based MRAM, chalcogenide phase-change PCM을 사용한다는 도입 문장까지 읽음. 다음 논문 읽기는 “NVM brings unique advantages to CIM, non-volatility...” 문장부터 재개한다. 다만 그 전에 ReRAM/MRAM/PCM의 device-level 동작, LRS/HRS와 sensing을 별도 prerequisite Learning Log로 학습하기로 결정했으며, 해당 Log가 실제 저장되기 전까지 Paper Note에는 studying Bridge로 연결하지 않는다.
+- Resume Point: Section V. Conclusion, PDF page 5까지 전체 reading 완료. 이 overview paper의 본문 분석은 종료했다. 다음 선택적 deep dive는 [21] DynaPlasia 원 논문을 확보해 Fig. 2(e) 3T-2C의 transistor/capacitor 역할, IA/W truth table, switching sequence와 coupling capacitor의 ΔV/ΔQ 전달을 transistor-level로 확인하거나, roadmap의 후속 paper comparison으로 진행한다.
 
 ## 3. Prerequisite Bridge
 
@@ -152,7 +152,13 @@ S. Kim and H.-J. Yoo, “An Overview of Computing-in-Memory Circuits With DRAM a
 
 ### 별도로 이어가는 선수지식
 
-없음.
+#### NVM Fundamentals — ReRAM, MRAM, PCM과 NVM-CIM
+
+- Status: sufficient-for-paper
+- 논문에서 필요한 이유: Section III의 ReRAM/MRAM/PCM resistance-state storage, LRS/HRS, conductance-based multiplication, NVM-CIM의 low signal margin과 nonlinearity를 이해하기 위해 필요했다.
+- 이 논문에 충분한 기준: ReRAM/MRAM/PCM의 물리적 저장 mechanism 차이와 공통적인 resistance-state sensing을 설명하고, G=1/R 및 I=VG에서 activation을 voltage, weight를 conductance에 대응시켜 NVM-CIM multiplication/MAC과 연결할 수 있다.
+- Learning Logs:
+  - learning-logs/2026/08/2026-08-30-nvm-fundamentals.md
 
 ## 4. Problem
 
@@ -195,28 +201,26 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 | Common-mode / reference cell array | 사용자 자기 설명 확인 | ADC 세부 구조는 overview 범위 밖 |
 | 3T-1C 4b-4b multiplication | 사용자 자기 설명 확인 | [18]의 transistor equation/timing은 원 논문 필요 |
 | 3T-2C capacitive coupling | overview-level 이해 확인 | [21]/[22] 원 논문으로 truth table·switching deep dive 예정 |
-| NVM device fundamentals | 별도 prerequisite 학습 예정 | ReRAM/MRAM/PCM 동작, LRS/HRS, sensing을 Learning Log로 학습 |
+| NVM device fundamentals | 별도 Learning Log 학습 완료, 논문 읽기에 충분 | learning-logs/2026/08/2026-08-30-nvm-fundamentals.md와 Section III circuit examples 연결 완료 |
 
 ## 7. Key Idea
 
-부분 분석 중.
-
-> 한 문장 요약: DRAM/NVM은 SRAM-CIM의 일부 한계를 보완할 수 있지만 각 memory의 비이상성이 새로운 CIM challenge를 만들며, DRAM-CIM은 1T-1C의 cell/BL 병렬성·charge sharing을 computation에 직접 활용하거나 Gain-Cell의 분리된 read path를 이용해 data movement와 SA overhead를 줄이는 방향으로 발전한다.
+> 한 문장 요약: SRAM-CIM의 area/weight-density/volatility 한계를 보완하기 위해 DRAM과 NVM을 CIM에 활용하되, DRAM의 leakage/refresh와 NVM의 nonlinearity/low signal margin/write overhead를 회로·데이터패스·hybrid architecture로 완화하면서 accuracy, density, throughput과 energy efficiency 사이를 설계하는 것이 이 overview의 핵심이다.
 
 ## 8. Architecture
 
-부분 분석 중 — Section II DRAM-CIM을 완료하고 Section III NVM-CIM 도입부까지 확인한 범위만 기록한다.
+전체 overview reading 완료. Section II DRAM-CIM과 Section III NVM-CIM의 대표 circuit/data-path design space를 함께 기록한다.
 
-- 주요 component: 1T1C DRAM cell array, WL, BL/RBL/WBL, SA, digital-PIM/PNM compute logic, 2T-1C/4T-2C Gain-Cell, voltage clipper, segmented RBL/transmission gate, reference cell array/ADC reference path, 3T-1C current-based cell, 3T-2C capacitive-coupling cell
+- 주요 component: 1T1C DRAM cell array, WL, BL/RBL/WBL, SA, digital-PIM/PNM compute logic, 2T-1C/4T-2C Gain-Cell, voltage clipper, segmented RBL/transmission gate, reference cell array/ADC reference path, 3T-1C current-based cell, 3T-2C capacitive-coupling cell, ReRAM/MRAM/PCM resistance cells, complementary NVM cell, Flash/SAR ADC, VTC/TDC, SLC/MLC hybrid array와 NMC compute unit
 - Data path: conventional/digital-PIM은 cell → BL/SA sensing → digital compute 경로를 유지한다. cell-array-level DRAM-CIM은 shared BL current, charge sharing 또는 segmented BL을 computation/accumulation에 활용한다. 3T-2C는 storage node와 compute voltage domain을 분리하고 cell 내부 1-b multiplication result를 coupling capacitor를 통해 RBL accumulation으로 전달한다.
 - Control: Fig. 2(a)는 64-row parallel current accumulation, Fig. 2(b)는 row parallelism을 제거하고 clipping 후 column charge sharing, Fig. 2(c)는 segmented RBL에서 segment당 한 row를 병렬 activation한 뒤 segment voltages를 charge sharing, Fig. 2(d)는 Q1 current amplitude와 Q2 pulse width를 이용한 4b-4b multiplication, Fig. 2(e)는 digital-domain 1-b multiplication과 capacitive coupling을 사용한다.
 - Memory organization: 1T1C는 shared BL 구조, Gain-Cell은 RBL/WBL 분리, [19]는 RBL segmentation과 reference cell array를 사용한다.
 - Parallelism: multiple-row current accumulation, column charge sharing, segment-level row parallelism이 서로 다른 robustness/parallelism trade-off를 형성한다.
-- Dataflow: 각 cell/row에서 multiplication contribution을 생성하고 BL/RBL에서 current 또는 charge-domain accumulation을 수행한다. reference cell array는 ADC reference voltage를 제공해 common-mode error 영향을 줄인다.
+- Dataflow: DRAM-CIM은 각 cell/row의 multiplication contribution을 BL/RBL current 또는 charge-domain에서 accumulate한다. NVM-CIM은 cell conductance G와 input voltage V에 의해 생성된 current contribution을 column에서 합산해 MVM/MAC을 구성하고, architecture에 따라 BL voltage sensing, differential sensing, discharge-time sensing 또는 NMC peripheral compute로 결과를 읽는다.
 
 ### Architecture Walkthrough
 
-현재까지의 DRAM-CIM 흐름은 1T1C의 높은 density와 cell-array parallelism을 활용하는 대신 destructive read, leakage/noise, SA overhead와 analog variation이 문제로 등장하고, Gain-Cell 계열이 read/write path 분리와 새로운 computation datapath로 이를 완화하는 방향이다. Fig. 2(a)는 complementary 4T-2C pair가 1-b IA × ternary W를 수행하고 64 rows의 current를 RBL에서 accumulate하지만 process variation에 민감하다. Fig. 2(b)는 self-detect voltage clipping으로 row parallelism을 희생하고 robustness를 높인다. Fig. 2(c)는 RBL segmentation으로 segment마다 한 row를 동시에 계산하고 이후 charge sharing으로 accumulate하여 row parallelism을 일부 회복하며, reference cell array를 ADC reference로 사용해 common-mode leakage/coupling error를 줄인다. Fig. 2(d)는 4b analog weight가 Q1 current magnitude를, 4b IA가 Q2 pulse width를 제어하는 current-time multiplication을 사용하지만 large capacitor, non-linearity와 variation trade-off가 있다. Fig. 2(e)는 capacitive-coupling과 voltage-domain separation을 사용해 storage leakage가 1-b multiplication/accumulation에 직접 영향을 주는 것을 줄이고 큰 storage capacitor 요구를 완화한다. Section III에서는 ReRAM/MRAM/PCM이 resistance state를 사용하는 NVM이라는 도입부까지 읽었으며, device fundamentals를 별도 prerequisite로 학습한 뒤 논문으로 복귀한다.
+현재까지의 DRAM-CIM 흐름은 1T1C의 높은 density와 cell-array parallelism을 활용하는 대신 destructive read, leakage/noise, SA overhead와 analog variation이 문제로 등장하고, Gain-Cell 계열이 read/write path 분리와 새로운 computation datapath로 이를 완화하는 방향이다. Fig. 2(a)는 complementary 4T-2C pair가 1-b IA × ternary W를 수행하고 64 rows의 current를 RBL에서 accumulate하지만 process variation에 민감하다. Fig. 2(b)는 self-detect voltage clipping으로 row parallelism을 희생하고 robustness를 높인다. Fig. 2(c)는 RBL segmentation으로 segment마다 한 row를 동시에 계산하고 이후 charge sharing으로 accumulate하여 row parallelism을 일부 회복하며, reference cell array를 ADC reference로 사용해 common-mode leakage/coupling error를 줄인다. Fig. 2(d)는 4b analog weight가 Q1 current magnitude를, 4b IA가 Q2 pulse width를 제어하는 current-time multiplication을 사용하지만 large capacitor, non-linearity와 variation trade-off가 있다. Fig. 2(e)는 capacitive-coupling과 voltage-domain separation을 사용해 storage leakage가 1-b multiplication/accumulation에 직접 영향을 주는 것을 줄이고 큰 storage capacitor 요구를 완화한다. Section III에서는 NVM resistance/conductance를 computation primitive로 사용하는 구조를 분석했다. XNOR-RRAM/MRAM은 complementary cell과 current/voltage sensing을 사용하며, nonlinear BL transfer에는 [26]의 nonlinear-reference Flash ADC가 사용된다. [29]의 4T-4R dual complementary coding은 BL/BLB differential output을 이용해 voltage transfer의 linearity를 높여 SAR ADC sensing을 가능하게 하고, 4T-4R과 two 2T-2R mode를 accuracy/efficiency 요구에 따라 reconfigure한다. [23]은 BL parasitic capacitor를 precharge한 뒤 computation current에 따른 discharge latency를 sensing하는 time-space readout으로 DC-current-free operation을 구현한다. [24]/[25]는 SLC/MLC hybrid로 signal margin과 density/efficiency를 절충하고, [25]는 CIM과 NMC를 한 macro에서 선택해 accuracy와 throughput/efficiency를 trade-off한다.
 
 ## 9. Method
 
@@ -231,28 +235,34 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - Fig. 2(c)는 RBL을 transmission gate로 여러 row segments로 나누고 segment당 한 row를 동시에 계산한 뒤 segment RBL voltages를 charge sharing한다. [19]는 reference cell array를 ADC reference로 사용해 common-mode leakage/coupling error를 완화한다.
 - Fig. 2(d)는 storage capacitor의 4b analog W가 Q1 current amount를, pulse-width encoded 4b IA가 Q2 turn-on time을 결정하는 current-time multiplication으로 4b-4b operation을 구현한다.
 - Fig. 2(e)는 storage node와 multiplication voltage domain을 분리하고 digital-domain 1-b multiplication result를 capacitive coupling으로 RBL에 전달해 leakage-tolerant computation을 구현한다. exact truth table/switching은 overview 범위 밖이며 [21]/[22] deep dive가 필요하다.
-- Section III 도입부에서 ReRAM, MRAM, PCM이 각각 metal-oxide MIM, MTJ magnetization, chalcogenide phase change를 사용하지만 공통적으로 resistance state로 data를 표현한다는 점까지 읽었다.
+- ReRAM, MRAM, PCM은 물리 mechanism은 다르지만 resistance/conductance state로 data를 표현하며, NVM-CIM에서는 G=1/R와 I=VG를 이용해 activation voltage와 stored conductance의 곱을 current contribution으로 만든다.
+- [26]의 XNOR-RRAM은 PU transistor와 cell resistance의 voltage division으로 BL voltage를 만들지만 non-ideal resistance로 nonlinear transfer가 생겨 nonlinear reference를 쓰는 Flash ADC로 linear quantization한다.
+- [27]은 1-b input vector와 4-b matrix의 MRAM-CIM에서 4-column current output을 current combiner로 한 ADC에 공급하며, [28]은 refined bit-cell로 XNOR readout margin을 높인다. exact multi-bit weighting/current-combining circuit은 overview만으로 확정하지 않는다.
+- [29]의 4T-4R dual complementary coding은 complementary WL/BL을 이용해 BL/BLB의 differential voltage를 더 선형적으로 만들고 SAR ADC sensing을 가능하게 한다. 4T-4R은 higher-accuracy mode, two 2T-2R은 higher-efficiency/lower-accuracy mode로 reconfigure할 수 있다.
+- [23]의 time-space readout은 BL parasitic capacitor를 precharge하고 computation current로 discharge한 latency를 VTC/TDC 계열에서 sensing해 DC-current-free operation과 higher efficiency를 얻는다.
+- [24]는 8-bit weight의 upper 2-bit를 SLC에 저장해 signal margin을 확보하고 lower 6-bit를 MLC에 저장해 efficiency를 높인다. [25]는 MLC에 저장하는 bit 수를 0/2/4/6/8 bit로 reconfigure하고 CIM/NMC mode를 accuracy requirement에 따라 선택한다.
+- NVM-NMC는 multiple-row activation을 제거하고 cell array 주변/아래의 computing unit에서 연산해 computation accuracy를 높이는 대신 throughput과 efficiency를 희생한다.
 
 ## 10. Experiments
 
-아직 분석하지 않음.
+이 논문은 새로운 단일 hardware implementation의 실험 결과를 제시하는 논문이 아니라 기존 DRAM/NVM-CIM 연구를 정리한 tutorial/overview이므로 통합된 baseline, workload, dataset, hardware configuration 또는 measurement methodology가 없다. 각 cited work의 정량 결과는 Table I/II와 references에 분산되어 있으며 이번 reading에서는 개별 수치를 재검증하지 않았다.
 
-- Baseline: 아직 분석하지 않음
-- Workloads / Models: 아직 분석하지 않음
-- Dataset: 아직 분석하지 않음
-- Hardware configuration: 아직 분석하지 않음
-- Metrics: 아직 분석하지 않음
-- Simulation / Measurement methodology: 아직 분석하지 않음
+- Baseline: 통합 baseline 없음
+- Workloads / Models: cited works별로 다름; overview 수준에서 NN inference를 중심으로 비교
+- Dataset: 통합 dataset 없음
+- Hardware configuration: cited works별 DRAM/NVM-CIM macro
+- Metrics: density, energy/efficiency, throughput, accuracy/signal margin 등 design trade-off 중심
+- Simulation / Measurement methodology: cited original works를 따라야 하며 overview 자체의 신규 measurement는 없음
 
 ## 11. Results
 
-아직 분석하지 않음.
+이 overview의 main result는 하나의 새로운 정량 성능 수치가 아니라 DRAM/NVM-CIM의 circuit design space와 challenge/solution map을 정리한 것이다.
 
-- Performance: 아직 분석하지 않음
-- Energy / Efficiency: 아직 분석하지 않음
-- Area / Cost: 아직 분석하지 않음
-- Accuracy: 아직 분석하지 않음
-- Other: 아직 분석하지 않음
+- Performance: 높은 cell/row/column parallelism을 활용하는 CIM과 accuracy를 우선하는 NMC/reconfigured mode 사이의 trade-off를 정리한다.
+- Energy / Efficiency: DRAM cell-array computation, NVM time-space readout, MLC hybrid와 CIM mode가 data movement/DC current/peripheral overhead를 줄이는 방향을 보여 준다.
+- Area / Cost: standard/high-density memory cell을 유지하는 것과 custom CIM cell/peripheral compute 기능 사이의 density·area trade-off가 핵심이다.
+- Accuracy: clipping, reference array, complementary coding, differential sensing, SLC/MLC hybrid와 NMC mode가 leakage/variation/nonlinearity/low signal margin을 완화한다.
+- Other: process compatibility, DRAM refresh control, NVM write/programming overhead가 scale-up의 주요 future challenge로 남는다.
 
 ## 12. Trade-offs
 
@@ -276,6 +286,11 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 | Fig. 2(c) segmented RBL로 row parallelism 일부 회복 | segmented BL, transmission gate, reference array 등 추가 회로/조직 복잡도 | Section II-B, Fig. 2(c) |
 | 3T-1C single-cell 4b W와 4b IA analog multiplication | large storage capacitor로 density 감소, transistor non-linearity/variation으로 accuracy 제한 | Section II-B, Fig. 2(d) |
 | 3T-2C leakage-tolerant capacitive-coupling operation으로 smaller storage capacitor와 higher density 가능 | exact circuit mechanism은 overview에 충분히 설명되지 않아 [21]/[22] reference 확인 필요 | Section II-B, Fig. 2(e) |
+| Nonlinear-reference Flash ADC로 nonlinear BL transfer를 linear quantization code에 mapping | reference threshold generation과 ADC peripheral cost가 필요 | Section III-A, [26] |
+| 4T-4R dual complementary coding으로 differential output linearity와 readout margin 개선 | 4T-4R mode는 cell/resource cost가 증가하며 2T-2R mode 대비 efficiency를 희생 | Section III-A, [29] |
+| Time-space readout으로 DC-current-free operation과 higher efficiency | BL discharge latency/VTC/TDC 기반 sensing path가 필요 | Section III-B, [23] |
+| SLC/MLC hybrid로 signal margin과 weight density/efficiency를 절충 | MLC bit 비중이 커질수록 signal margin/accuracy 부담 증가 | Section III-C, [24], [25] |
+| NMC mode로 multiple-row analog accumulation을 피하고 accurate computation | throughput과 efficiency 희생 | Section III-C, [25] |
 
 ## 13. Limitations
 
@@ -290,6 +305,11 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - Gain-Cell: additional transistor와 separated read/write path로 1T-1C보다 density가 낮음
 - 4T-2C current-based row-parallel accumulation: process variation으로 cell current mismatch가 생길 수 있음
 - 3T-1C analog 4b weight storage: large capacitor 요구로 cell density 제한, transistor non-linearity/variation으로 accuracy 제한
+- NVM-CIM: static current, nonlinear voltage characteristics와 limited sensing margin
+- NVM process limitation: ReRAM/MRAM/PCM 등 memory type에 따라 가능한 fabrication process가 제한되고 eDRAM/DRAM-CIM circuit이 서로 다른 process에 그대로 이식되기 어려울 수 있음
+- Custom CIM cell: in-fab standard cell array보다 density가 낮아질 수 있음
+- DRAM refresh: energy와 throughput overhead, large-scale에서 computation/memory access와 refresh scheduling/control 복잡도
+- NVM write: high voltage/high latency, 경우에 따라 iterative write-read-verify와 multiple voltage sources 또는 pulse-width modulation 필요
 
 ### My Observations
 
@@ -301,6 +321,9 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - Fig. 2(a)→(b)→(c)는 row parallelism과 analog robustness 사이의 trade-off를 보여 준다: direct current accumulation은 높은 parallelism을 주지만 variation에 민감하고, clipping은 robustness를 높이는 대신 row parallelism을 희생하며, segmented RBL은 segment-level parallelism을 다시 확보한다.
 - Fig. 2(e)의 leakage robustness는 단순히 capacitor를 사용했기 때문이 아니라 storage-node analog voltage가 multiplication magnitude에 직접 연결되지 않도록 storage domain과 compute domain을 분리한 데 핵심이 있다.
 - Fig. 2(e)의 exact transistor truth table, IA/W switching sequence와 coupling mechanism은 overview로 확정할 수 없어 [21] DynaPlasia 원 논문을 확보한 뒤 별도 deep dive하기로 했다.
+- NVM-CIM에서는 같은 G-based multiplication이라도 voltage-domain sensing, current/differential sensing, time-domain sensing, SLC/MLC hybrid와 NMC mode로 accuracy/efficiency trade-off를 서로 다르게 설계할 수 있음을 확인했다.
+- Section IV의 “process limitation”은 computation process가 아니라 semiconductor fabrication/manufacturing process limitation임을 수정·확인했다.
+- Future direction은 custom CIM cell만 확장하기보다 standard high-density bit-cell을 유지하고 peripheral 또는 cell+peripheral compute를 결합하거나, SRAM/digital architecture와 hybrid화하고 algorithm/compiler와 hardware를 co-design하는 방향까지 포함한다.
 
 ## 14. Questions
 
@@ -323,6 +346,13 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 - Fig. 2(a) current accumulation과 process variation mismatch, Fig. 2(b) voltage clipping, Fig. 2(c) segmented RBL 및 common-mode/reference array의 역할을 확인했다.
 - Fig. 2(d)의 Q1 current amplitude × Q2 pulse duration으로 4b-4b multiplication이 표현되는 직관을 확인했다.
 - Fig. 2(e)의 capacitive coupling, storage/compute voltage-domain separation과 leakage-tolerant computing의 overview-level 의미를 확인했다.
+- MVM은 matrix의 각 dot product를 병렬로 수행하는 연산이며, NVM-CIM에서 G를 weight, V를 IA로 대응시키고 column current summation으로 MAC/MVM을 구현하는 연결을 확인했다.
+- PU transistor와 cell resistance의 voltage division, nonlinear BL transfer function과 nonlinear-reference Flash ADC의 역할을 확인했다.
+- 4T-4R dual complementary coding의 BL/BLB differential sensing과 SAR ADC 사용 가능성, 4T-4R↔2T-2R reconfiguration의 accuracy-efficiency trade-off를 확인했다.
+- Time-space readout에서 BL parasitic capacitance precharge, computation current에 따른 discharge time과 TDC sensing을 확인했다.
+- SLC/MLC hybrid에서 [24]의 upper 2-bit SLC + lower 6-bit MLC와 [25]의 0/2/4/6/8-bit MLC reconfiguration을 확인했다.
+- NMC의 multiple-row activation 제거와 peripheral computing unit 배치, accuracy 대 throughput/efficiency trade-off를 확인했다.
+- Section IV의 fabrication process limitation, DRAM refresh overhead/control, NVM write programming overhead와 세 가지 future research direction을 확인했다.
 
 ### 비판적 질문
 
@@ -337,16 +367,12 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 
 ## 15. Connection to My Research Interest
 
-부분 분석 중.
-
 - 흥미로운 점: memory hierarchy에서 단순히 external bandwidth를 높이는 것뿐 아니라 cell-array internal parallelism과 charge sharing을 computation에 활용해 data movement 자체를 줄일 수 있다는 점
-- 더 탐구하고 싶은 부분: multiple-row activation의 Boolean sensing mechanism, analog charge-sharing MAC/SNN integration, Gain-Cell의 non-destructive computing datapath와 leakage/noise robustness, [21] DynaPlasia 3T-2C의 transistor-level capacitive-coupling truth table
+- 더 탐구하고 싶은 부분: multiple-row activation의 Boolean sensing mechanism, analog charge-sharing MAC/SNN integration, Gain-Cell의 non-destructive computing datapath와 leakage/noise robustness, [21] DynaPlasia 3T-2C의 transistor-level capacitive-coupling truth table, NVM complementary/time-domain/hybrid sensing의 회로-level accuracy–efficiency trade-off
 - 다른 논문과의 연결: 기존 memory-wall, analog/digital CIM, tiling/Roofline 학습에서 다룬 data movement와 memory-bound/utilization 개념과 연결됨
 - 가능한 research direction: compute-resource와 on-chip memory capacity/bandwidth의 area allocation trade-off, DRAM-CIM의 robustness-aware circuit/architecture 설계, destructive-read/SA-overhead와 density의 trade-off
 
 ## 16. Final Summary
-
-부분 분석 중이며 확인된 항목만 기록한다.
 
 ### Problem
 
@@ -358,11 +384,11 @@ DRAM/NVM의 memory 특성을 CIM에 활용하되 각 technology의 circuit chall
 
 ### Architecture
 
-현재까지 1T1C DRAM array의 shared BL, WL multiple activation, SA/conventional read path, digital-PIM/PNM과 cell-array-level CIM의 위치 차이를 분석했다. 또한 [15]의 charge-sharing multi-bit MAC, [16]의 SNN integration/firing mapping, Gain-Cell의 RBL/WBL separation과 non-destructive read path를 확인했다. Fig. 2(a) 4T-2C current-based row-parallel accumulation, Fig. 2(b) voltage clipping, Fig. 2(c) segmented RBL/reference array, Fig. 2(d) 3T-1C 4b-4b current-time multiplication, Fig. 2(e) 3T-2C capacitive-coupling/leakage-tolerant operation까지 overview-level로 분석했다. Section III NVM-CIM은 ReRAM/MRAM/PCM resistance-storage mechanism 도입부까지 읽었다.
+1T1C DRAM array의 shared BL, WL multiple activation, SA/conventional read path, digital-PIM/PNM과 cell-array-level CIM의 위치 차이를 분석했다. [15]의 charge-sharing multi-bit MAC, [16]의 SNN integration/firing mapping, Gain-Cell의 RBL/WBL separation과 non-destructive read path, Fig. 2(a)~(e)의 current/charge/capacitive-coupling datapath를 overview-level로 분석했다. NVM-CIM에서는 complementary XNOR cell, nonlinear-reference Flash ADC, 4T-4R dual complementary differential sensing/SAR ADC, time-space readout의 BL discharge latency, SLC/MLC hybrid와 CIM/NMC reconfiguration까지 전체 design space를 읽었다.
 
 ### Main Result
 
-아직 분석하지 않음.
+이 tutorial/overview의 main result는 단일 신규 chip 수치가 아니라 DRAM/NVM-CIM이 SRAM-CIM의 한계를 보완하는 동시에 각 memory technology 고유의 leakage, refresh, nonlinearity, signal margin, process와 write overhead를 만든다는 design-space map과, 이를 완화하기 위한 representative circuit/datapath techniques를 체계적으로 정리한 것이다.
 
 ### Main Trade-off
 
@@ -370,11 +396,11 @@ cell array에 computation을 더 가까이 가져갈수록 conventional data mov
 
 ### Limitation
 
-현재까지 DRAM leakage/noise, NVM non-linearity/low signal margin, SRAM-CIM area/weight-density/volatility, digital-PIM/PNM의 conventional read-path overhead, 1T-1C destructive read/SA power overhead와 Gain-Cell density trade-off를 확인했다.
+SRAM-CIM의 transistor/area overhead, 1 bit/cell weight density와 volatility에 더해, DRAM-CIM은 leakage/noise, destructive read/refresh overhead와 process/density 제약을 갖고 NVM-CIM은 static current, nonlinearity, low signal margin, process 제한과 high-voltage/high-latency write/programming overhead를 갖는다.
 
 ### 내가 기억할 한 문장
 
-DRAM-CIM은 cell/BL 내부 병렬성을 이용해 data movement를 줄일 수 있지만 destructive read, leakage, variation과 non-linearity가 새 bottleneck이 되며, Gain-Cell 계열은 clipping, segmented BL, current-time multiplication, capacitive coupling과 voltage-domain separation으로 parallelism·accuracy·density 사이의 trade-off를 설계한다.
+DRAM/NVM-CIM은 SRAM-CIM의 density·non-volatility 한계를 보완하면서 memory device 자체를 computation에 활용하지만, leakage/refresh/nonlinearity/signal-margin/write/process 문제를 회로·sensing·hybrid architecture와 algorithm/compiler co-design으로 해결하며 accuracy·density·throughput·energy 사이의 trade-off를 설계해야 한다.
 
 ## 17. Reading Session History
 
@@ -402,6 +428,14 @@ DRAM-CIM은 cell/BL 내부 병렬성을 이용해 data movement를 줄일 수 �
 - 새롭게 발생한 질문: Fig. 2(e)의 exact 3T-2C transistor truth table, IA/W 입력과 switching sequence, coupling capacitor의 실제 ΔV/ΔQ 전달 방식과 leakage-tolerant mechanism을 [21] DynaPlasia 원 논문에서 transistor-level로 확인하고 싶다. Section III를 읽기 위해 ReRAM/MRAM/PCM의 MIM/MTJ/phase-change 구조, LRS/HRS와 sensing에 대한 NVM fundamentals 학습이 필요하다고 판단했다.
 - Bridge 변화: Fig. 2(a)~(e) 관련 개념은 논문 안에서 overview-level prerequisite로 해결·확인했다. NVM fundamentals는 별도 Learning Log로 학습하기로 사용자와 결정했으나 아직 실제 Learning Log가 생성되지 않았으므로 이번 checkpoint에는 studying Bridge로 연결하지 않는다.
 - 종료 당시 Resume Point: Section III. NVM-CIM, PDF page 3 — ReRAM/MRAM/PCM이 resistance state를 이용한다는 도입 문장까지 읽음. 다음 논문 문장은 “NVM brings unique advantages to CIM, non-volatility...”이며, 그 전에 별도 NVM fundamentals 학습을 진행한다.
+
+### 2026-09-01
+
+- 읽은 범위: Section III NVM-CIM의 “NVM brings unique advantages to CIM...”부터 Section III-A Current-Based Operation With Complementary Cell, III-B Time-Based Operation, III-C Hybrid Method, Section IV Challenges and Future Research Directions, Section V Conclusion까지 완료.
+- 이해한 내용: NVM-CIM에서 G=1/R와 I=VG를 activation/weight multiplication 및 MVM으로 연결했다. [26]의 nonlinear BL voltage transfer와 nonlinear-reference Flash ADC, [27]/[28] MRAM XNOR/multi-bit current combining/readout margin, [29]의 4T-4R dual complementary differential sensing과 SAR ADC 및 2T-2R reconfiguration, [23]의 BL parasitic-capacitance discharge-time readout, [24]/[25]의 SLC-MLC hybrid와 CIM/NMC mode를 문답으로 이해했다. Section IV에서는 process limitation을 fabrication process limitation으로 수정·확인하고, DRAM refresh의 energy/throughput/scheduling overhead와 NVM write의 high voltage/high latency/write-read-verify/programming control을 이해했다. Future direction은 standard high-density bit-cell 유지, peripheral/cell-peripheral compute, SRAM/digital hybrid, algorithm/compiler-hardware co-design으로 정리했다. Conclusion에서는 DRAM/NVM-CIM이 고유 challenge를 갖지만 향후 energy-efficient AI/ML CIM hardware에서 중요한 역할을 할 것이라는 저자의 관점을 사용자 언어로 설명했다.
+- 새롭게 발생한 질문: [21] DynaPlasia Fig. 2(e)의 exact transistor-level truth table/switching/capacitive-coupling mechanism은 overview 범위 밖 질문으로 계속 보존한다. [27]/[29]의 exact multi-bit current weighting과 differential cancellation circuit도 원 논문 확인 없이는 확정하지 않는다.
+- Bridge 변화: 2026-08-30에 저장된 NVM Fundamentals Learning Log를 성공 comment/commit과 실제 파일로 확인했으며, 현재 paper reading에 충분하므로 sufficient-for-paper로 연결한다.
+- 종료 당시 Resume Point: Section V Conclusion까지 전체 overview reading 완료. 다음은 [21] DynaPlasia deep dive 또는 후속 paper comparison 중 선택한다.
 
 ## 사용자 분석 근거
 
@@ -462,3 +496,17 @@ DRAM-CIM은 cell/BL 내부 병렬성을 이용해 data movement를 줄일 수 �
 > “fig2(e)의 회로적 특징도 궁금함. truth table이 어떤식으로 작용되는지, 회로적으로 어떻게 구현되는지 궁금해 reference에 적힌 논문을 읽고 ... 설명해줄 수 있니?” — [21] DynaPlasia 원 논문 확보 후 transistor-level deep dive 후보로 보존함.
 
 > “NVM에 대한 기본적인 학습이 필요하다고 생각하니? 그러면 새로운 학습 세션을 통해 NVM의 동작원리나 기본적인 특징등을 학습하는 것을 도와줘” — Section III 진행 전 ReRAM/MRAM/PCM fundamentals를 별도 Learning Log로 학습하기로 결정함.
+
+> “MVM multiple dot products; cell VG with V as IA and conductance as weight maps to MVM.” — NVM-CIM의 conductance-based MVM 연결을 자기 설명으로 확인함.
+
+> “8bit weight가 있으면 2bit 이상 정도는 SLC에 저장하고, 6bit 이하 정도는 MLC에 저장한다” — 논문 [24]의 정확한 표현은 upper 2-bit를 SLC, remaining lower 6-bit를 MLC에 저장하는 것으로 다시 확인함.
+
+> “process limitation 안에서 다루는 내용이 NVM의 type에 따른 공정 문제, DRAM-CIM, eDRAM은 서로 각각 다른 공정 과정을 거쳐야 한다는 점...” — process를 computation process가 아니라 fabrication/manufacturing process로 수정 후 자기 설명함.
+
+> “refresh 상태이면 access를 못하기 때문에?” — DRAM 전체가 항상 완전히 멈춘다고 일반화하지 않고, refresh가 memory resource를 점유해 memory access/CIM computation scheduling과 throughput에 overhead를 준다는 방향으로 확인함.
+
+> “NVM의 write operation은 high voltage와 high latency를 요구한다...” — 원하는 conductance state programming과 이후 I=VG read/computation을 구분하고, write-read-verify·multiple voltage/pulse control이 write overhead와 연결됨을 확인함.
+
+> “chip에서만 해결하는 것이 아니라 알고리즘 영역에서 latency와 energy를 적게 쓰려는 방법을 찾는 것 같음” — lightweight algorithm/compiler와 hardware co-design이라는 future direction으로 확인함.
+
+> “SRAM-CIM의 한계를 극복하기 위해 DRAM, NVM-CIM에 대해 연구했고...” — 알고리즘 자체보다 energy-efficient AI/ML CIM hardware 구현에 DRAM/NVM-CIM이 중요한 역할을 할 것이라는 conclusion으로 표현을 수정·확인함.
