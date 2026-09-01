@@ -9,7 +9,7 @@
 - Authors: Sangjin Kim, Hoi-Jun Yoo
 - Paper link: https://doi.org/10.1109/TCSII.2023.3333851
 - Started: 2026-08-28
-- Checkpoint recorded at: 2026-09-01T13:03:01Z
+- Checkpoint recorded at: 2026-09-01T13:14:58Z
 - Related notes: learning-logs/2026/08/2026-08-23-memory-wall-analog-cim-fundamentals.md; learning-logs/2026/08/2026-08-24-pim-cim-tiling-roofline-foundations.md; learning-logs/2026/08/2026-08-30-nvm-fundamentals.md
 
 ## 1. Citation
@@ -25,14 +25,14 @@ S. Kim and H.-J. Yoo, “An Overview of Computing-in-Memory Circuits With DRAM a
 ### 논문 안에서 해결한 선수지식
 
 #### DRAM leakage / refresh
-- 등장 위치: Abstract, Introduction
-- 논문에서 필요한 이유: DRAM-CIM의 효율과 정확도에 영향을 주는 대표 challenge를 이해하기 위해 필요하다.
-- 사용자의 이해: DRAM cell은 capacitor charge로 data를 저장하며 leakage/noise로 charge가 손상될 수 있음을 이해했다. 일반 DRAM에서는 SA가 cell 신호를 binary 0/1로 sensing하지만, DRAM-CIM에서는 cell data가 computation에 직접 관여하므로 leakage/noise가 계산 결과에 영향을 줄 수 있다는 점까지 문답으로 수정·확인했다. DRAM-CIM이 반드시 SA를 사용하지 않는다는 뜻은 아님을 확인했다.
+- 등장 위치: Abstract, Introduction, Section IV Challenges and Future Research Directions
+- 논문에서 필요한 이유: DRAM-CIM의 leakage/refresh가 정확도뿐 아니라 energy, throughput과 large-scale control에 어떤 부담을 주는지 이해하기 위해 필요하다.
+- 사용자의 이해: DRAM cell은 capacitor charge로 data를 저장하며 leakage/noise로 charge가 손상될 수 있음을 이해했다. 일반 DRAM에서는 SA가 cell 신호를 binary 0/1로 sensing하지만, DRAM-CIM에서는 cell data가 computation에 직접 관여하므로 leakage/noise가 계산 결과에 영향을 줄 수 있다는 점까지 문답으로 수정·확인했다. Section IV에서는 refresh가 energy를 추가로 소비하고 memory resource/time을 점유해 유효 throughput을 낮추며, large-scale에서 computation·memory access·refresh scheduling/control을 복잡하게 만든다는 점을 이해했다. 사용자는 “refresh 상태이면 access를 못할 수 있기 때문인가”라는 직관을 제시했고, DRAM 전체가 항상 완전히 멈춘다고 일반화하지 않고 refresh가 특정 resource를 점유해 access/computation과 충돌할 수 있다는 방향으로 수정·확인했다.
 
 #### NVM non-linearity / low signal margin
-- 등장 위치: Abstract, Introduction
-- 논문에서 필요한 이유: NVM-CIM의 circuit-level challenge를 이해하기 위해 필요하다.
-- 사용자의 이해: NVM의 resistance-related 저장/연산 특성과 circuit non-ideality가 non-linearity 및 low signal margin 문제로 연결될 수 있다는 수준까지 이해했다. 구체적인 발생 mechanism은 NVM-CIM section에서 확인하기로 했다.
+- 등장 위치: Abstract, Introduction, Section III-A Current-Based Operation With Complementary Cell
+- 논문에서 필요한 이유: NVM-CIM의 resistance/conductance 기반 sensing에서 BL output이 왜 비선형이 되거나 sensing margin이 작아질 수 있고, 이를 ADC/reference/complementary coding으로 어떻게 완화하는지 이해하기 위해 필요하다.
+- 사용자의 이해: Section III-A에서 PU transistor와 cell resistance가 BL voltage를 형성하며, transistor의 effective resistance가 VGS/VDS에 따라 달라질 수 있어 BL voltage transfer가 단순 선형 관계가 아닐 수 있다는 점을 자기 설명으로 확인했다. [26]의 nonlinear-reference Flash ADC는 BL analog voltage 자체를 선형화하는 것이 아니라 nonlinear BL level에 맞춘 reference threshold로 linear quantization code를 얻는다는 점을 오해 수정 후 자기 설명했다. [29]에서는 complementary BL/BLB differential output으로 transfer linearity를 높여 SAR ADC sensing이 가능해진다는 연결도 설명했다. [28]의 readout margin은 서로 다른 XNOR sensing state를 구분할 수 있는 voltage/current separation이라는 최소 개념을 AI 설명으로 이해했으며, 이 용어에 대한 별도 자기 설명은 아직 확인하지 않았다.
 
 #### SRAM pushed-rule / bitcell density
 - 등장 위치: Introduction, PDF page 1
@@ -150,6 +150,56 @@ S. Kim and H.-J. Yoo, “An Overview of Computing-in-Memory Circuits With DRAM a
 - 논문에서 필요한 이유: storage-node leakage가 multiplication result에 직접 영향을 주지 않도록 voltage domain을 분리하는 구조를 이해하기 위해 필요하다.
 - 사용자의 이해: Fig. 2(e)는 storage node와 multiplication logic의 voltage domain을 분리하고, cell 내부 transistor logic에서 1-b multiplication을 digital domain에서 수행한 뒤 coupling capacitor를 통해 결과를 RBL accumulation에 전달한다는 overview-level 흐름을 이해했다. leakage robustness의 핵심은 “capacitor를 사용했다”는 사실 자체가 아니라 storage voltage가 analog current magnitude에 직접 연결되지 않도록 storage domain과 compute domain을 분리한 것이라고 자기 설명으로 수정·확인했다. exact transistor truth table, switching sequence, IA/W mapping과 coupling mechanism은 overview에 충분히 제시되지 않아 reference [21] DynaPlasia 원 논문을 확보한 뒤 transistor-level deep dive하기로 했다.
 
+#### MVM / dot product / conductance mapping
+- 등장 위치: Section III NVM-CIM 도입부 및 Section III-A
+- 논문에서 필요한 이유: NVM cell의 conductance와 input voltage가 어떻게 NN의 matrix-vector multiplication과 MAC으로 연결되는지 이해하기 위해 필요하다.
+- 사용자의 이해: MVM을 여러 dot product를 병렬로 계산하는 y=Wx 형태로 이해했고, NVM-CIM에서 V를 input activation, G를 stored weight에 대응시키면 cell current I=VG가 multiplication contribution이 되고 column current sum이 MAC/MVM output이 된다고 자기 설명했다.
+
+#### PU transistor / voltage division / transfer function
+- 등장 위치: Section III-A, Fig. 3(a), reference [26]
+- 논문에서 필요한 이유: 2T-2R XNOR cell의 BL voltage가 왜 cell resistance와 pull-up path의 상호작용으로 결정되고, 그 transfer가 비선형이 될 수 있는지 이해하기 위해 필요하다.
+- 사용자의 이해: PU transistor는 BL을 VDD 쪽으로 pull-up하는 path를 제공하고 selected NVM cell resistance와 함께 sensing 가능한 BL voltage를 만든다고 이해했다. transfer function은 control-system의 H(s)로 한정하지 않고 여기서는 cell/computation state에서 BL voltage로 가는 input-output mapping을 뜻한다고 이해했다. 사용자는 transistor의 effective resistance가 VGS/VDS에 따라 달라져 equal resistance/state change가 equal BL-voltage step으로 이어지지 않을 수 있다고 자기 설명했다.
+
+#### Flash ADC / nonlinear reference / linear quantization
+- 등장 위치: Section III-A, reference [26]
+- 논문에서 필요한 이유: nonlinear BL voltage transfer를 별도 analog linearization 없이 digital quantization하는 sensing 방식을 이해하기 위해 필요하다.
+- 사용자의 이해: 처음에는 nonlinear voltage를 linear voltage로 변환하는 것으로 해석했으나, [26]은 nonlinear BL level에 맞춘 non-uniform/nonlinear reference threshold를 Flash ADC에 사용해 각 analog range를 올바른 linear quantization code로 mapping한다는 의미로 수정했다. 수정 후 사용자는 BL voltage를 물리적으로 선형화하는 전처리가 아니라 ADC threshold를 nonlinear characteristic에 맞추는 것이라고 자기 설명했다.
+
+#### SAR ADC와 Flash ADC의 역할 구분
+- 등장 위치: Section III-A, references [26], [29]
+- 논문에서 필요한 이유: [26]의 nonlinear-reference Flash ADC와 [29]의 SAR ADC가 등장하는 이유를 ADC architecture 자체와 paper-specific output characteristic으로 구분하기 위해 필요하다.
+- 사용자의 이해: Flash ADC가 본질적으로 nonlinear 전용이거나 SAR ADC가 linear 전용인 것은 아니며 둘 다 일반 ADC architecture라는 점을 수정·확인했다. [29]의 4T-4R dual complementary sensing이 BL/BLB differential output을 더 선형적으로 만들어 conventional linear quantization을 사용하는 SAR ADC 적용이 쉬워진다는 이유를 자기 설명했다.
+
+#### Readout margin
+- 등장 위치: Section III-A, reference [28]
+- 논문에서 필요한 이유: refined MRAM bit-cell이 “enhanced readout margin”을 제공한다는 의미를 이해하기 위해 필요하다.
+- 사용자의 이해: readout margin은 XNOR=0/1 등 서로 다른 sensing state의 voltage/current output 사이에 확보되는 구분 간격이라는 최소 개념을 AI 설명으로 이해했다. 사용자 자기 설명: 아직 확인하지 않음.
+
+#### BL parasitic capacitance / discharge-time sensing / TDC
+- 등장 위치: Section III-B Time-Based Operation, Fig. 3(c), reference [23]
+- 논문에서 필요한 이유: voltage-based NVM-CIM의 large DC current를 피하기 위해 BL current를 시간 정보로 바꾸는 time-space readout을 이해하기 위해 필요하다.
+- 사용자의 이해: BL parasitic capacitance는 별도 계산 capacitor를 새로 만든다는 뜻이 아니라 long bitline과 connected devices에서 자연스럽게 존재하는 capacitance이며, [23]에서는 이를 precharge한 뒤 computation current로 discharge한다는 점을 이해했다. I=C·dV/dt 직관에서 larger current는 shorter discharge latency, smaller current는 longer latency가 되고 TDC가 그 시간을 digital code로 변환한다고 자기 설명했다. DC-current 제거의 직접 원인은 VTC/TDC 자체가 아니라 transient precharge-discharge operation이라는 점도 구분했다.
+
+#### Memory macro / NMC computing-unit placement
+- 등장 위치: Section III-C Hybrid Method, reference [25]
+- 논문에서 필요한 이유: “CIM and NMC in a single macro”와 “computing unit below the cell array”가 가리키는 hardware organization을 이해하기 위해 필요하다.
+- 사용자의 이해: memory macro를 cell array와 peripheral circuits를 묶은 하나의 memory hardware block이라는 뜻으로 AI 설명을 통해 이해했다. NVM-NMC는 multiple-row activation으로 array 안에서 analog accumulation을 수행하는 대신 cell array 주변/아래의 computing unit에서 보다 controlled한 computation을 수행해 accuracy를 높이고 throughput/efficiency를 희생한다는 overview-level 의미를 설명받았다. exact computing-unit circuit과 physical layout은 [25] 원 논문 확인이 필요하며, 사용자 자기 설명은 아직 별도로 확인하지 않았다.
+
+#### Fabrication process / process portability
+- 등장 위치: Section IV, item 1) Process limitations
+- 논문에서 필요한 이유: “process limitation”이 연산 과정의 한계가 아니라 memory technology와 fabrication environment 사이의 제조 공정 제약이라는 뜻을 이해하기 위해 필요하다.
+- 사용자의 이해: 처음에는 computation process의 한계로 오해했으나 semiconductor fabrication/manufacturing process limitation으로 수정했다. 이후 NVM type에 따라 사용 가능한 process가 달라질 수 있고, eDRAM과 DRAM-CIM 회로가 서로 다른 process environment에 맞춰져 한쪽 회로를 다른 공정에 그대로 이식하기 어려우며, custom CIM cell은 fab-optimized standard memory cell보다 density를 유지하기 어려울 수 있다고 자기 설명했다.
+
+#### Throughput overhead
+- 등장 위치: Section IV, item 2) Refreshing DRAM
+- 논문에서 필요한 이유: refresh가 energy뿐 아니라 실제 처리량과 scheduling에 어떤 비용을 주는지 이해하기 위해 필요하다.
+- 사용자의 이해: throughput overhead를 refresh가 memory resource/time을 점유해 useful memory access나 CIM computation에 사용할 수 있는 기회를 줄이고 결과적으로 유효 처리량을 낮추는 부담으로 이해했다. 사용자는 refresh 중 원하는 access가 지연될 수 있다는 직관을 제시했고, architecture에 따라 bank-level overlap이 가능하므로 전체 DRAM이 항상 정지한다고 일반화하지 않도록 문답으로 수정·확인했다.
+
+#### NVM write-read-verify / programming voltage / PWM
+- 등장 위치: Section IV, item 3) NVM write operation
+- 논문에서 필요한 이유: NVM-CIM에서 stored conductance/weight를 원하는 상태로 programming하는 비용이 왜 high voltage, high latency와 복잡한 write control로 이어지는지 이해하기 위해 필요하다.
+- 사용자의 이해: NVM은 capacitor charge를 단순 저장하는 DRAM과 달리 resistance/conductance state를 programming해야 하며, 원하는 state가 형성됐는지 write-read-verify를 반복하고 multiple voltage sources나 pulse-width modulation을 사용할 수 있다는 방향을 설명했다. 다만 처음에는 I=VG computation 자체 때문에 multiple voltage/PWM이 필요하다고 연결했으나, 이는 주로 desired conductance G를 만드는 write/programming 단계의 제어이고 이후 설정된 G가 I=VG computation에 사용된다는 점으로 수정했다. 수정 후 별도 자기 설명은 아직 확인하지 않았다.
+
 ### 별도로 이어가는 선수지식
 
 #### NVM Fundamentals — ReRAM, MRAM, PCM과 NVM-CIM
@@ -178,8 +228,8 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 
 | Prerequisite | 현재 상태 | 필요한 보충 |
 | --- | --- | --- |
-| DRAM leakage / refresh / SA read | 논문 읽기에 충분 | 이후 circuit과 연결 |
-| NVM resistance / non-linearity / low signal margin | 논문 읽기에 충분한 기초 | Section III에서 실제 circuit example과 연결 |
+| DRAM leakage / refresh / SA read | 문답으로 수정·확인, Section IV refresh overhead까지 연결 | 정량 refresh scheduling은 architecture별 원 논문 필요 |
+| NVM resistance / non-linearity / low signal margin | Section III circuit example과 연결 완료 | [26]/[28]/[29] exact circuit/quantitative margin은 원 논문 필요 |
 | SRAM pushed-rule / area overhead | 사용자 이해 확인됨 | 추가 보충 없음 |
 | SRAM weight density | AI 설명, 자기 설명 미확인 | 필요 시 짧게 확인 |
 | Event-driven application | AI 설명, 자기 설명 미확인 | 필요 시 짧게 확인 |
@@ -202,6 +252,16 @@ SRAM-CIM의 한계 때문에 DRAM/NVM이 재검토된다. DRAM은 1T1C와 DRAM-d
 | 3T-1C 4b-4b multiplication | 사용자 자기 설명 확인 | [18]의 transistor equation/timing은 원 논문 필요 |
 | 3T-2C capacitive coupling | overview-level 이해 확인 | [21]/[22] 원 논문으로 truth table·switching deep dive 예정 |
 | NVM device fundamentals | 별도 Learning Log 학습 완료, 논문 읽기에 충분 | learning-logs/2026/08/2026-08-30-nvm-fundamentals.md와 Section III circuit examples 연결 완료 |
+| MVM / dot product / conductance mapping | 사용자 자기 설명 확인 | exact array mapping/bit slicing은 각 reference 필요 |
+| PU transistor / BL voltage division / transfer function | 사용자 자기 설명 확인 | [26] exact transistor I-V와 transfer curve는 원 논문 필요 |
+| Flash ADC / nonlinear reference | 오해 수정 후 사용자 자기 설명 확인 | [26] exact threshold generation은 원 논문 필요 |
+| SAR ADC vs Flash ADC | 문답 수정 후 사용자 자기 설명 확인 | ADC 회로 자체 deep dive는 현재 paper 범위 밖 |
+| Readout margin | AI 설명, 자기 설명 미확인 | 필요 시 짧게 확인 |
+| BL parasitic capacitance / TDC time sensing | 사용자 자기 설명 확인 | [23] exact VTC/TDC timing/circuit은 원 논문 필요 |
+| Memory macro / NMC placement | AI 설명, 자기 설명 미확인 | [25] exact computing unit/layout은 원 논문 필요 |
+| Fabrication process / process portability | 오해 수정 후 사용자 자기 설명 확인 | foundry/process-specific detail은 원 논문/공정 자료 필요 |
+| Throughput overhead | 문답으로 수정·확인 | 정량 impact는 architecture-dependent |
+| NVM write-read-verify / voltage / PWM | 핵심 인과 수정, 수정 후 자기 설명 미확인 | programming algorithm과 pulse scheme은 device/reference별 확인 필요 |
 
 ## 7. Key Idea
 
