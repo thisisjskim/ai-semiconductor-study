@@ -144,7 +144,7 @@ Issue 생성과 닫기는 저장 요청을 queue에 넣는 **enqueue**다. 이�
 
 성공 comment만으로 완료 처리하지 않는다. 연결된 GitHub plugin의 file-read 기능으로 comment에 적힌 commit ref의 target path를 다시 읽어 파일 존재와 승인한 내용 반영을 확인한 뒤에만 저장 완료라고 말한다.
 
-Paper Reading Checkpoint를 저장할 때는 `system/PAPER_NOTE_ISSUE_CONTRACT.md`, `system/PAPER_NOTE_AUTHORING_GUIDE.md`, `templates/paper-note.md`를 읽는다. 기존 Paper Note update이면 전체 파일과 최신 SHA를 먼저 확인한다. 사용자에게 최소한 create/update, target path, Resume Point, Bridge 변화와 아래 두 상태창의 변경 전·후를 보여 준 뒤 승인을 받는다.
+Paper Reading Checkpoint를 저장할 때는 `system/PAPER_NOTE_ISSUE_CONTRACT.md`, `system/PAPER_NOTE_AUTHORING_GUIDE.md`, `templates/paper-note.md`를 읽는다. 기존 Paper Note update이면 전체 파일과 최신 SHA를 먼저 확인한다. 마지막 checkpoint 이후 conversation에서 Prerequisite Inventory를 만들고 기존·제안 Bridge와 대조해, 모든 후보가 신규 추가·기존 항목 업데이트·reference 후보 또는 제외 사유로 설명되는지 확인한다. Architecture, Method 또는 Questions에 기록했다는 이유로 Bridge 반영을 생략하지 않는다. 누락을 보완한 뒤 사용자에게 최소한 create/update, target path, Resume Point, Bridge 변화와 아래 상태창·audit의 변경 전·후를 보여 주고 승인을 받는다.
 
 ```text
 Current Learning Context 상태창
@@ -154,6 +154,13 @@ Paper Note 상태창
 - Resume Point: <정확한 위치>
 - 논문 안에서 해결한 선수지식: <개념 목록>
 - 별도로 이어가는 선수지식: <개념 / status / Learning Log 경로>
+
+Prerequisite Bridge audit
+- 이번 세션 후보: <개념 목록>
+- Bridge 신규 추가: <개념 목록>
+- 기존 Bridge 업데이트: <개념 목록>
+- Reference 후보: <항목 목록>
+- 제외한 항목과 이유: <단순 문법·번역·문장 재표현 등>
 ```
 
 별도 선수지식 Learning Log와 Paper Note가 함께 바뀌면 한 번의 승인으로 두 변경을 허가받을 수 있지만 실행은 순서대로 한다. Learning Log 저장과 실제 파일 확인이 먼저 성공해야 그 경로를 연결한 Paper Note Issue를 처리한다. 한 단계만 성공하면 부분 성공이라고 알린다. Paper Note 성공 comment, commit과 실제 파일을 확인한 뒤 후속 Context의 `Current Paper Note`가 같은 경로인지 확인해야 전체 반영 완료다.

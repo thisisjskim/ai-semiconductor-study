@@ -176,9 +176,33 @@ def assert_paper_tutoring_policy_contract() -> None:
         "Current Paper Note가 `없음`이면 현재 읽고 있는 paper가 저장되어 있지 않다고 알리고",
         "새롭게 읽을 논문의 제목이나 식별 정보를 사용자에게 요청한다",
         "사용자 승인 없이 새 Paper Note를 만들지 않는다",
+        "이해 확인 질문을 하지 않는 것을 기본값으로 한다",
+        "사용자가 모른다고 질문한 prerequisite를 GPT가 새로 설명했다",
+        "사용자의 잘못된 이해를 이후 논문 이해에 중요한 개념 수준에서 correction했다",
+        "정확하거나, 방향은 맞고 사소한 조건만 빠졌거나",
+        "논문이 직접 말함",
+        "이해를 위한 보충 설명",
+        "GPT의 추론이며 원 논문 또는 reference 확인 필요",
+        "기존 Paper Note의 기록이나 모델의 기억만으로 exact fact를 원문에서 재확인한 것처럼 표현하지 않는다",
+        "exact number나 mechanism을 직접 확인했다면 불필요하게 가능성 표현으로 약화하지 않고",
+        "단순 영어 문법·번역이나 기술 개념을 추가하지 않은 문장 재표현은 Bridge 후보로 만들지 않는다",
         "이 문서에 없는 새로운 user-facing pedagogical framework",
     ):
         assert required in tutoring
+    assert "중요한 prerequisite나 핵심 개념은 설명 후" not in tutoring
+
+    question_policy = tutoring.split("## 12. 질문 사용", 1)[1].split(
+        "## 13. Paper Note와 세션 종료", 1
+    )[0]
+    for required in (
+        "이해 확인 질문을 하지 않는 것을 기본값으로 한다",
+        "사용자가 모른다고 질문한 prerequisite",
+        "중요한 개념 수준에서 correction",
+        "사용자가 직접 이해 확인이나 quiz를 요청했다",
+        "불완전한 부분이 이후 논문 이해를 막지 않으면 자기 설명을 다시 요구하지 않는다",
+    ):
+        assert required in question_policy
+    assert "보통 1~3개" not in question_policy
 
     entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
     assert "`system/PAPER_READING_TUTOR_POLICY.md`를 반드시 처음부터 끝까지 읽고" in entrypoint
@@ -209,6 +233,33 @@ def assert_paper_tutoring_policy_contract() -> None:
     )
     assert "별도 evidence status 필드를 추가하지 않고" in authoring
     assert "저장 전에 사용자의 짧은 자기 설명을 한 번 요청한다" not in authoring
+    assert "## 7. Prerequisite Inventory와 Bridge Audit" in authoring
+    assert "마지막으로 저장된 checkpoint 이후 현재 conversation" in authoring
+    assert "Architecture, Method, Questions에 내용이 있다는 이유로 Bridge 반영을 생략하지 않는다" in authoring
+    assert "Bridge 대상 아님`과 제외 이유" in authoring
+    assert "새로운 고정 section이나 evidence status field를 추가하지 않는다" in authoring
+    assert "Inventory의 모든 후보를 기존·제안 Bridge와 대조하고 누락을 보완했는가?" in authoring
+    bridge_audit = authoring.split(
+        "## 7. Prerequisite Inventory와 Bridge Audit", 1
+    )[1].split("## 8. 저장 전 점검", 1)[0]
+    for required in (
+        "뜻이나 작동 원리를 질문했고 GPT가 별도로 설명한 개념",
+        "중요한 개념적 오해를 correction한 내용",
+        "Reference deep-dive candidate",
+        "Bridge 대상 아님`과 제외 이유",
+        "단순 영어 문법·번역",
+        "누락을 보완한 뒤에만",
+        "기존 `Questions` 또는 관련 분석 section에 자연어로 보존한다",
+    ):
+        assert required in bridge_audit
+
+    paper_template = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
+    assert "Prerequisite Inventory" not in paper_template
+    assert "Prerequisite Bridge audit" not in paper_template
+
+    assert "Prerequisite Inventory를 만들고 기존·제안 Bridge와 대조" in entrypoint
+    assert "Architecture, Method 또는 Questions에 기록했다는 이유로 Bridge 반영을 생략하지 않는다" in entrypoint
+    assert "Prerequisite Bridge audit" in entrypoint
 
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     architecture = (ROOT / "system/ARCHITECTURE.md").read_text(encoding="utf-8")
