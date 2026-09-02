@@ -27,6 +27,7 @@ RESULT_MARKER = "<!-- research-os-result -->"
 COMMANDS = {"/기록", "/retry", "/ingest"}
 PAPER_TYPES = {"foundational", "ssl-lab", "related"}
 BRIDGE_STATUSES = {"studying", "paused", "sufficient-for-paper"}
+PDF_ACCESS = "session-attachment (새 채팅마다 재첨부 필요)"
 ENVELOPE_FIELDS = {"operation", "intent", "target_path", "expected_sha"}
 REQUIRED_METADATA = (
     "Title",
@@ -35,6 +36,7 @@ REQUIRED_METADATA = (
     "Venue / Year",
     "Authors",
     "Paper link",
+    "PDF access",
     "Started",
     "Checkpoint recorded at",
     "Related notes",
@@ -344,6 +346,10 @@ def validate_markdown(markdown: str, target_match: re.Match[str], root: Path) ->
         raise IngestError("필수 Paper Note Metadata 누락: " + ", ".join(missing_metadata))
     if metadata["Document type"] != "paper-note":
         raise IngestError("Document type은 paper-note여야 합니다.")
+    if metadata["PDF access"] != PDF_ACCESS:
+        raise IngestError(
+            "PDF access는 session-attachment (새 채팅마다 재첨부 필요)여야 합니다."
+        )
     if metadata["Paper type"] not in PAPER_TYPES:
         raise IngestError("Paper type은 foundational, ssl-lab, related 중 하나여야 합니다.")
     if metadata["Paper type"] != target_match.group("paper_type"):

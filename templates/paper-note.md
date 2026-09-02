@@ -8,6 +8,7 @@
 - Venue / Year:
 - Authors:
 - Paper link:
+- PDF access: session-attachment (새 채팅마다 재첨부 필요)
 - Started: YYYY-MM-DD
 - Checkpoint recorded at: {GitHub Actions가 Issue created_at으로 자동 설정}
 - Related notes: 없음

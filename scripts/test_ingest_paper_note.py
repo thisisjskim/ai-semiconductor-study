@@ -102,6 +102,7 @@ def assert_template_contract() -> None:
     assert "### 논문 안에서 해결한 선수지식" in template
     assert "### 별도로 이어가는 선수지식" in template
     assert "studying | paused | sufficient-for-paper" in template
+    assert "- PDF access: session-attachment (새 채팅마다 재첨부 필요)" in template
     assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
     assert "## 17. Reading Session History" in template
     for removed in (
@@ -138,6 +139,7 @@ def assert_repository_contract() -> None:
     assert "research-os-paper-note:v1" in contract
     assert "intent: paper-reading-checkpoint" in contract
     assert "Issue의 변경되지 않는 `created_at`" in contract
+    assert "`PDF access`가 `session-attachment (새 채팅마다 재첨부 필요)`" in contract
     assert (ROOT / "system/PAPER_NOTE_AUTHORING_GUIDE.md").is_file()
     assert (ROOT / "paper-notes/README.md").is_file()
     entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
@@ -165,7 +167,7 @@ def assert_paper_tutoring_policy_contract() -> None:
     for required in (
         "사용자가 문장 또는 짧은 문단을 읽는다",
         "사용자가 이해한 내용을 먼저 설명한다",
-        "논문 전체를 내부적으로 확인할 수는 있지만",
+        "사용자가 제공한 PDF 전체를 내부적으로 확인할 수는 있지만",
         "사용자가 실제로 읽은 범위까지만 평가한다",
         "잘못 이해한 개념",
         "사용자 자기 설명: 아직 확인하지 않음",
@@ -174,7 +176,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "User observation",
         "`pending verification`이 없으면 다음 내용을 설명하거나 질문하지 않고 기다린다",
         "Current Paper Note가 `없음`이면 현재 읽고 있는 paper가 저장되어 있지 않다고 알리고",
-        "새롭게 읽을 논문의 제목이나 식별 정보를 사용자에게 요청한다",
+        "새롭게 읽을 논문의 제목이나 식별 정보와 PDF를 사용자에게 요청한다",
         "사용자 승인 없이 새 Paper Note를 만들지 않는다",
         "이해 확인 질문을 하지 않는 것을 기본값으로 한다",
         "사용자가 모른다고 질문한 prerequisite를 GPT가 새로 설명했다",
@@ -183,13 +185,33 @@ def assert_paper_tutoring_policy_contract() -> None:
         "논문이 직접 말함",
         "이해를 위한 보충 설명",
         "GPT의 추론이며 원 논문 또는 reference 확인 필요",
-        "기존 Paper Note의 기록이나 모델의 기억만으로 exact fact를 원문에서 재확인한 것처럼 표현하지 않는다",
+        "기존 Paper Note, 사용자가 붙여 넣은 문장, DOI·웹페이지·abstract, GPT가 찾은 다른 사본이나 모델의 기억만으로 exact fact를 원문에서 재확인한 것처럼 표현하지 않는다",
         "exact number나 mechanism을 직접 확인했다면 불필요하게 가능성 표현으로 약화하지 않고",
         "단순 영어 문법·번역이나 기술 개념을 추가하지 않은 문장 재표현은 Bridge 후보로 만들지 않는다",
         "이 문서에 없는 새로운 user-facing pedagogical framework",
     ):
         assert required in tutoring
     assert "중요한 prerequisite나 핵심 개념은 설명 후" not in tutoring
+
+    source_gate = tutoring.split("### PDF Source Gate", 1)[1].split(
+        "## 3. Current Reading Boundary", 1
+    )[0]
+    for required in (
+        "Paper Note는 논문 identity, 사용자의 학습 evidence와 Resume Point를 복구하는 기록이지 논문 원문을 대체하는 source가 아니다",
+        "현재 conversation에 직접 첨부한 PDF",
+        "새 채팅마다 PDF를 다시 첨부받는다",
+        "PDF를 실제로 열고 읽을 수 있다",
+        "제목·저자·DOI 또는 다른 identifier",
+        "사용자가 현재 읽는 section과 판단에 필요한 인접 문맥을 실제로 확인한다",
+        "붙여 넣은 문장",
+        "GPT가 찾은 다른 사본",
+        "paper tutoring을 중단한다",
+        "페이지 이미지나 supplementary 자료는 이미 올바른 PDF가 제공된 상태에서",
+        "정확·불완전·잘못 이해한 내용으로 판정",
+        "논문에서 분리한 일반 prerequisite 학습은 진행할 수 있다",
+    ):
+        assert required in source_gate
+    assert "현재 접근 가능한 PDF·full text" not in tutoring
 
     primary_policy = tutoring.split("## 1. 최우선 원칙", 1)[1].split(
         "## 2. 세션 시작과 상태 복구", 1
@@ -221,6 +243,8 @@ def assert_paper_tutoring_policy_contract() -> None:
         "인과관계, 동작 원리, 비교 기준 또는 논문의 주장 범위를 잘못 해석하게 되는 누락",
         "§12의 correction trigger에 따라",
         "사소한 누락을 검증 질문을 하기 위해 `잘못 이해한 내용`으로 바꾸지 않는다",
+        "PDF Source Gate를 통과하고",
+        "현재 section과 필요한 인접 문맥을 실제로 확인한 뒤에만",
     ):
         assert required in evaluation_policy
     assert "중요한 개념 공백이면 그 이유를 짧게 밝히고 필요한 설명 뒤 자기 설명을 한 번 요청할 수 있다" not in tutoring
@@ -249,6 +273,9 @@ def assert_paper_tutoring_policy_contract() -> None:
     for required in (
         "`pending verification`이 없으면 다음 내용을 설명하거나 질문하지 않고 기다린다",
         "명시적으로 거부하거나 재요청 뒤에도 계속 진행하면 미확인 상태로 기록하고 더 반복하지 않는다",
+        "새 채팅에 PDF가 없으면 Paper Note에서 identity와 Resume Point만 복구하고",
+        "첨부 PDF를 실제로 열어 제목·저자·identifier",
+        "correction, exact number 또는 architecture mechanism 판정에는 확인한 PDF page 또는 section",
     ):
         assert required in behavior_scenarios
 
@@ -260,6 +287,12 @@ def assert_paper_tutoring_policy_contract() -> None:
     assert "user-first protocol" in paper_loop
     assert "Current Paper Note가 `없음`이면" in paper_loop
     assert "Current Paper Note가 있을 때만" in paper_loop
+    assert "Resume Point를 paper reading boundary로 복구하되 PDF Source Gate를 통과하기 전에는" in paper_loop
+    assert "Paper Note 복구는 원문 확인이 아니다" in paper_loop
+    assert "현재 conversation에 사용자가 직접 첨부한 PDF가 없으면" in paper_loop
+    assert "PDF 재첨부를 요청하고 Paper Reading Loop를 중단한다" in paper_loop
+    assert "붙여 넣은 문장, GPT가 찾은 사본이나 Paper Note로 PDF를 대체하지 않는다" in paper_loop
+    assert "논문에서 분리한 일반 prerequisite 학습은 진행할 수 있다" in paper_loop
     assert "Explain → Example" not in paper_loop
     assert "Progression over Exhaustiveness" not in paper_loop
     general_tutor_loop = entrypoint.split("## 일반 Tutor Loop", 1)[1]
@@ -281,15 +314,19 @@ def assert_paper_tutoring_policy_contract() -> None:
     )
     assert "별도 evidence status 필드를 추가하지 않고" in authoring
     assert "저장 전에 사용자의 짧은 자기 설명을 한 번 요청한다" not in authoring
-    assert "## 7. Prerequisite Inventory와 Bridge Audit" in authoring
+    assert "## 2. PDF 원문 접근 상태와 identity를 기록한다" in authoring
+    assert "session-attachment (새 채팅마다 재첨부 필요)" in authoring
+    assert "임시 경로나 과거 conversation의 attachment URL을 영구 경로처럼 기록하지 않는다" in authoring
+    assert "Paper Note에 identity가 있다는 사실 자체는 원문 접근 evidence가 아니며" in authoring
+    assert "## 8. Prerequisite Inventory와 Bridge Audit" in authoring
     assert "마지막으로 저장된 checkpoint 이후 현재 conversation" in authoring
     assert "Architecture, Method, Questions에 내용이 있다는 이유로 Bridge 반영을 생략하지 않는다" in authoring
     assert "Bridge 대상 아님`과 제외 이유" in authoring
     assert "새로운 고정 section이나 evidence status field를 추가하지 않는다" in authoring
     assert "Inventory의 모든 후보를 기존·제안 Bridge와 대조하고 누락을 보완했는가?" in authoring
     bridge_audit = authoring.split(
-        "## 7. Prerequisite Inventory와 Bridge Audit", 1
-    )[1].split("## 8. 저장 전 점검", 1)[0]
+        "## 8. Prerequisite Inventory와 Bridge Audit", 1
+    )[1].split("## 9. 저장 전 점검", 1)[0]
     for required in (
         "뜻이나 작동 원리를 질문했고 GPT가 별도로 설명한 개념",
         "중요한 개념적 오해를 correction한 내용",
@@ -493,6 +530,26 @@ def assert_identity_and_checkpoint_validation() -> None:
         )
         expect_error(
             lambda: ingest.validate_payload(payload(wrong_started), root),
+            "paper-note-validation-error",
+        )
+
+        missing_pdf_access = note().replace(
+            "- PDF access: session-attachment (새 채팅마다 재첨부 필요)\n",
+            "",
+            1,
+        )
+        expect_error(
+            lambda: ingest.validate_payload(payload(missing_pdf_access), root),
+            "paper-note-validation-error",
+        )
+
+        invalid_pdf_access = note().replace(
+            "- PDF access: session-attachment (새 채팅마다 재첨부 필요)",
+            "- PDF access: DOI link",
+            1,
+        )
+        expect_error(
+            lambda: ingest.validate_payload(payload(invalid_pdf_access), root),
             "paper-note-validation-error",
         )
 
