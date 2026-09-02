@@ -5,6 +5,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 ## v0.3.0 — Current
 
 ### Added
+- 매 새 채팅에서 사용자가 직접 첨부한 PDF의 열기·identity·현재 문맥 확인을 통과해야만 paper tutoring을 시작하는 fail-closed PDF Source Gate
 - 논문 읽기·재개 시 사용자가 먼저 읽고 설명하며 ChatGPT가 읽은 범위 안에서 평가·교정하는 `system/PAPER_READING_TUTOR_POLICY.md` canonical policy
 - 논문 한 편을 여러 세션에 걸쳐 갱신하는 `paper-notes/{foundational|ssl-lab|related}/YYYY-MM-DD-slug.md` living note 구조
 - `[paper-note]` Issue와 `research-os-paper-note:v1` 계약으로 Paper Reading Checkpoint를 검증·저장하는 GitHub Actions

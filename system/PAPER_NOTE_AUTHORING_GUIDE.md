@@ -6,7 +6,16 @@
 
 Update 전에 `main`의 기존 Paper Note 전체와 최신 blob SHA를 읽는다. 기존 분석, 질문, Bridge와 Reading Session History를 삭제하거나 과거 내용을 새 세션의 evidence처럼 바꾸지 않는다.
 
-## 2. Resume Point를 정확히 쓴다
+## 2. 첨부 PDF에서 논문 identity를 확인한다
+
+Paper Note의 Metadata에는 PDF를 대신하지 않는 논문 identity만 기록한다. PDF 첨부 여부와 접근 가능성은 영구 상태가 아니라 매 채팅에서 다시 확인하는 session-level gate다.
+
+- `Title`, `Authors`, `Paper link`에는 첨부 PDF 첫 페이지와 문서 안에서 직접 확인한 제목, 저자와 DOI·arXiv ID 등 식별 정보를 기록한다.
+- 대화 첨부파일의 임시 경로나 과거 conversation의 attachment URL을 영구 경로처럼 기록하지 않는다.
+
+Paper Note의 identity가 있다는 사실 자체는 원문 접근 evidence가 아니다. 매 새 채팅에서 `system/PAPER_READING_TUTOR_POLICY.md`의 PDF Source Gate를 다시 통과해야 하며, Paper Note에 고정된 접근 방식이나 이번 채팅의 PDF 확인 결과를 기록하지 않는다.
+
+## 3. Resume Point를 정확히 쓴다
 
 `Resume Point`에는 다음 세션에서 바로 찾을 수 있도록 가능한 범위에서 다음 정보를 기록한다.
 
@@ -18,7 +27,7 @@ Update 전에 `main`의 기존 Paper Note 전체와 최신 blob SHA를 읽는다
 
 단순히 `Section 3`처럼 넓게 적지 않는다. Paper를 읽지 않고 Bridge를 학습하는 동안에는 기존 Resume Point를 이동하지 않는다.
 
-## 3. Prerequisite Bridge를 두 방식으로 구분한다
+## 4. Prerequisite Bridge를 두 방식으로 구분한다
 
 ### 논문 안에서 해결한 선수지식
 
@@ -40,17 +49,17 @@ Update 전에 `main`의 기존 Paper Note 전체와 최신 blob SHA를 읽는다
 
 한 Paper Note에서 `studying`은 최대 하나만 허용한다. `이 논문에 충분한 기준`을 구체적으로 적고 현재 논문에 필요하지 않은 깊이로 확장하지 않는다.
 
-## 4. Learning Log 연결
+## 5. Learning Log 연결
 
 Learning Log가 실제 commit에 저장된 것을 확인한 뒤에만 Paper Note에 경로를 추가한다. 같은 개념의 Log가 여러 개면 생성 순서대로 나열하고, 각 Learning Log의 `Related notes`에도 Paper Note와 필요한 이전 Log를 연결한다.
 
 동일한 학습 묶음을 이어가면 기존 Log update 후보로 처리하고, 날짜·하위 주제·의미 있는 학습 묶음이 달라지면 새 Log를 만든다. 기존 Learning Log의 문장과 checkbox를 새 evidence로 복제하지 않는다.
 
-## 5. Reading Session History
+## 6. Reading Session History
 
 사용자가 `오늘은 여기까지`처럼 세션 종료를 명시하면 그날 읽은 범위, 확인된 이해, 새 질문, Bridge 변화와 종료 당시 Resume Point를 날짜별로 추가한다. 과거 세션 기록을 덮어쓰지 않는다.
 
-## 6. 사용자 evidence
+## 7. 사용자 evidence
 
 Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 
@@ -61,7 +70,9 @@ Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 
 사용자가 읽지 않은 논문 부분을 일반 지식으로 추측해 채우지 않는다. 아직 확인하지 않은 canonical section은 `아직 분석하지 않음`으로 둔다.
 
-## 7. Prerequisite Inventory와 Bridge Audit
+사용자의 해석을 correction하거나 exact number 또는 architecture mechanism을 Paper Note에 반영할 때는 확인한 PDF page 또는 section을 함께 기록한다. Paper Note, DOI·웹페이지·abstract, 사용자가 붙여 넣은 문장이나 모델 기억만으로 paper-direct fact를 만들지 않는다.
+
+## 8. Prerequisite Inventory와 Bridge Audit
 
 Paper Note 저장안을 작성하기 전에 마지막으로 저장된 checkpoint 이후 현재 conversation을 다시 훑어 임시 `Prerequisite Inventory`를 만든다. 다음은 inventory 후보다.
 
@@ -93,9 +104,12 @@ Prerequisite Bridge audit
 - 제외한 항목과 이유:
 ```
 
-## 8. 저장 전 점검
+## 9. 저장 전 점검
 
 - 전체 canonical Paper Note를 보냈는가?
+- Metadata의 제목·저자·논문 식별 정보가 첨부 PDF와 일치하는가?
+- 임시 attachment 경로나 과거 conversation URL을 영구 source로 기록하지 않았는가?
+- 이번 paper-specific 평가가 PDF Source Gate를 통과한 상태에서 이루어졌는가?
 - Resume Point가 비어 있지 않은가?
 - 이번 변경이 실제 Paper Reading Checkpoint인가?
 - `studying`이 두 개 이상이지 않은가?
