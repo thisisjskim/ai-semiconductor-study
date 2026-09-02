@@ -172,7 +172,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "별도의 기계적 evidence status 필드를 새로 만들지 않고 자연어",
         "Paper claim",
         "User observation",
-        "다음 내용을 설명하지 않고 기다린다",
+        "`pending verification`이 없으면 다음 내용을 설명하거나 질문하지 않고 기다린다",
         "Current Paper Note가 `없음`이면 현재 읽고 있는 paper가 저장되어 있지 않다고 알리고",
         "새롭게 읽을 논문의 제목이나 식별 정보를 사용자에게 요청한다",
         "사용자 승인 없이 새 Paper Note를 만들지 않는다",
@@ -190,6 +190,18 @@ def assert_paper_tutoring_policy_contract() -> None:
     ):
         assert required in tutoring
     assert "중요한 prerequisite나 핵심 개념은 설명 후" not in tutoring
+
+    primary_policy = tutoring.split("## 1. 최우선 원칙", 1)[1].split(
+        "## 2. 세션 시작과 상태 복구", 1
+    )[0]
+    for required in (
+        "§12의 `pending verification`이 없으면",
+        "계속 읽겠다는 말 자체를 명시적인 검증 거부로 간주하지 않고",
+        "같은 핵심 자기 설명을 한 번만 다시 요청한다",
+        "한 번 재요청한 뒤에도 자기 설명 없이 계속 진행하겠다고 하면",
+        "미확인 상태로 기록한 뒤 다음 읽기를 기다린다",
+    ):
+        assert required in primary_policy
 
     understanding_evidence = tutoring.split("## 7. Understanding Evidence", 1)[1].split(
         "## 8. 논문이 제공하는 정보의 한계", 1
@@ -221,11 +233,24 @@ def assert_paper_tutoring_policy_contract() -> None:
         "사용자가 모른다고 질문한 prerequisite",
         "개념적 오해 또는 이후 논문 이해를 실제로 방해하는 핵심 누락",
         "사용자가 직접 이해 확인이나 quiz를 요청했다",
+        "자기 설명이 아직 확인되지 않은 상태를 `pending verification`",
         "불완전한 부분이 이후 논문 이해를 막지 않으면 자기 설명을 다시 요구하지 않는다",
         "수정된 오해 또는 보완된 핵심 누락",
+        "계속 읽겠다는 말 자체를 명시적인 검증 거부로 간주하지 않고",
+        "같은 핵심 자기 설명을 한 번만 다시 요청한다",
+        "한 번 재요청한 뒤에도 자기 설명 없이 계속 진행하겠다고 하면",
+        "사용자 자기 설명이 확인되지 않은 상태로 기록하고 다음 읽기를 기다린다",
     ):
         assert required in question_policy
     assert "보통 1~3개" not in question_policy
+    assert "다만 중요한 prerequisite의 이해를 확인하지 않으면" not in question_policy
+
+    behavior_scenarios = tutoring.split("## 18. 행동 점검 시나리오", 1)[1]
+    for required in (
+        "`pending verification`이 없으면 다음 내용을 설명하거나 질문하지 않고 기다린다",
+        "명시적으로 거부하거나 재요청 뒤에도 계속 진행하면 미확인 상태로 기록하고 더 반복하지 않는다",
+    ):
+        assert required in behavior_scenarios
 
     entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
     assert "`system/PAPER_READING_TUTOR_POLICY.md`를 반드시 처음부터 끝까지 읽고" in entrypoint
