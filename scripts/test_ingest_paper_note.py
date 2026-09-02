@@ -191,6 +191,17 @@ def assert_paper_tutoring_policy_contract() -> None:
         assert required in tutoring
     assert "중요한 prerequisite나 핵심 개념은 설명 후" not in tutoring
 
+    understanding_evidence = tutoring.split("## 7. Understanding Evidence", 1)[1].split(
+        "## 8. 논문이 제공하는 정보의 한계", 1
+    )[0]
+    for required in (
+        "자기 설명을 요청할지는 §12의 trigger를 따른다",
+        "AI가 설명했지만 사용자 자기 설명은 아직 확인되지 않음",
+        "검증 질문을 추가로 강제하지 않는다",
+    ):
+        assert required in understanding_evidence
+    assert "중요한 개념은 짧은 자기 설명을 통해 검증한다" not in tutoring
+
     question_policy = tutoring.split("## 12. 질문 사용", 1)[1].split(
         "## 13. Paper Note와 세션 종료", 1
     )[0]
