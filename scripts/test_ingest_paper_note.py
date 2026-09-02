@@ -178,7 +178,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "사용자 승인 없이 새 Paper Note를 만들지 않는다",
         "이해 확인 질문을 하지 않는 것을 기본값으로 한다",
         "사용자가 모른다고 질문한 prerequisite를 GPT가 새로 설명했다",
-        "사용자의 잘못된 이해를 이후 논문 이해에 중요한 개념 수준에서 correction했다",
+        "사용자의 개념적 오해 또는 이후 논문 이해를 실제로 방해하는 핵심 누락을 correction했다",
         "정확하거나, 방향은 맞고 사소한 조건만 빠졌거나",
         "논문이 직접 말함",
         "이해를 위한 보충 설명",
@@ -202,15 +202,27 @@ def assert_paper_tutoring_policy_contract() -> None:
         assert required in understanding_evidence
     assert "중요한 개념은 짧은 자기 설명을 통해 검증한다" not in tutoring
 
+    evaluation_policy = tutoring.split("## 5. 사용자 설명 평가", 1)[1].split(
+        "## 6. Prerequisite 처리", 1
+    )[0]
+    for required in (
+        "인과관계, 동작 원리, 비교 기준 또는 논문의 주장 범위를 잘못 해석하게 되는 누락",
+        "§12의 correction trigger에 따라",
+        "사소한 누락을 검증 질문을 하기 위해 `잘못 이해한 내용`으로 바꾸지 않는다",
+    ):
+        assert required in evaluation_policy
+    assert "중요한 개념 공백이면 그 이유를 짧게 밝히고 필요한 설명 뒤 자기 설명을 한 번 요청할 수 있다" not in tutoring
+
     question_policy = tutoring.split("## 12. 질문 사용", 1)[1].split(
         "## 13. Paper Note와 세션 종료", 1
     )[0]
     for required in (
         "이해 확인 질문을 하지 않는 것을 기본값으로 한다",
         "사용자가 모른다고 질문한 prerequisite",
-        "중요한 개념 수준에서 correction",
+        "개념적 오해 또는 이후 논문 이해를 실제로 방해하는 핵심 누락",
         "사용자가 직접 이해 확인이나 quiz를 요청했다",
         "불완전한 부분이 이후 논문 이해를 막지 않으면 자기 설명을 다시 요구하지 않는다",
+        "수정된 오해 또는 보완된 핵심 누락",
     ):
         assert required in question_policy
     assert "보통 1~3개" not in question_policy
