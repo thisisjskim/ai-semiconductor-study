@@ -28,6 +28,8 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 일반 ChatGPT용 Tutor Loop, 작은 Learning Unit 완료 기준, checkpoint와 저장 보류 protocol
 
 ### Fixed
+- 정확하거나 사소하게 불완전한 논문 해석에도 습관적으로 이해 확인 질문을 붙일 수 있던 넓은 verification 조건을 새 prerequisite 설명·중요한 오해 correction 중심의 명시적 trigger로 축소
+- Paper Note 저장 시 Architecture·Method에는 반영된 prerequisite가 Bridge에서 누락될 수 있던 의미적 점검 공백을 conversation inventory와 Bridge audit으로 보완
 - Issue 하나가 닫힐 때 관련 없는 ingest Workflow들이 workflow-level concurrency를 먼저 점유해 실제 writer run을 취소할 수 있던 경쟁 조건
 - 현재 boundary에 해당하는 Learning Log가 아직 없을 때 Current Learning Context 생성이 실패하던 빈 evidence 처리
 - 실제 학습 진도가 다음 boundary로 이동해도 과거 SRAM 문구를 고정 검사해 Context Refresh가 실패하던 저장소 상태 테스트
@@ -45,6 +47,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - 성공 comment뿐 아니라 결과 commit의 실제 target file까지 확인해야 저장 완료로 판정
 
 ### Changed
+- 논문 직접 사실, 이해를 위한 보충 설명과 reference 확인이 필요한 GPT 추론을 혼동 가능성이 있을 때만 구분하고, 원문에서 확인한 exact fact는 불필요하게 약화하지 않도록 provenance 판정 규율 강화
 - 논문 tutoring을 일반 Explain-first Tutor Loop와 분리하고 Current Context → Paper Tutor Policy → Current Paper Note 순서로 복구하도록 routing 통합
 - Roadmap과 Research OS에 분산돼 있던 논문 읽기 pass·세부 tutoring 규율을 새 canonical policy 참조로 축소
 - 새 채팅의 논문 복구 경로를 `Current Context → Current Paper Note → Resume Point 또는 studying Bridge의 Learning Log` 순서로 명시

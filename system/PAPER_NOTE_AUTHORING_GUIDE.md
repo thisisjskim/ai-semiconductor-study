@@ -61,7 +61,39 @@ Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 
 사용자가 읽지 않은 논문 부분을 일반 지식으로 추측해 채우지 않는다. 아직 확인하지 않은 canonical section은 `아직 분석하지 않음`으로 둔다.
 
-## 7. 저장 전 점검
+## 7. Prerequisite Inventory와 Bridge Audit
+
+Paper Note 저장안을 작성하기 전에 마지막으로 저장된 checkpoint 이후 현재 conversation을 다시 훑어 임시 `Prerequisite Inventory`를 만든다. 다음은 inventory 후보다.
+
+- 사용자가 논문 이해를 위해 뜻이나 작동 원리를 질문했고 GPT가 별도로 설명한 개념
+- 사용자의 중요한 개념적 오해를 correction한 내용
+- 현재 overview만으로 exact mechanism을 확인할 수 없어 원 논문이나 reference 확인 대상으로 남긴 내용
+
+단순 영어 문법·번역, 기술 개념을 추가하지 않은 문장 재표현과 논문 문장을 그대로 요약한 내용은 Bridge 후보에서 제외한다.
+
+각 후보를 다음 중 하나로 분류하고 기존·제안 Prerequisite Bridge와 대조한다.
+
+- `논문 안에서 해결한 선수지식`
+- `별도로 이어가는 선수지식`
+- `Reference deep-dive candidate`
+- `Bridge 대상 아님`과 제외 이유
+
+Inventory의 각 후보가 Bridge 신규 추가, 기존 Bridge 업데이트, reference 후보 또는 제외 사유 중 하나로 설명되는지 확인한다. Architecture, Method, Questions에 내용이 있다는 이유로 Bridge 반영을 생략하지 않는다. 누락을 보완한 뒤에만 사용자에게 Paper Note 변경안을 제시한다.
+
+`Reference deep-dive candidate`는 새 고정 section을 만들지 않고 기존 `Questions` 또는 관련 분석 section에 자연어로 보존한다. 이는 현재 paper를 이해하기 위해 이미 설명한 prerequisite를 Bridge에 기록하는 의무를 대신하지 않는다.
+
+이 audit은 저장 전 검토용 절차이며 Paper Note에 새로운 고정 section이나 evidence status field를 추가하지 않는다. 승인 전에는 최소한 다음을 보여 준다.
+
+```text
+Prerequisite Bridge audit
+- 이번 세션 후보:
+- Bridge 신규 추가:
+- 기존 Bridge 업데이트:
+- Reference 후보:
+- 제외한 항목과 이유:
+```
+
+## 8. 저장 전 점검
 
 - 전체 canonical Paper Note를 보냈는가?
 - Resume Point가 비어 있지 않은가?
@@ -71,4 +103,7 @@ Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 - Bridge Status가 허용값인가?
 - 연결한 Learning Log가 실제 저장됐는가?
 - 사용자의 자기 설명과 AI 설명을 구분했는가?
+- 마지막 checkpoint 이후 Prerequisite Inventory를 만들었는가?
+- Inventory의 모든 후보를 기존·제안 Bridge와 대조하고 누락을 보완했는가?
+- 단순 문법·번역·문장 재표현을 Bridge로 과잉 기록하지 않았는가?
 - Reading Session History가 과거 기록을 보존하는가?
