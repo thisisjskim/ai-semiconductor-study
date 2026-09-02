@@ -6,16 +6,14 @@
 
 Update 전에 `main`의 기존 Paper Note 전체와 최신 blob SHA를 읽는다. 기존 분석, 질문, Bridge와 Reading Session History를 삭제하거나 과거 내용을 새 세션의 evidence처럼 바꾸지 않는다.
 
-## 2. PDF 원문 접근 상태와 identity를 기록한다
+## 2. 첨부 PDF에서 논문 identity를 확인한다
 
-Paper Note의 Metadata에는 PDF를 대신하지 않는 논문 identity와 현재 접근 방식을 기록한다.
+Paper Note의 Metadata에는 PDF를 대신하지 않는 논문 identity만 기록한다. PDF 첨부 여부와 접근 가능성은 영구 상태가 아니라 매 채팅에서 다시 확인하는 session-level gate다.
 
 - `Title`, `Authors`, `Paper link`에는 첨부 PDF 첫 페이지와 문서 안에서 직접 확인한 제목, 저자와 DOI·arXiv ID 등 식별 정보를 기록한다.
-- 현재 운영의 `PDF access` 값은 정확히 `session-attachment (새 채팅마다 재첨부 필요)`로 기록한다.
 - 대화 첨부파일의 임시 경로나 과거 conversation의 attachment URL을 영구 경로처럼 기록하지 않는다.
-- 기존 Paper Note에 `PDF access`가 없으면 승인 없는 기존 파일 수정은 하지 않고, 다음 Paper Reading Checkpoint 변경안에 해당 Metadata 추가를 포함한다.
 
-이 Metadata는 다음 세션이 같은 paper를 식별하고 PDF 재첨부가 필요하다는 사실을 복구하기 위한 것이다. Paper Note에 identity가 있다는 사실 자체는 원문 접근 evidence가 아니며, 매 새 채팅에서 `system/PAPER_READING_TUTOR_POLICY.md`의 PDF Source Gate를 다시 통과해야 한다.
+Paper Note의 identity가 있다는 사실 자체는 원문 접근 evidence가 아니다. 매 새 채팅에서 `system/PAPER_READING_TUTOR_POLICY.md`의 PDF Source Gate를 다시 통과해야 하며, Paper Note에 고정된 접근 방식이나 이번 채팅의 PDF 확인 결과를 기록하지 않는다.
 
 ## 3. Resume Point를 정확히 쓴다
 
@@ -110,7 +108,6 @@ Prerequisite Bridge audit
 
 - 전체 canonical Paper Note를 보냈는가?
 - Metadata의 제목·저자·논문 식별 정보가 첨부 PDF와 일치하는가?
-- `PDF access`가 `session-attachment (새 채팅마다 재첨부 필요)`인가?
 - 임시 attachment 경로나 과거 conversation URL을 영구 source로 기록하지 않았는가?
 - 이번 paper-specific 평가가 PDF Source Gate를 통과한 상태에서 이루어졌는가?
 - Resume Point가 비어 있지 않은가?

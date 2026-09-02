@@ -12,7 +12,7 @@
 
 1. 현재 `state/CURRENT_LEARNING_CONTEXT.md`가 가리키는 Paper Note 또는 새로 만들 대상 경로를 확인한다.
 2. Update이면 `main`의 기존 Paper Note 전체와 40자리 blob SHA를 읽는다.
-3. `templates/paper-note.md`와 `system/PAPER_NOTE_AUTHORING_GUIDE.md`를 읽고 전체 canonical Markdown을 작성한다. Metadata의 제목·저자·Paper link가 첨부 PDF identity와 일치하고 `PDF access`가 `session-attachment (새 채팅마다 재첨부 필요)`인지 확인한다. 임시 attachment 경로나 과거 conversation URL은 저장하지 않는다.
+3. `templates/paper-note.md`와 `system/PAPER_NOTE_AUTHORING_GUIDE.md`를 읽고 전체 canonical Markdown을 작성한다. Metadata의 제목·저자·Paper link가 이번 채팅에서 PDF Source Gate를 통과한 첨부 PDF의 identity와 일치하는지 확인한다. 임시 attachment 경로나 과거 conversation URL은 저장하지 않는다.
 4. `studying` Bridge를 저장하거나 다른 Learning Log를 연결하면 해당 Log의 성공 comment, commit과 실제 파일을 먼저 확인한다. 저장된 `studying`에는 실제 Learning Log 경로가 하나 이상 필요하다.
 5. 사용자에게 create/update, target path, Resume Point, Bridge 변화와 변경 전·후 상태창을 보여 주고 승인을 받는다.
 6. 정확한 title과 envelope로 Issue를 만들고 필요한 chunk를 모두 추가한 뒤 닫는다.

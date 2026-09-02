@@ -102,7 +102,6 @@ def assert_template_contract() -> None:
     assert "### 논문 안에서 해결한 선수지식" in template
     assert "### 별도로 이어가는 선수지식" in template
     assert "studying | paused | sufficient-for-paper" in template
-    assert "- PDF access: session-attachment (새 채팅마다 재첨부 필요)" in template
     assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
     assert "## 17. Reading Session History" in template
     for removed in (
@@ -139,7 +138,6 @@ def assert_repository_contract() -> None:
     assert "research-os-paper-note:v1" in contract
     assert "intent: paper-reading-checkpoint" in contract
     assert "Issue의 변경되지 않는 `created_at`" in contract
-    assert "`PDF access`가 `session-attachment (새 채팅마다 재첨부 필요)`" in contract
     assert (ROOT / "system/PAPER_NOTE_AUTHORING_GUIDE.md").is_file()
     assert (ROOT / "paper-notes/README.md").is_file()
     entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
@@ -314,10 +312,11 @@ def assert_paper_tutoring_policy_contract() -> None:
     )
     assert "별도 evidence status 필드를 추가하지 않고" in authoring
     assert "저장 전에 사용자의 짧은 자기 설명을 한 번 요청한다" not in authoring
-    assert "## 2. PDF 원문 접근 상태와 identity를 기록한다" in authoring
-    assert "session-attachment (새 채팅마다 재첨부 필요)" in authoring
+    assert "## 2. 첨부 PDF에서 논문 identity를 확인한다" in authoring
+    assert "PDF 첨부 여부와 접근 가능성은 영구 상태가 아니라" in authoring
+    assert "PDF access" not in authoring
     assert "임시 경로나 과거 conversation의 attachment URL을 영구 경로처럼 기록하지 않는다" in authoring
-    assert "Paper Note에 identity가 있다는 사실 자체는 원문 접근 evidence가 아니며" in authoring
+    assert "Paper Note의 identity가 있다는 사실 자체는 원문 접근 evidence가 아니다" in authoring
     assert "## 8. Prerequisite Inventory와 Bridge Audit" in authoring
     assert "마지막으로 저장된 checkpoint 이후 현재 conversation" in authoring
     assert "Architecture, Method, Questions에 내용이 있다는 이유로 Bridge 반영을 생략하지 않는다" in authoring
@@ -530,26 +529,6 @@ def assert_identity_and_checkpoint_validation() -> None:
         )
         expect_error(
             lambda: ingest.validate_payload(payload(wrong_started), root),
-            "paper-note-validation-error",
-        )
-
-        missing_pdf_access = note().replace(
-            "- PDF access: session-attachment (새 채팅마다 재첨부 필요)\n",
-            "",
-            1,
-        )
-        expect_error(
-            lambda: ingest.validate_payload(payload(missing_pdf_access), root),
-            "paper-note-validation-error",
-        )
-
-        invalid_pdf_access = note().replace(
-            "- PDF access: session-attachment (새 채팅마다 재첨부 필요)",
-            "- PDF access: DOI link",
-            1,
-        )
-        expect_error(
-            lambda: ingest.validate_payload(payload(invalid_pdf_access), root),
             "paper-note-validation-error",
         )
 
