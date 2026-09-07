@@ -101,6 +101,8 @@ def assert_template_contract() -> None:
     assert "- Resume Point:" in template
     assert "## 2. Prerequisite Bridge" in template
     assert "### 논문 안에서 해결한 선수지식" in template
+    assert "명시적으로 요청했거나 GPT의 제안에 동의한 개념만 기록한다" in template
+    assert "질문·설명·오해 수정이 있었다는 이유만으로 자동 추가하지 않는다" in template
     assert "- 실제 정의:" in template
     assert "### 별도로 이어가는 선수지식" in template
     assert "studying | paused | sufficient-for-paper" in template
@@ -140,6 +142,8 @@ def assert_repository_contract() -> None:
     assert "research-os-paper-note:v1" in contract
     assert "intent: paper-reading-checkpoint" in contract
     assert "Issue의 변경되지 않는 `created_at`" in contract
+    assert "사용자가 직접 PB 기록을 요청했거나 GPT의 제안에 명시적으로 동의한 개념만 포함한다" in contract
+    assert "checkpoint 전체의 저장 승인을 지정되지 않은 PB 항목 추가 승인으로 사용하지 않는다" in contract
     assert (ROOT / "system/PAPER_NOTE_AUTHORING_GUIDE.md").is_file()
     assert (ROOT / "paper-notes/README.md").is_file()
     entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
@@ -187,7 +191,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "GPT의 추론이며 원 논문 또는 reference 확인 필요",
         "기존 Paper Note, 사용자가 붙여 넣은 문장, DOI·웹페이지·abstract, GPT가 찾은 다른 사본이나 모델의 기억만으로 exact fact를 원문에서 재확인한 것처럼 표현하지 않는다",
         "exact number나 mechanism을 직접 확인했다면 불필요하게 가능성 표현으로 약화하지 않고",
-        "단순 영어 문법·번역이나 기술 개념을 추가하지 않은 문장 재표현은 Bridge 후보로 만들지 않는다",
+        "사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 동의한 개념만 임시 PB Inventory로 모은다",
         "이 문서에 없는 새로운 user-facing pedagogical framework",
     ):
         assert required in tutoring
@@ -319,32 +323,42 @@ def assert_paper_tutoring_policy_contract() -> None:
     assert "PDF access" not in authoring
     assert "임시 경로나 과거 conversation의 attachment URL을 영구 경로처럼 기록하지 않는다" in authoring
     assert "Paper Note의 identity가 있다는 사실 자체는 원문 접근 evidence가 아니다" in authoring
-    assert "## 8. Prerequisite Inventory와 Bridge Audit" in authoring
+    assert "PB 기록은 사용자가 자연어로 직접 요청하거나 GPT의 PB 제안에 명시적으로 동의한 경우에만 수행한다" in tutoring
+    assert "사용자의 명시적 요청이나 GPT 제안에 대한 동의 없이 prerequisite를 PB에 자동 추가하지 않는다" in tutoring
+    assert "## 8. 사용자 선택 PB Inventory와 Bridge Audit" in authoring
     assert "마지막으로 저장된 checkpoint 이후 현재 conversation" in authoring
-    assert "Architecture, Method, Questions에 내용이 있다는 이유로 Bridge 반영을 생략하지 않는다" in authoring
-    assert "Bridge 대상 아님`과 제외 이유" in authoring
     assert "새로운 고정 section이나 evidence status field를 추가하지 않는다" in authoring
-    assert "Inventory의 모든 후보를 기존·제안 Bridge와 대조하고 누락을 보완했는가?" in authoring
+    assert "사용자가 명시적으로 선택한 개념만 PB Inventory에 넣었는가?" in authoring
+    assert "일반적인 Paper Note 저장 승인을 지정되지 않은 PB 추가 승인으로 확대하지 않았는가?" in authoring
     bridge_audit = authoring.split(
-        "## 8. Prerequisite Inventory와 Bridge Audit", 1
+        "## 8. 사용자 선택 PB Inventory와 Bridge Audit", 1
     )[1].split("## 9. 저장 전 점검", 1)[0]
     for required in (
-        "뜻이나 작동 원리를 질문했고 GPT가 별도로 설명한 개념",
-        "중요한 개념적 오해를 correction한 내용",
+        "사용자가 `PB`, `Prerequisite Bridge`, `선수지식` 등으로 남겨 달라고",
+        "GPT가 PB 기록을 제안한 뒤 사용자가 명시적으로 동의한 개념",
+        "사용자가 동의하기 전에는 PB Inventory나 저장안에 넣지 않는다",
+        "질문한 것, GPT가 개념을 설명한 것, 중요한 오해를 correction한 것",
+        "일반적인 `Paper Note를 저장해줘` 또는 checkpoint 저장 승인",
         "Reference deep-dive candidate",
-        "Bridge 대상 아님`과 제외 이유",
-        "단순 영어 문법·번역",
-        "누락을 보완한 뒤에만",
-        "기존 `Questions` 또는 관련 분석 section에 자연어로 보존한다",
+        "기존 `Questions` 또는 관련 분석 section에만 자연어로 보존한다",
+        "사용자가 직접 선택한 PB:",
+        "GPT 제안 후 승인된 PB:",
     ):
         assert required in bridge_audit
+    for removed in (
+        "Architecture, Method, Questions에 내용이 있다는 이유로 Bridge 반영을 생략하지 않는다",
+        "Inventory의 각 후보가 Bridge 신규 추가",
+        "누락을 보완한 뒤에만",
+    ):
+        assert removed not in authoring
 
     paper_template = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
     assert "Prerequisite Inventory" not in paper_template
     assert "Prerequisite Bridge audit" not in paper_template
 
-    assert "Prerequisite Inventory를 만들고 기존·제안 Bridge와 대조" in entrypoint
-    assert "Architecture, Method 또는 Questions에 기록했다는 이유로 Bridge 반영을 생략하지 않는다" in entrypoint
+    assert "사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 명시적으로 동의한 개념만" in entrypoint
+    assert "질문·설명·correction 또는 reference 후보가 있었다는 이유만으로 자동 추가하지 않으며" in entrypoint
+    assert "일반적인 Paper Note 저장 승인을 지정되지 않은 PB 항목의 추가 승인으로 확대하지 않는다" in entrypoint
     assert "Prerequisite Bridge audit" in entrypoint
 
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")

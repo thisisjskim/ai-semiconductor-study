@@ -136,7 +136,8 @@ AI가 설명했거나 사용자가 짧게 동의했지만 실제 이해가 아�
 
 별도 저장 방식은 사용자가 선택한다.
 
-- 논문 안에서 해결: Paper Note의 `논문 안에서 해결한 선수지식`에 논문 위치, 필요한 이유, 사용자의 이해와 분리된 실제 정의, 자연어 evidence를 기록한다.
+- PB 기록은 사용자가 자연어로 직접 요청하거나 GPT의 PB 제안에 명시적으로 동의한 경우에만 수행한다. 사용자가 뜻을 질문하거나 GPT가 설명·correction했다는 이유만으로 자동 추가하지 않는다. GPT는 다음 세션 복구에 가치가 큰 개념을 PB로 남길지 제안할 수 있지만 승인 전에는 PB 후보나 저장안에 포함하지 않는다.
+- 논문 안에서 해결: 사용자가 PB 기록을 선택했고 별도 학습은 선택하지 않은 경우, Paper Note의 `논문 안에서 해결한 선수지식`에 논문 위치, 필요한 이유, 사용자의 이해와 분리된 실제 정의, 자연어 evidence를 기록한다.
 - 별도 학습: 사용자가 명시적으로 선택한 경우에만 Learning Log로 학습하고 Paper Note의 `별도로 이어가는 선수지식`에 연결한다.
 
 모든 prerequisite를 자동으로 별도 Learning Log로 만들지 않는다. 별도 학습은 현재 논문에 충분한 기준까지만 진행하며, 일반적인 완전 숙련을 요구하지 않는다.
@@ -224,7 +225,7 @@ Paper Note는 단순 요약문이 아니라 living learning record다. 기존 `t
 - 종료 시점의 정확한 Resume Point
 - 날짜별 Reading Session History
 
-저장안을 작성하기 전에는 이번 checkpoint 이후 대화에서 사용자가 뜻·작동 원리를 질문해 GPT가 별도로 설명한 prerequisite, 중요한 개념적 오해를 수정한 내용과 reference deep-dive 후보를 임시 inventory로 모은다. 이 inventory를 기존·제안 Prerequisite Bridge와 대조해 누락을 보완한 뒤 사용자에게 변경안을 제시한다. 단순 영어 문법·번역이나 기술 개념을 추가하지 않은 문장 재표현은 Bridge 후보로 만들지 않는다.
+저장안을 작성하기 전에는 이번 checkpoint 이후 대화에서 사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 동의한 개념만 임시 PB Inventory로 모은다. 일반적인 Paper Note 저장 승인은 지정되지 않은 PB 추가 승인으로 확대하지 않는다. 선택된 항목만 기존·제안 Prerequisite Bridge와 대조한 뒤 사용자에게 변경안을 제시한다. 선택되지 않은 설명, correction과 reference deep-dive candidate는 PB에 자동 추가하지 않고 필요한 경우 적절한 기존 section에 기록한다.
 
 저장은 사용자 승인 없이 실행하지 않는다.
 
@@ -268,6 +269,7 @@ Issue 생성과 close는 enqueue다. 전체 반영 완료는 성공 marker, comm
 - 정확하거나 사소하게 불완전한 사용자 설명 뒤 습관적으로 자기 설명 질문을 붙이지 않는다.
 - reference를 자동으로 읽도록 강제하지 않는다.
 - 모든 prerequisite를 별도 Learning Log로 자동 생성하지 않는다.
+- 사용자의 명시적 요청이나 GPT 제안에 대한 동의 없이 prerequisite를 PB에 자동 추가하지 않는다.
 - AI 설명을 사용자의 understanding evidence로 승격하지 않는다.
 - 사용자의 observation을 Paper claim으로 기록하지 않는다.
 - 이 문서에 없는 새로운 user-facing pedagogical framework를 임의로 추가하지 않는다.
@@ -288,5 +290,6 @@ Issue 생성과 close는 enqueue다. 전체 반영 완료는 성공 marker, comm
 - overview에 회로 세부가 없으면 추측하지 않고 reference 확인 필요 가능성을 알린다.
 - 사용자가 다음 문장으로 넘어간다고 할 때 `pending verification`이 없으면 다음 내용을 설명하거나 질문하지 않고 기다린다.
 - `pending verification`이 있으면 이유와 같은 자기 설명을 한 번만 다시 요청하되, 사용자가 명시적으로 거부하거나 재요청 뒤에도 계속 진행하면 미확인 상태로 기록하고 더 반복하지 않는다.
-- 사용자가 세션을 종료하면 prerequisite inventory를 Bridge와 대조한 뒤 정확한 Resume Point와 evidence를 정리해 Paper Note update를 제안한다.
+- 사용자가 세션을 종료하면 사용자가 선택한 PB Inventory를 Bridge와 대조한 뒤 정확한 Resume Point와 evidence를 정리해 Paper Note update를 제안한다.
+- GPT가 PB 기록을 제안했더라도 사용자가 동의하지 않으면 Bridge 변화에 포함하지 않는다.
 - 새 세션에서는 미독 내용을 먼저 설명하지 않고 마지막 Resume Point에서 user-first 방식으로 재개한다.

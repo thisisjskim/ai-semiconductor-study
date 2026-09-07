@@ -31,7 +31,7 @@ Paper Note의 identity가 있다는 사실 자체는 원문 접근 evidence가 �
 
 ### 논문 안에서 해결한 선수지식
 
-대화 길이가 아니라 저장 목적을 기준으로 분류한다. 별도 Learning Log를 만들지 않기로 한 개념은 설명이 길더라도 이 section에 기록할 수 있다.
+사용자가 `PB로 남겨줘`, `Prerequisite Bridge에 기록해줘`, `선수지식으로 저장하자`처럼 자연어로 명시적으로 선택했거나 GPT의 PB 제안에 동의한 개념만 기록한다. 질문·설명·오해 수정이 있었다는 사실만으로 자동 추가하지 않는다. 선택된 개념을 별도 Learning Log로 만들지 않기로 했다면 이 section에 기록한다.
 
 - 개념이 등장한 논문 위치를 기록한다.
 - 이 논문에서 왜 필요한지를 기록한다.
@@ -73,36 +73,28 @@ Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 
 사용자의 해석을 correction하거나 exact number 또는 architecture mechanism을 Paper Note에 반영할 때는 확인한 PDF page 또는 section을 함께 기록한다. Paper Note, DOI·웹페이지·abstract, 사용자가 붙여 넣은 문장이나 모델 기억만으로 paper-direct fact를 만들지 않는다.
 
-## 8. Prerequisite Inventory와 Bridge Audit
+## 8. 사용자 선택 PB Inventory와 Bridge Audit
 
-Paper Note 저장안을 작성하기 전에 마지막으로 저장된 checkpoint 이후 현재 conversation을 다시 훑어 임시 `Prerequisite Inventory`를 만든다. 다음은 inventory 후보다.
+Paper Note 저장안을 작성하기 전에 마지막으로 저장된 checkpoint 이후 현재 conversation에서 사용자가 명시적으로 선택한 개념만 `PB Inventory`로 모은다. 다음 두 경우만 포함한다.
 
-- 사용자가 논문 이해를 위해 뜻이나 작동 원리를 질문했고 GPT가 별도로 설명한 개념
-- 사용자의 중요한 개념적 오해를 correction한 내용
-- 현재 overview만으로 exact mechanism을 확인할 수 없어 원 논문이나 reference 확인 대상으로 남긴 내용
+- 사용자가 `PB`, `Prerequisite Bridge`, `선수지식` 등으로 남겨 달라고 자연어로 직접 요청한 개념
+- GPT가 PB 기록을 제안한 뒤 사용자가 명시적으로 동의한 개념
 
-단순 영어 문법·번역, 기술 개념을 추가하지 않은 문장 재표현과 논문 문장을 그대로 요약한 내용은 Bridge 후보에서 제외한다.
+GPT는 다음 세션 복구에 가치가 큰 개념을 PB로 남길지 제안할 수 있다. 그러나 제안만으로 선택된 것이 아니며, 사용자가 동의하기 전에는 PB Inventory나 저장안에 넣지 않는다. 사용자가 단어의 뜻이나 작동 원리를 질문한 것, GPT가 개념을 설명한 것, 중요한 오해를 correction한 것과 reference deep-dive 후보가 생긴 것만으로는 PB 선택으로 간주하지 않는다.
 
-각 후보를 다음 중 하나로 분류하고 기존·제안 Prerequisite Bridge와 대조한다.
+일반적인 `Paper Note를 저장해줘` 또는 checkpoint 저장 승인은 지정되지 않은 PB 항목의 추가 승인으로 확대 해석하지 않는다. 사용자가 PB 기록은 요청했지만 별도 Learning Log 학습은 선택하지 않았다면 `논문 안에서 해결한 선수지식`으로 분류한다. 별도 학습을 명시적으로 선택한 경우에만 `별도로 이어가는 선수지식`으로 분류한다.
 
-- `논문 안에서 해결한 선수지식`
-- `별도로 이어가는 선수지식`
-- `Reference deep-dive candidate`
-- `Bridge 대상 아님`과 제외 이유
+선택되지 않은 설명·correction은 필요에 따라 Architecture, Method, Questions, 사용자 분석 근거 등 적절한 section에 기록할 수 있지만 PB에는 추가하지 않는다. Reference deep-dive candidate도 사용자가 PB로 선택하지 않았다면 기존 `Questions` 또는 관련 분석 section에만 자연어로 보존한다.
 
-Inventory의 각 후보가 Bridge 신규 추가, 기존 Bridge 업데이트, reference 후보 또는 제외 사유 중 하나로 설명되는지 확인한다. Architecture, Method, Questions에 내용이 있다는 이유로 Bridge 반영을 생략하지 않는다. 누락을 보완한 뒤에만 사용자에게 Paper Note 변경안을 제시한다.
-
-`Reference deep-dive candidate`는 새 고정 section을 만들지 않고 기존 `Questions` 또는 관련 분석 section에 자연어로 보존한다. 이는 현재 paper를 이해하기 위해 이미 설명한 prerequisite를 Bridge에 기록하는 의무를 대신하지 않는다.
-
-이 audit은 저장 전 검토용 절차이며 Paper Note에 새로운 고정 section이나 evidence status field를 추가하지 않는다. 승인 전에는 최소한 다음을 보여 준다.
+PB Inventory를 기존·제안 Prerequisite Bridge와 대조해 신규 추가, 기존 항목 업데이트, 변경 없음 또는 사용자가 철회한 항목으로 구분한다. 이 audit은 저장 전 검토용 절차이며 Paper Note에 새로운 고정 section이나 evidence status field를 추가하지 않는다. 승인 전에는 최소한 다음을 보여 준다.
 
 ```text
 Prerequisite Bridge audit
-- 이번 세션 후보:
+- 사용자가 직접 선택한 PB:
+- GPT 제안 후 승인된 PB:
 - Bridge 신규 추가:
 - 기존 Bridge 업데이트:
-- Reference 후보:
-- 제외한 항목과 이유:
+- 변경 없음 또는 철회:
 ```
 
 ## 9. 저장 전 점검
@@ -119,7 +111,8 @@ Prerequisite Bridge audit
 - 연결한 Learning Log가 실제 저장됐는가?
 - 사용자의 자기 설명과 AI 설명을 구분했는가?
 - 논문 안에서 해결한 각 선수지식에 등장 위치, 필요한 이유, 실제 정의와 사용자의 이해가 모두 기록됐는가?
-- 마지막 checkpoint 이후 Prerequisite Inventory를 만들었는가?
-- Inventory의 모든 후보를 기존·제안 Bridge와 대조하고 누락을 보완했는가?
-- 단순 문법·번역·문장 재표현을 Bridge로 과잉 기록하지 않았는가?
+- 마지막 checkpoint 이후 사용자가 명시적으로 선택한 개념만 PB Inventory에 넣었는가?
+- GPT가 제안만 했거나 설명·correction만 한 개념을 승인 없이 PB에 추가하지 않았는가?
+- 일반적인 Paper Note 저장 승인을 지정되지 않은 PB 추가 승인으로 확대하지 않았는가?
+- 선택된 PB를 기존·제안 Bridge와 대조했는가?
 - Reading Session History가 과거 기록을 보존하는가?

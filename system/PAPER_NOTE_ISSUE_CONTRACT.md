@@ -20,6 +20,8 @@
 8. 결과 commit ref에서 Paper Note를 다시 읽어 승인 내용이 반영됐는지 확인한다.
 9. 이어지는 Learning Context Refresh에서 Current Paper가 해당 경로로 갱신됐는지 확인한다.
 
+Bridge 변화에는 사용자가 직접 PB 기록을 요청했거나 GPT의 제안에 명시적으로 동의한 개념만 포함한다. Paper Note 또는 checkpoint 전체의 저장 승인을 지정되지 않은 PB 항목 추가 승인으로 사용하지 않는다.
+
 ## Checkpoint 시간
 
 `Checkpoint recorded at`은 사용자가 입력하는 wire field가 아니다. GitHub Actions가 Issue의 변경되지 않는 `created_at`을 UTC `YYYY-MM-DDTHH:MM:SSZ`로 자동 기록한다. Update 때도 이번 Paper Reading Checkpoint의 Issue 시각으로 갱신한다.
