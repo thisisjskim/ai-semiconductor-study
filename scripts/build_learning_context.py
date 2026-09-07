@@ -50,6 +50,10 @@ PAPER_NOTE_PATH_RE = re.compile(
     r"\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
 )
 BRIDGE_STATUSES = {"studying", "paused", "sufficient-for-paper"}
+PAPER_NOTE_SECTION_PAIRS = (
+    ("## 1. Reading Checkpoint", "## 2. Prerequisite Bridge"),
+    ("## 2. Reading Checkpoint", "## 3. Prerequisite Bridge"),
+)
 
 
 def git_blob_sha(path: Path) -> str:
@@ -212,12 +216,17 @@ def classify_paper_note(path: Path, root: Path) -> PaperNote | None:
     if not markdown.startswith("# Paper Note:"):
         return None
     sections = parse_sections(markdown)
-    if not {
-        "## Metadata",
-        "## 2. Reading Checkpoint",
-        "## 3. Prerequisite Bridge",
-    }.issubset(sections):
+    section_pair = next(
+        (
+            (checkpoint_heading, bridge_heading)
+            for checkpoint_heading, bridge_heading in PAPER_NOTE_SECTION_PAIRS
+            if checkpoint_heading in sections and bridge_heading in sections
+        ),
+        None,
+    )
+    if "## Metadata" not in sections or section_pair is None:
         return None
+    checkpoint_heading, bridge_heading = section_pair
     metadata = parse_metadata(sections)
     if metadata.get("Document type") != "paper-note":
         return None
@@ -234,13 +243,13 @@ def classify_paper_note(path: Path, root: Path) -> PaperNote | None:
         return None
 
     checkpoint_fields = parse_metadata(
-        {"## Metadata": sections["## 2. Reading Checkpoint"]}
+        {"## Metadata": sections[checkpoint_heading]}
     )
     if not checkpoint_fields.get("Resume Point"):
         return None
     statuses = [
         match.group("value").strip()
-        for line in sections["## 3. Prerequisite Bridge"].splitlines()
+        for line in sections[bridge_heading].splitlines()
         if (match := METADATA_RE.fullmatch(line.strip()))
         and match.group("key").strip() == "Status"
     ]

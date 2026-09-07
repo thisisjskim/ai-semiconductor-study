@@ -41,23 +41,22 @@ REQUIRED_METADATA = (
 )
 REQUIRED_HEADINGS = (
     "## Metadata",
-    "## 1. Citation",
-    "## 2. Reading Checkpoint",
-    "## 3. Prerequisite Bridge",
-    "## 4. Problem",
-    "## 5. Motivation and Prior-Work Gap",
-    "## 6. Prerequisites",
-    "## 7. Key Idea",
-    "## 8. Architecture",
-    "## 9. Method",
-    "## 10. Experiments",
-    "## 11. Results",
-    "## 12. Trade-offs",
-    "## 13. Limitations",
-    "## 14. Questions",
-    "## 15. Connection to My Research Interest",
-    "## 16. Final Summary",
-    "## 17. Reading Session History",
+    "## 1. Reading Checkpoint",
+    "## 2. Prerequisite Bridge",
+    "## 3. Problem",
+    "## 4. Motivation and Prior-Work Gap",
+    "## 5. Prerequisites",
+    "## 6. Key Idea",
+    "## 7. Architecture",
+    "## 8. Method",
+    "## 9. Experiments",
+    "## 10. Results",
+    "## 11. Trade-offs",
+    "## 12. Limitations",
+    "## 13. Questions",
+    "## 14. Connection to My Research Interest",
+    "## 15. Final Summary",
+    "## 16. Reading Session History",
     "## 사용자 분석 근거",
 )
 FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
@@ -358,12 +357,12 @@ def validate_markdown(markdown: str, target_match: re.Match[str], root: Path) ->
     if normalize_timestamp(checkpoint) != checkpoint:
         raise IngestError("Checkpoint recorded at이 정규화된 UTC 형식이 아닙니다.")
     checkpoint_fields = parse_fields(
-        sections["## 2. Reading Checkpoint"], "Reading Checkpoint"
+        sections["## 1. Reading Checkpoint"], "Reading Checkpoint"
     )
     resume_point = checkpoint_fields.get("Resume Point", "").strip()
     if not resume_point or resume_point in {"없음", "아직 기록되지 않음"}:
         raise IngestError("Reading Checkpoint의 Resume Point가 필요합니다.")
-    validate_bridges(sections["## 3. Prerequisite Bridge"], root)
+    validate_bridges(sections["## 2. Prerequisite Bridge"], root)
 
 
 def validate_payload(payload: dict, root: Path) -> tuple[str, str, str, str]:

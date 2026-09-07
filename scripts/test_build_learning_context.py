@@ -93,10 +93,10 @@ def paper_note(
 - Paper type: {paper_type}
 - Checkpoint recorded at: {checkpoint_recorded_at}
 
-## 2. Reading Checkpoint
+## 1. Reading Checkpoint
 - Resume Point: {resume_point}
 
-## 3. Prerequisite Bridge
+## 2. Prerequisite Bridge
 ### 논문 안에서 해결한 선수지식
 - 없음
 ### 별도로 이어가는 선수지식
@@ -434,6 +434,7 @@ def main() -> int:
         assert f"Progress source SHA: `{aligned_sha}`" in aligned_review
 
     # A Paper Reading Checkpoint, not a Learning Log or filename, selects Current Paper.
+    # Notes saved before Citation removal remain discoverable until their next update.
     with tempfile.TemporaryDirectory() as temp:
         root = Path(temp)
         setup_root(root)
@@ -450,7 +451,9 @@ def main() -> int:
         write_fixture(
             root,
             "paper-notes/foundational/2026-08-27-z-old-paper.md",
-            paper_note("Old Paper", "2026-08-27T12:00:00Z"),
+            paper_note("Old Paper", "2026-08-27T12:00:00Z")
+            .replace("## 1. Reading Checkpoint", "## 2. Reading Checkpoint", 1)
+            .replace("## 2. Prerequisite Bridge", "## 3. Prerequisite Bridge", 1),
         )
         write_fixture(
             root,

@@ -12,17 +12,13 @@
 - Checkpoint recorded at: {GitHub Actions가 Issue created_at으로 자동 설정}
 - Related notes: 없음
 
-## 1. Citation
-
-논문의 정식 citation을 기록한다.
-
-## 2. Reading Checkpoint
+## 1. Reading Checkpoint
 
 - Resume Point:
 
 `Resume Point`는 다음 세션에서 재개할 section, PDF page, figure·table·equation 또는 문장 시작 부분과 아직 확인해야 할 내용을 함께 기록한다.
 
-## 3. Prerequisite Bridge
+## 2. Prerequisite Bridge
 
 ### 논문 안에서 해결한 선수지식
 
@@ -46,18 +42,18 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 - Learning Logs:
   - 없음
 
-## 4. Problem
+## 3. Problem
 
 이 논문이 해결하려는 문제는 무엇인가?
 기존 system 또는 architecture에서 무엇이 bottleneck인가?
 
-## 5. Motivation and Prior-Work Gap
+## 4. Motivation and Prior-Work Gap
 
 왜 이 문제가 중요한가?
 기존 접근이 충분하지 않은 이유는 무엇인가?
 저자가 주장하는 기존 연구와의 차이는 무엇인가?
 
-## 6. Prerequisites
+## 5. Prerequisites
 
 논문을 이해하기 위해 필요한 선행 개념과 현재 이해 상태를 구분한다.
 
@@ -65,13 +61,13 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 | --- | --- | --- |
 |  |  |  |
 
-## 7. Key Idea
+## 6. Key Idea
 
 논문의 핵심 아이디어를 자신의 언어로 설명한다.
 
 > 한 문장 요약:
 
-## 8. Architecture
+## 7. Architecture
 
 제안하는 hardware 또는 system architecture를 구조적으로 분석한다.
 
@@ -86,11 +82,11 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 
 입력부터 출력까지 data가 어디에 저장되고, 어떻게 이동하고, 어디에서 계산되는지 순서대로 설명한다.
 
-## 9. Method
+## 8. Method
 
 핵심 mechanism, algorithm, mapping, scheduling 또는 circuit technique을 설명한다.
 
-## 10. Experiments
+## 9. Experiments
 
 실험 환경과 평가 방법을 정리한다.
 
@@ -101,7 +97,7 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 - Metrics:
 - Simulation / Measurement methodology:
 
-## 11. Results
+## 10. Results
 
 주요 결과를 정리한다.
 
@@ -113,7 +109,7 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 
 논문의 주장과 실제 result가 어떻게 연결되는지 확인한다.
 
-## 12. Trade-offs
+## 11. Trade-offs
 
 어떤 이득을 얻기 위해 무엇을 희생하는가?
 
@@ -121,7 +117,7 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 | --- | --- | --- |
 |  |  |  |
 
-## 13. Limitations
+## 12. Limitations
 
 논문이 명시한 limitation과 사용자가 관찰한 limitation을 구분한다.
 
@@ -133,7 +129,7 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 
 -
 
-## 14. Questions
+## 13. Questions
 
 ### 이해를 위한 질문
 
@@ -147,7 +143,7 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 
 -
 
-## 15. Connection to My Research Interest
+## 14. Connection to My Research Interest
 
 이 논문이 NPU architecture, memory architecture, PIM/CIM 및 KAIST SSL Lab 개별연구 목표와 어떻게 연결되는가?
 
@@ -156,7 +152,7 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 - 다른 논문과의 연결:
 - 가능한 research direction:
 
-## 16. Final Summary
+## 15. Final Summary
 
 부분 분석 중이면 확인된 항목만 작성하고 나머지는 `아직 분석하지 않음`으로 둔다.
 
@@ -188,7 +184,7 @@ Learning Log를 별도로 만들지 않고 현재 논문을 이해하는 데 필
 
 -
 
-## 17. Reading Session History
+## 16. Reading Session History
 
 ### YYYY-MM-DD
 

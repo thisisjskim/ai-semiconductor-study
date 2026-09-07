@@ -52,8 +52,8 @@ def note(bridge: str = "") -> str:
 """
     return replace_section(
         markdown,
-        "## 3. Prerequisite Bridge",
-        "## 4. Problem",
+        "## 2. Prerequisite Bridge",
+        "## 3. Problem",
         bridge_body,
     )
 
@@ -96,14 +96,15 @@ def expect_error(function, code: str) -> None:
 
 def assert_template_contract() -> None:
     template = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
-    assert "## 2. Reading Checkpoint" in template
+    assert "## 1. Citation" not in template
+    assert "## 1. Reading Checkpoint" in template
     assert "- Resume Point:" in template
-    assert "## 3. Prerequisite Bridge" in template
+    assert "## 2. Prerequisite Bridge" in template
     assert "### 논문 안에서 해결한 선수지식" in template
     assert "### 별도로 이어가는 선수지식" in template
     assert "studying | paused | sufficient-for-paper" in template
     assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
-    assert "## 17. Reading Session History" in template
+    assert "## 16. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",
         "- Current section:",
