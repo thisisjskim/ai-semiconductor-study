@@ -101,6 +101,7 @@ def assert_template_contract() -> None:
     assert "- Resume Point:" in template
     assert "## 2. Prerequisite Bridge" in template
     assert "### 논문 안에서 해결한 선수지식" in template
+    assert "- 실제 정의:" in template
     assert "### 별도로 이어가는 선수지식" in template
     assert "studying | paused | sufficient-for-paper" in template
     assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
@@ -389,6 +390,20 @@ def assert_ingest_contract() -> None:
 
 
 def assert_bridge_validation() -> None:
+    resolved_concept = """
+### 논문 안에서 해결한 선수지식
+
+#### Readout margin
+
+- 등장 위치: Section III-A
+- 논문에서 필요한 이유: sensing state 구분을 이해하기 위해 필요
+- 실제 정의: 서로 다른 sensing state의 출력 사이에 확보되는 구분 간격
+- 사용자의 이해: AI 설명을 들었고 자기 설명은 아직 확인하지 않음
+
+### 별도로 이어가는 선수지식
+
+- 없음
+"""
     two_studying = """
 ### 논문 안에서 해결한 선수지식
 
@@ -414,6 +429,18 @@ def assert_bridge_validation() -> None:
 """
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
+        ingest.validate_payload(payload(note(resolved_concept)), root)
+
+        missing_definition = resolved_concept.replace(
+            "- 실제 정의: 서로 다른 sensing state의 출력 사이에 확보되는 구분 간격\n",
+            "",
+            1,
+        )
+        expect_error(
+            lambda: ingest.validate_payload(payload(note(missing_definition)), root),
+            "missing-resolved-bridge-field",
+        )
+
         expect_error(
             lambda: ingest.validate_payload(payload(note(two_studying)), root),
             "multiple-studying-bridges",

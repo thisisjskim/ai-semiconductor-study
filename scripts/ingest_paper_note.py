@@ -259,13 +259,55 @@ def validate_bridges(bridge_text: str, root: Path) -> None:
             "한 Paper Note에서 studying인 선수지식은 최대 하나만 허용합니다.",
             "multiple-studying-bridges",
         )
+    resolved_heading = "### 논문 안에서 해결한 선수지식"
     tracked_heading = "### 별도로 이어가는 선수지식"
+    resolved_start = bridge_text.find(resolved_heading)
     tracked_start = bridge_text.find(tracked_heading)
+    if resolved_start < 0:
+        raise IngestError(
+            "Prerequisite Bridge에 '논문 안에서 해결한 선수지식' section이 없습니다.",
+            "missing-resolved-bridge-section",
+        )
     if tracked_start < 0:
         raise IngestError(
             "Prerequisite Bridge에 '별도로 이어가는 선수지식' section이 없습니다.",
             "missing-tracked-bridge-section",
         )
+    if resolved_start > tracked_start:
+        raise IngestError(
+            "Prerequisite Bridge section 순서를 확인하세요.",
+            "invalid-bridge-section-order",
+        )
+    resolved_text = bridge_text[
+        resolved_start + len(resolved_heading) : tracked_start
+    ]
+    resolved_concepts = list(
+        re.finditer(r"(?m)^####\s+(?P<concept>.+?)\s*$", resolved_text)
+    )
+    required_resolved_fields = (
+        "등장 위치",
+        "논문에서 필요한 이유",
+        "실제 정의",
+        "사용자의 이해",
+    )
+    for index, concept_match in enumerate(resolved_concepts):
+        block_end = (
+            resolved_concepts[index + 1].start()
+            if index + 1 < len(resolved_concepts)
+            else len(resolved_text)
+        )
+        concept = concept_match.group("concept").strip()
+        block = resolved_text[concept_match.end() : block_end]
+        fields = parse_fields(block, f"논문 안에서 해결한 선수지식 '{concept}'")
+        missing_fields = [
+            field for field in required_resolved_fields if not fields.get(field)
+        ]
+        if missing_fields:
+            raise IngestError(
+                f"논문 안에서 해결한 선수지식 '{concept}'의 필수 필드 누락: "
+                + ", ".join(missing_fields),
+                "missing-resolved-bridge-field",
+            )
     tracked_text = bridge_text[tracked_start + len(tracked_heading) :]
     next_section = re.search(r"(?m)^###\s+", tracked_text)
     if next_section:
