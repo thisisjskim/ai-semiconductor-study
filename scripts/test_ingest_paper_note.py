@@ -107,6 +107,11 @@ def assert_template_contract() -> None:
     assert "### 별도로 이어가는 선수지식" in template
     assert "studying | paused | sufficient-for-paper" in template
     assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
+    assert "## 3. Problem" in template
+    assert "**Problem being addressed:**" in template
+    assert "**Limitations of existing approaches:**" in template
+    assert "**Why this problem matters:**" in template
+    assert "이 논문이 해결하려는 문제는 무엇인가?" not in template
     assert "## 16. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",

@@ -45,8 +45,11 @@
 
 ## 3. Problem
 
-이 논문이 해결하려는 문제는 무엇인가?
-기존 system 또는 architecture에서 무엇이 bottleneck인가?
+**Problem being addressed:**
+
+**Limitations of existing approaches:**
+
+**Why this problem matters:**
 
 ## 4. Motivation and Prior-Work Gap
 
