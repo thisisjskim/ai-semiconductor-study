@@ -120,6 +120,10 @@ def assert_template_contract() -> None:
     assert "**Key mechanism:**" in template
     assert "**What is novel or different:**" in template
     assert "> 한 문장 요약:" not in template
+    assert "## 9. Trade-offs" in template
+    assert "한 행에는 하나의 structure 또는 approach만 기록" in template
+    assert "| Structure / Approach | Benefit (Gain) | Trade-off / Cost | Evidence |" in template
+    assert "| Gain | Cost / Trade-off | Evidence |" not in template
     assert "## 14. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",

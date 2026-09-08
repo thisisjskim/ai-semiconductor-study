@@ -103,11 +103,11 @@
 
 ## 9. Trade-offs
 
-어떤 이득을 얻기 위해 무엇을 희생하는가?
+논문의 구체적인 structure 또는 approach별로 얻는 이점과 그에 따라 발생하는 trade-off를 직접 연결한다. 한 행에는 하나의 structure 또는 approach만 기록하고, 각 판단의 논문 근거를 함께 남긴다.
 
-| Gain | Cost / Trade-off | Evidence |
-| --- | --- | --- |
-|  |  |  |
+| Structure / Approach | Benefit (Gain) | Trade-off / Cost | Evidence |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
 ## 10. Limitations
 
