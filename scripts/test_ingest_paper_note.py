@@ -112,7 +112,9 @@ def assert_template_contract() -> None:
     assert "**Limitations of existing approaches:**" in template
     assert "**Why this problem matters:**" in template
     assert "이 논문이 해결하려는 문제는 무엇인가?" not in template
-    assert "## 16. Reading Session History" in template
+    assert "## 4. Motivation and Prior-Work Gap" not in template
+    assert "## 4. Prerequisites" in template
+    assert "## 15. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",
         "- Current section:",

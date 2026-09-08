@@ -51,13 +51,7 @@
 
 **Why this problem matters:**
 
-## 4. Motivation and Prior-Work Gap
-
-왜 이 문제가 중요한가?
-기존 접근이 충분하지 않은 이유는 무엇인가?
-저자가 주장하는 기존 연구와의 차이는 무엇인가?
-
-## 5. Prerequisites
+## 4. Prerequisites
 
 논문을 이해하기 위해 필요한 선행 개념과 현재 이해 상태를 구분한다.
 
@@ -65,13 +59,13 @@
 | --- | --- | --- |
 |  |  |  |
 
-## 6. Key Idea
+## 5. Key Idea
 
 논문의 핵심 아이디어를 자신의 언어로 설명한다.
 
 > 한 문장 요약:
 
-## 7. Architecture
+## 6. Architecture
 
 제안하는 hardware 또는 system architecture를 구조적으로 분석한다.
 
@@ -86,11 +80,11 @@
 
 입력부터 출력까지 data가 어디에 저장되고, 어떻게 이동하고, 어디에서 계산되는지 순서대로 설명한다.
 
-## 8. Method
+## 7. Method
 
 핵심 mechanism, algorithm, mapping, scheduling 또는 circuit technique을 설명한다.
 
-## 9. Experiments
+## 8. Experiments
 
 실험 환경과 평가 방법을 정리한다.
 
@@ -101,7 +95,7 @@
 - Metrics:
 - Simulation / Measurement methodology:
 
-## 10. Results
+## 9. Results
 
 주요 결과를 정리한다.
 
@@ -113,7 +107,7 @@
 
 논문의 주장과 실제 result가 어떻게 연결되는지 확인한다.
 
-## 11. Trade-offs
+## 10. Trade-offs
 
 어떤 이득을 얻기 위해 무엇을 희생하는가?
 
@@ -121,7 +115,7 @@
 | --- | --- | --- |
 |  |  |  |
 
-## 12. Limitations
+## 11. Limitations
 
 논문이 명시한 limitation과 사용자가 관찰한 limitation을 구분한다.
 
@@ -133,7 +127,7 @@
 
 -
 
-## 13. Questions
+## 12. Questions
 
 ### 이해를 위한 질문
 
@@ -147,7 +141,7 @@
 
 -
 
-## 14. Connection to My Research Interest
+## 13. Connection to My Research Interest
 
 이 논문이 NPU architecture, memory architecture, PIM/CIM 및 KAIST SSL Lab 개별연구 목표와 어떻게 연결되는가?
 
@@ -156,7 +150,7 @@
 - 다른 논문과의 연결:
 - 가능한 research direction:
 
-## 15. Final Summary
+## 14. Final Summary
 
 부분 분석 중이면 확인된 항목만 작성하고 나머지는 `아직 분석하지 않음`으로 둔다.
 
@@ -188,7 +182,7 @@
 
 -
 
-## 16. Reading Session History
+## 15. Reading Session History
 
 ### YYYY-MM-DD
 
