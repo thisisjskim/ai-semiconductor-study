@@ -53,9 +53,11 @@
 
 ## 4. Key Idea
 
-논문의 핵심 아이디어를 자신의 언어로 설명한다.
+**Proposed approach:**
 
-> 한 문장 요약:
+**Key mechanism:**
+
+**What is novel or different:**
 
 ## 5. Architecture
 
