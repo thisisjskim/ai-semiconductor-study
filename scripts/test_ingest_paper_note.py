@@ -121,9 +121,86 @@ def assert_template_contract() -> None:
     assert "**What is novel or different:**" in template
     assert "> 한 문장 요약:" not in template
     assert "## 9. Trade-offs" in template
+    assert "사용자의 학습 진도를 기다리지 않는다" in template
     assert "한 행에는 하나의 structure 또는 approach만 기록" in template
     assert "| Structure / Approach | Benefit (Gain) | Trade-off / Cost | Evidence |" in template
     assert "| Gain | Cost / Trade-off | Evidence |" not in template
+    for tradeoff_rule in (
+        "`Benefit (Gain)`과 `Trade-off / Cost`를 모두 설명",
+        "둘의 관계를 직접 연결",
+        "GPT가 서로 떨어진 장점과 단점을 임의로 조합하지 않는다",
+        "Cost만 제시되고 대응하는 gain이 없으면 Trade-off로 선정하지 않고",
+        "Gain–Cost 관계 전체는 Trade-offs에만 기록하고 Limitations에 반복하지 않는다",
+        "residual hard boundary",
+    ):
+        assert tradeoff_rule in template
+    assert "## 5. Architecture" in template
+    assert "논문 전체의 architecture 설명, figure, caption과 본문 참조를 확인해 바로 작성" in template
+    assert "사용자의 이해 evidence로 기록하지 않는다" in template
+    assert "정확히 `논문에서 언급되지 않음`으로 표시" in template
+    assert "### Overall Architecture" in template
+    assert "### {Architecture Family 또는 System Level}" in template
+    assert "#### {Figure N(a) 또는 Structure Name}" in template
+    for architecture_field in (
+        "- 근거 위치: Section / PDF p. / Figure",
+        "- 논문 내 역할:",
+        "- Main Structure (Components):",
+        "- Operation Overview:",
+        "- Data / Signal Flow:",
+        "- Benefits:",
+        "- Challenges / Trade-offs:",
+        "- 논문이 제공하지 않은 세부사항:",
+    ):
+        assert architecture_field in template
+    assert "Result plot, dataset 예시와 배경 설명용 figure" in template
+    assert "figure caption만이 아니라 연결된 본문 설명까지 확인" in template
+    assert "## 6. Method" in template
+    assert "architecture family와 structure의 heading, 이름과 순서를 그대로 따른다" in template
+    assert "Operation은 MAC에 한정하지 않는다" in template
+    for method_field in (
+        "- Architecture reference:",
+        "- Method purpose:",
+        "- Input / Initial state:",
+        "- Core operation:",
+        "- Operation mechanism:",
+        "- Output / State change:",
+        "- Required conditions or assumptions:",
+        "- Benefits:",
+        "- Limitations / Trade-offs:",
+        "- 근거 위치: Section / PDF p. / Figure / Equation",
+    ):
+        assert method_field in template
+    assert "일반 지식, 다른 논문, GPT의 추론 또는 구조에서 유추한 인과관계" in template
+    assert "## 10. Limitations" in template
+    assert "### Authors' Limitations" not in template
+    assert "### My Observations" not in template
+    assert "### Paper-Reported Limitations" in template
+    assert "#### Structure-specific Capability / Applicability Limits" in template
+    assert "##### {Architecture Family — Figure N(a) 또는 Structure Name}" in template
+    assert "#### System- or Paper-level Capability / Applicability Limits" in template
+    assert "##### {Limitation Name}" in template
+    for limitation_field in (
+        "- Related Architecture / Method:",
+        "- Limited capability or applicability:",
+        "- Applicable condition:",
+        "- Consequence:",
+        "- 근거 위치: Section / PDF p. / Figure / Table",
+    ):
+        assert limitation_field in template
+    assert "단순히 `challenge`라고 표현했지만" in template
+    assert "모든 structure에 limitation을 의무적으로 만들지 않으며" in template
+    assert "### User-Identified Limitations" in template
+    assert "이 subsection만 사용자의 학습과 대화를 따라간다" in template
+    assert "논문을 처음 받았을 때 자동으로 만들지 않는다" in template
+    assert "단순한 질문은 limitation으로 확정하지 않고 `## 11. Questions`에 유지한다" in template
+    assert "학습 세션을 마무리할 때" in template
+    for user_limitation_field in (
+        "- 사용자가 지적한 limitation:",
+        "- 사용자가 근거로 사용한 paper content:",
+        "- Paper에서 직접 확인된 내용:",
+        "- 추가 확인이 필요한 부분:",
+    ):
+        assert user_limitation_field in template
     assert "## 14. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",
@@ -290,6 +367,37 @@ def assert_paper_tutoring_policy_contract() -> None:
     assert "보통 1~3개" not in question_policy
     assert "다만 중요한 prerequisite의 이해를 확인하지 않으면" not in question_policy
 
+    paper_note_policy = tutoring.split("## 13. Paper Note와 세션 종료", 1)[1].split(
+        "## 14. Resume Point", 1
+    )[0]
+    for required in (
+        "### Paper-source section의 no-inference rule",
+        "합리적으로 추론할 수 있는 내용도 paper fact가 아니다",
+        "정확히 `논문에서 언급되지 않음`으로 표시",
+        "### Full-paper source synthesis",
+        "사용자 진도와 별개인 paper-source synthesis 영역",
+        "첨부 PDF 전체의 관련 section, figure, subfigure, caption, table, equation과 연결된 본문",
+        "네 영역의 초안을 바로 작성한다",
+        "영구 저장 승인을 대신하지 않으며",
+        "architecture family를 먼저 나누고",
+        "서로 다른 구성·동작·trade-off를 보이는 subfigure",
+        "Result plot, dataset 예시와 배경 설명용 figure",
+        "Main Structure (Components)",
+        "Challenges / Trade-offs",
+        "Method는 Architecture의 architecture family와 structure heading, 이름과 순서를 그대로 따른다",
+        "Operation은 MAC에 한정하지 않고 arithmetic, logic, memory",
+        "GPT가 별개의 장점과 단점을 임의로 결합하지 않는다",
+        "Gain–Cost 관계는 Trade-offs에만 두고 Limitations에 반복하지 않으며",
+        "단순한 challenge나 Gain–Cost 관계는 Limitation으로 승격하지 않는다",
+        "### User-Identified Limitations의 지연 업데이트",
+        "논문을 처음 받았을 때 자동으로 작성하지 않는다",
+        "단순한 질문은 limitation으로 확정하지 않고 `Questions`에 유지한다",
+        "사용자가 학습 세션을 마무리하면",
+        "Source-grounded field에는 GPT의 추론을 label과 함께 넣는 방식도 허용하지 않는다",
+        "사용자의 자기 설명이나 이해 확인 evidence가 아니다",
+    ):
+        assert required in paper_note_policy
+
     behavior_scenarios = tutoring.split("## 18. 행동 점검 시나리오", 1)[1]
     for required in (
         "`pending verification`이 없으면 다음 내용을 설명하거나 질문하지 않고 기다린다",
@@ -297,6 +405,12 @@ def assert_paper_tutoring_policy_contract() -> None:
         "새 채팅에 PDF가 없으면 Paper Note에서 identity와 Resume Point만 복구하고",
         "첨부 PDF를 실제로 열어 제목·저자·identifier",
         "correction, exact number 또는 architecture mechanism 판정에는 확인한 PDF page 또는 section",
+        "PDF Source Gate를 통과하면 Architecture, Method, Trade-offs와 Paper-Reported Limitations 초안을 바로 만들고",
+        "Method는 Architecture와 같은 family·structure heading, 이름과 순서를 따른다",
+        "Trade-off는 논문이 직접 연결한 Gain–Cost 쌍만 기록하고",
+        "같은 Gain–Cost 관계를 Trade-offs와 Limitations에 중복 기록하지 않는다",
+        "User-Identified Limitations는 사용자가 직접 limitation을 제기한 경우에만 후보로 모아 학습 세션 종료 시 업데이트",
+        "Full-paper source synthesis를 사용자가 해당 범위를 읽거나 이해했다는 evidence로 기록하지 않는다",
     ):
         assert required in behavior_scenarios
 
@@ -342,14 +456,48 @@ def assert_paper_tutoring_policy_contract() -> None:
     assert "Paper Note의 identity가 있다는 사실 자체는 원문 접근 evidence가 아니다" in authoring
     assert "PB 기록은 사용자가 자연어로 직접 요청하거나 GPT의 PB 제안에 명시적으로 동의한 경우에만 수행한다" in tutoring
     assert "사용자의 명시적 요청이나 GPT 제안에 대한 동의 없이 prerequisite를 PB에 자동 추가하지 않는다" in tutoring
-    assert "## 8. 사용자 선택 PB Inventory와 Bridge Audit" in authoring
+    assert "### Paper-source section의 evidence boundary" in authoring
+    assert "합리적으로 추론할 수 있어도 paper fact로 작성하지 않는다" in authoring
+    assert "## 8. Full-paper source synthesis와 User-Identified Limitations" in authoring
+    architecture_authoring = authoring.split(
+        "## 8. Full-paper source synthesis와 User-Identified Limitations", 1
+    )[1].split("## 9. 사용자 선택 PB Inventory와 Bridge Audit", 1)[0]
+    for required in (
+        "사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다",
+        "Architecture`, `## 6. Method`, `## 9. Trade-offs`와 `Paper-Reported Limitations`",
+        "네 영역의 초안을 바로 작성한다",
+        "사용자의 실제 읽기 범위나 이해 evidence로 승격하지 않는다",
+        "Overview/review paper",
+        "서로 다른 구성, 동작 또는 trade-off를 갖는 figure·subfigure",
+        "Figure가 없어도 이름이 붙은 새로운 circuit 또는 structure",
+        "Result plot, dataset 예시와 배경 설명용 figure",
+        "Operation Overview",
+        "Method는 Architecture의 architecture family와 structure heading, 이름과 순서를 그대로 사용한다",
+        "Operation은 MAC으로 한정하지 않으며 arithmetic, logic, memory",
+        "일반적인 pipeline을 완성하기 위해 precharge, encoding, accumulation, sensing, conversion 또는 post-processing 단계를 임의로 추가하지 않는다",
+        "Challenges / Trade-offs",
+        "논문에서 언급되지 않음",
+        "### Trade-offs",
+        "둘의 관계를 직접 연결한 경우에만 선정한다",
+        "GPT가 서로 떨어진 장점과 단점을 하나의 교환 관계로 조합하지 않는다",
+        "### Paper-Reported Limitations",
+        "단순한 Gain–Cost 관계이거나 Trade-offs에 같은 내용이 있으면 제외",
+        "`challenge`라고 표현했더라도 제한되는 capability 또는 applicability를 설명하지 않았다면 Limitation으로 승격하지 않는다",
+        "### User-Identified Limitations",
+        "이 subsection만 사용자의 학습과 대화를 따라 업데이트한다",
+        "논문을 처음 받았을 때 자동 생성하지 않는다",
+        "단순한 질문이나 GPT의 correction은 limitation으로 확정하지 않고",
+        "학습 세션을 마무리할 때",
+    ):
+        assert required in architecture_authoring, required
+    assert "## 9. 사용자 선택 PB Inventory와 Bridge Audit" in authoring
     assert "마지막으로 저장된 checkpoint 이후 현재 conversation" in authoring
     assert "새로운 고정 section이나 evidence status field를 추가하지 않는다" in authoring
     assert "사용자가 명시적으로 선택한 개념만 PB Inventory에 넣었는가?" in authoring
     assert "일반적인 Paper Note 저장 승인을 지정되지 않은 PB 추가 승인으로 확대하지 않았는가?" in authoring
     bridge_audit = authoring.split(
-        "## 8. 사용자 선택 PB Inventory와 Bridge Audit", 1
-    )[1].split("## 9. 저장 전 점검", 1)[0]
+        "## 9. 사용자 선택 PB Inventory와 Bridge Audit", 1
+    )[1].split("## 10. 저장 전 점검", 1)[0]
     for required in (
         "사용자가 `PB`, `Prerequisite Bridge`, `선수지식` 등으로 남겨 달라고",
         "GPT가 PB 기록을 제안한 뒤 사용자가 명시적으로 동의한 개념",
