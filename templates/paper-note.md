@@ -45,7 +45,7 @@
 
 ## 3. Problem
 
-Problem부터 Results, Trade-offs와 Paper-Reported Limitations까지 논문의 내용을 기록하는 field는 현재 conversation에 첨부되어 PDF Source Gate를 통과한 원문에서 직접 확인한 내용만 작성한다. 문맥상 그럴듯하거나 일반 지식으로 예상할 수 있어도 GPT가 원인, 동작, 장점, 한계 또는 저자의 의도를 추론해 채우지 않는다. 특정 field의 내용을 논문에서 찾을 수 없으면 추측하거나 빈칸으로 두지 말고 정확히 `논문에서 언급되지 않음`으로 표시한다. GPT 또는 사용자의 해석은 허용된 observation, question, research-interest와 사용자 분석 근거 영역에만 출처를 구분해 기록한다.
+Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 Paper-Reported Limitations는 **Paper-source immediate sections**다. PDF Source Gate를 통과하면 ChatGPT가 사용자의 학습 진도를 기다리지 않고 첨부 PDF 전체를 확인해 여덟 영역의 초안을 바로 작성한다. 이 field들은 원문에서 직접 확인한 내용만 기록한다. 문맥상 그럴듯하거나 일반 지식으로 예상할 수 있어도 GPT가 원인, 동작, 장점, 한계 또는 저자의 의도를 추론해 채우지 않는다. 특정 field의 내용을 논문에서 찾을 수 없으면 추측하거나 빈칸으로 두지 말고 정확히 `논문에서 언급되지 않음`으로 표시한다. GPT 또는 사용자의 해석은 허용된 observation, question, research-interest와 사용자 분석 근거 영역에만 출처를 구분해 기록한다.
 
 **Problem being addressed:**
 
@@ -198,7 +198,7 @@ Operation은 MAC에 한정하지 않는다. 논문에 따라 arithmetic operatio
 
 ## 11. Questions
 
-이 section은 **Conversation-derived section**이다. 첨부 PDF만을 읽어 바로 작성하는 **Paper-source immediate sections**인 Architecture, Method, Trade-offs, Paper-Reported Limitations와 명확히 구분한다. Questions의 질문 후보와 업데이트 근거는 실제 사용자–ChatGPT 학습 대화에서만 발생하며, 논문을 처음 받았다는 이유나 PDF 전체를 분석했다는 이유만으로 작성하거나 업데이트하지 않는다. 학습 세션을 마무리할 때 대화를 검토하고, 모든 질문이 아니라 아래 Question Selection Gate를 모두 통과한 질문만 반영한다. GPT가 사용자가 하지 않은 질문을 만들지 않는다. GPT가 제안한 질문은 사용자가 명시적으로 받아들여 실제로 탐구한 경우에만 후보가 된다.
+이 section은 **Conversation-derived section**이다. 첨부 PDF만을 읽어 바로 작성하는 **Paper-source immediate sections**인 Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs, Paper-Reported Limitations와 명확히 구분한다. Questions의 질문 후보와 업데이트 근거는 실제 사용자–ChatGPT 학습 대화에서만 발생하며, 논문을 처음 받았다는 이유나 PDF 전체를 분석했다는 이유만으로 작성하거나 업데이트하지 않는다. 학습 세션을 마무리할 때 대화를 검토하고, 모든 질문이 아니라 아래 Question Selection Gate를 모두 통과한 질문만 반영한다. GPT가 사용자가 하지 않은 질문을 만들지 않는다. GPT가 제안한 질문은 사용자가 명시적으로 받아들여 실제로 탐구한 경우에만 후보가 된다.
 
 ### Question Selection Gate
 

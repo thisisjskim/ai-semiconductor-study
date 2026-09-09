@@ -85,13 +85,13 @@ Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 
 Paper Note section은 작성 source와 update trigger에 따라 다음 세 lifecycle로 구분한다.
 
-- **Paper-source immediate sections:** `Architecture`, `Method`, `Trade-offs`, `Paper-Reported Limitations`. PDF Source Gate를 통과하면 사용자와의 학습 대화를 기다리지 않고 첨부 PDF 전체의 직접 근거만으로 바로 초안을 작성한다.
+- **Paper-source immediate sections:** `Problem`, `Key Idea`, `Architecture`, `Method`, `Experiments`, `Results`, `Trade-offs`, `Paper-Reported Limitations`. PDF Source Gate를 통과하면 사용자와의 학습 대화를 기다리지 않고 첨부 PDF 전체의 직접 근거만으로 바로 초안을 작성한다.
 - **Conversation-derived sections:** `User-Identified Limitations`, `Questions`, `Connection to My Research Direction`. 실제 사용자–ChatGPT 학습 대화에서 발생하고 확인된 내용만 후보로 삼아 학습 세션을 마무리할 때 업데이트한다. 첨부 PDF만 읽어서 자동 생성하거나 갱신하지 않는다.
 - **Reading-completion synthesis:** `Final Summary`. 사용자가 논문 본문을 끝까지 읽었다고 명시하고 checkpoint evidence가 마지막 본문 section까지의 읽기 완료를 뒷받침할 때만 마지막 정리로 작성한다. GPT가 PDF 전체를 분석했다는 사실만으로 작성하지 않는다.
 
-두 lifecycle을 서로 대신하지 않는다. 대화가 있었다는 이유로 PDF 근거 없이 Paper-source immediate section을 채우지 않으며, PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation, Question 또는 Research Connection을 만들지 않는다.
+세 lifecycle을 서로 대신하지 않는다. 대화가 있었다는 이유로 PDF 근거 없이 Paper-source immediate section을 채우지 않으며, PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation, Question 또는 Research Connection을 만들지 않는다.
 
-`## 5. Architecture`, `## 6. Method`, `## 9. Trade-offs`와 `Paper-Reported Limitations`는 사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다. 현재 conversation의 첨부 PDF가 `system/PAPER_READING_TUTOR_POLICY.md`의 PDF Source Gate를 통과하면, ChatGPT는 논문 전체에서 관련 section, figure, subfigure, caption, table, equation과 연결된 본문을 확인하고 네 영역의 초안을 바로 작성한다. 이 예외는 source-grounded 초안 작성에만 적용하며, 사용자의 실제 읽기 범위나 이해 evidence로 승격하지 않는다. 파일 저장과 기존 Paper Note update는 여전히 사용자 승인을 받아야 한다.
+`## 3. Problem`, `## 4. Key Idea`, `## 5. Architecture`, `## 6. Method`, `## 7. Experiments`, `## 8. Results`, `## 9. Trade-offs`와 `Paper-Reported Limitations`는 사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다. 현재 conversation의 첨부 PDF가 `system/PAPER_READING_TUTOR_POLICY.md`의 PDF Source Gate를 통과하면, ChatGPT는 논문 전체에서 관련 section, figure, subfigure, caption, table, equation과 연결된 본문을 확인하고 여덟 영역의 초안을 바로 작성한다. 이 예외는 source-grounded 초안 작성에만 적용하며, 사용자의 실제 읽기 범위나 이해 evidence로 승격하지 않는다. 파일 저장과 기존 Paper Note update는 여전히 사용자 승인을 받아야 한다.
 
 ### Architecture
 
@@ -178,7 +178,7 @@ Final Summary는 full-paper source synthesis로 미리 채우는 section도, 각
 2. Reading Checkpoint, Resume Point와 Reading Session History가 conclusion 또는 사용자가 정한 마지막 본문 범위까지 도달했음을 뒷받침한다.
 3. Final Summary에 포함할 Paper claim을 현재 conversation의 첨부 PDF에서 직접 확인할 수 있다.
 
-완독 전에는 확인된 field만 부분적으로 채우지 않고 Final Summary 전체를 `아직 분석하지 않음`으로 둔다. GPT가 Architecture, Method, Trade-offs와 Paper-Reported Limitations를 full-paper source synthesis로 작성했더라도 Final Summary 작성 조건을 충족한 것이 아니다. 사용자가 중간 요약을 요청하면 대화에서 답할 수 있지만 이를 canonical Final Summary에 저장하지 않는다.
+완독 전에는 확인된 field만 부분적으로 채우지 않고 Final Summary 전체를 `아직 분석하지 않음`으로 둔다. GPT가 Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 Paper-Reported Limitations를 full-paper source synthesis로 작성했더라도 Final Summary 작성 조건을 충족한 것이 아니다. 사용자가 중간 요약을 요청하면 대화에서 답할 수 있지만 이를 canonical Final Summary에 저장하지 않는다.
 
 완독 후 기존 구조인 `Problem`, `Key Idea`, `Architecture`, `Main Result`, `Main Trade-off`, `Limitation`, `내가 기억할 한 문장`을 사용한다. Paper claim은 PDF 직접 근거로만 작성하고, 사용자의 해석과 기억 문장은 실제 대화 evidence를 보존한다. `내가 기억할 한 문장`이 사용자 대화에서 확인되지 않았다면 GPT가 대신 만들지 않고 `대화에서 확인되지 않음`으로 표시한다. 완독은 reading coverage evidence일 뿐 모든 mechanism의 이해, 질문 해결 또는 mastery evidence가 아니다.
 
@@ -243,7 +243,7 @@ Prerequisite Bridge audit
 - 논문에 없거나 근거가 부족한 field를 `논문에서 언급되지 않음`으로 표시했는가?
 - 일반 지식, 다른 논문, GPT의 추론 또는 구조적 개연성으로 source-grounded field를 채우지 않았는가?
 - 새로운 architecture·circuit·structure를 figure·subfigure 또는 이름이 붙은 구조별로 분리했는가?
-- Architecture, Method, Trade-offs와 Paper-Reported Limitations의 source synthesis를 사용자의 읽기 범위나 이해 evidence로 기록하지 않았는가?
+- Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 Paper-Reported Limitations의 source synthesis를 사용자의 읽기 범위나 이해 evidence로 기록하지 않았는가?
 - Resume Point가 비어 있지 않은가?
 - 이번 변경이 실제 Paper Reading Checkpoint인가?
 - `studying`이 두 개 이상이지 않은가?

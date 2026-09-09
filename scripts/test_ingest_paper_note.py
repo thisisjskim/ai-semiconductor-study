@@ -10,6 +10,24 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+EXPECTED_PAPER_SOURCE_IMMEDIATE_SECTIONS = (
+    "Problem",
+    "Key Idea",
+    "Architecture",
+    "Method",
+    "Experiments",
+    "Results",
+    "Trade-offs",
+    "Paper-Reported Limitations",
+)
+EXPECTED_PAPER_SOURCE_IMMEDIATE_POLICY = (
+    "**Paper-source immediate sections:** "
+    + ", ".join(EXPECTED_PAPER_SOURCE_IMMEDIATE_SECTIONS)
+)
+EXPECTED_PAPER_SOURCE_IMMEDIATE_AUTHORING = (
+    "**Paper-source immediate sections:** "
+    + ", ".join(f"`{section}`" for section in EXPECTED_PAPER_SOURCE_IMMEDIATE_SECTIONS)
+)
 SPEC = importlib.util.spec_from_file_location(
     "ingest_paper_note", ROOT / "scripts/ingest_paper_note.py"
 )
@@ -96,6 +114,7 @@ def expect_error(function, code: str) -> None:
 
 def assert_template_contract() -> None:
     template = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
+    assert len(EXPECTED_PAPER_SOURCE_IMMEDIATE_SECTIONS) == 8
     assert "## 1. Citation" not in template
     assert "## 1. Reading Checkpoint" in template
     assert "- Resume Point:" in template
@@ -108,6 +127,11 @@ def assert_template_contract() -> None:
     assert "studying | paused | sufficient-for-paper" in template
     assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
     assert "## 3. Problem" in template
+    assert (
+        "Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 "
+        "Paper-Reported Limitations는 **Paper-source immediate sections**다"
+    ) in template
+    assert "첨부 PDF 전체를 확인해 여덟 영역의 초안을 바로 작성한다" in template
     assert "**Problem being addressed:**" in template
     assert "**Limitations of existing approaches:**" in template
     assert "**Why this problem matters:**" in template
@@ -479,7 +503,7 @@ def assert_paper_tutoring_policy_contract() -> None:
     )[0]
     for required in (
         "### Paper Note section lifecycle boundary",
-        "**Paper-source immediate sections:** Architecture, Method, Trade-offs, Paper-Reported Limitations",
+        EXPECTED_PAPER_SOURCE_IMMEDIATE_POLICY,
         "**Conversation-derived sections:** User-Identified Limitations, Questions와 Connection to My Research Direction",
         "**Reading-completion synthesis:** Final Summary",
         "checkpoint evidence가 마지막 본문 section까지의 읽기 완료를 뒷받침",
@@ -492,7 +516,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "### Full-paper source synthesis",
         "사용자 진도와 별개인 paper-source synthesis 영역",
         "첨부 PDF 전체의 관련 section, figure, subfigure, caption, table, equation과 연결된 본문",
-        "네 영역의 초안을 바로 작성한다",
+        "여덟 영역의 초안을 바로 작성한다",
         "영구 저장 승인을 대신하지 않으며",
         "architecture family를 먼저 나누고",
         "서로 다른 구성·동작·trade-off를 보이는 subfigure",
@@ -555,7 +579,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "새 채팅에 PDF가 없으면 Paper Note에서 identity와 Resume Point만 복구하고",
         "첨부 PDF를 실제로 열어 제목·저자·identifier",
         "correction, exact number 또는 architecture mechanism 판정에는 확인한 PDF page 또는 section",
-        "PDF Source Gate를 통과하면 Architecture, Method, Trade-offs와 Paper-Reported Limitations 초안을 바로 만들고",
+        "PDF Source Gate를 통과하면 Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 Paper-Reported Limitations 초안을 바로 만들고",
         "Method는 Architecture와 같은 family·structure heading, 이름과 순서를 따른다",
         "Trade-off는 논문이 직접 연결한 Gain–Cost 쌍만 기록하고",
         "같은 Gain–Cost 관계를 Trade-offs와 Limitations에 중복 기록하지 않는다",
@@ -620,7 +644,7 @@ def assert_paper_tutoring_policy_contract() -> None:
     )[1].split("## 9. 사용자 선택 PB Inventory와 Bridge Audit", 1)[0]
     for required in (
         "### Section lifecycle boundary",
-        "**Paper-source immediate sections:** `Architecture`, `Method`, `Trade-offs`, `Paper-Reported Limitations`",
+        EXPECTED_PAPER_SOURCE_IMMEDIATE_AUTHORING,
         "**Conversation-derived sections:** `User-Identified Limitations`, `Questions`, `Connection to My Research Direction`",
         "**Reading-completion synthesis:** `Final Summary`",
         "checkpoint evidence가 마지막 본문 section까지의 읽기 완료를 뒷받침",
@@ -628,8 +652,8 @@ def assert_paper_tutoring_policy_contract() -> None:
         "실제 사용자–ChatGPT 학습 대화에서 발생하고 확인된 내용만 후보",
         "PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation, Question 또는 Research Connection을 만들지 않는다",
         "사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다",
-        "Architecture`, `## 6. Method`, `## 9. Trade-offs`와 `Paper-Reported Limitations`",
-        "네 영역의 초안을 바로 작성한다",
+        "`## 3. Problem`, `## 4. Key Idea`, `## 5. Architecture`, `## 6. Method`, `## 7. Experiments`, `## 8. Results`, `## 9. Trade-offs`와 `Paper-Reported Limitations`",
+        "여덟 영역의 초안을 바로 작성한다",
         "사용자의 실제 읽기 범위나 이해 evidence로 승격하지 않는다",
         "Overview/review paper",
         "서로 다른 구성, 동작 또는 trade-off를 갖는 figure·subfigure",
