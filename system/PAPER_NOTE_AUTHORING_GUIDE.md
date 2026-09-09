@@ -79,7 +79,16 @@ Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 
 아직 해당 범위를 확인하지 않았다면 `아직 분석하지 않음`, 필요한 범위를 확인했지만 특정 field에 해당하는 내용이 없거나 근거가 부족하면 정확히 `논문에서 언급되지 않음`으로 구분한다. `논문에서 언급되지 않음`을 보충하기 위해 외부 reference나 GPT 추론을 source-grounded field에 넣지 않는다. GPT 또는 사용자의 해석은 `User-Identified Limitations`, `Questions`, `Connection to My Research Interest`, `사용자 분석 근거`처럼 해석을 허용한 영역에만 paper claim과 구분해 기록한다.
 
-## 8. Full-paper source synthesis와 User-Identified Limitations
+## 8. Full-paper source synthesis와 conversation-following sections
+
+### Section lifecycle boundary
+
+Paper Note section은 작성 source와 update trigger에 따라 다음 두 lifecycle로 구분한다.
+
+- **Paper-source immediate sections:** `Architecture`, `Method`, `Trade-offs`, `Paper-Reported Limitations`. PDF Source Gate를 통과하면 사용자와의 학습 대화를 기다리지 않고 첨부 PDF 전체의 직접 근거만으로 바로 초안을 작성한다.
+- **Conversation-derived sections:** `User-Identified Limitations`, `Questions`. 실제 사용자–ChatGPT 학습 대화에서 발생하고 확인된 내용만 후보로 삼아 학습 세션을 마무리할 때 업데이트한다. 첨부 PDF만 읽어서 자동 생성하거나 갱신하지 않는다.
+
+두 lifecycle을 서로 대신하지 않는다. 대화가 있었다는 이유로 PDF 근거 없이 Paper-source immediate section을 채우지 않으며, PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation이나 Question을 만들지 않는다.
 
 `## 5. Architecture`, `## 6. Method`, `## 9. Trade-offs`와 `Paper-Reported Limitations`는 사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다. 현재 conversation의 첨부 PDF가 `system/PAPER_READING_TUTOR_POLICY.md`의 PDF Source Gate를 통과하면, ChatGPT는 논문 전체에서 관련 section, figure, subfigure, caption, table, equation과 연결된 본문을 확인하고 네 영역의 초안을 바로 작성한다. 이 예외는 source-grounded 초안 작성에만 적용하며, 사용자의 실제 읽기 범위나 이해 evidence로 승격하지 않는다. 파일 저장과 기존 Paper Note update는 여전히 사용자 승인을 받아야 한다.
 
@@ -120,6 +129,28 @@ Paper-Reported Limitation은 논문이 limitation, constraint 또는 지원 범�
 
 학습 세션을 마무리할 때 마지막 checkpoint 이후 대화에서 확인된 후보를 모아 `사용자가 지적한 limitation`, `Related Architecture / Method`, `사용자가 근거로 사용한 paper content`, `Paper에서 직접 확인된 내용`, `추가 확인이 필요한 부분`으로 정리한다. Paper claim과 user observation을 혼동하지 않으며, Paper Note update와 저장은 기존 승인 절차를 따른다.
 
+### Questions
+
+Questions는 full-paper source synthesis 영역이 아니라 실제 사용자–ChatGPT 학습 대화를 source로 삼는 지연 업데이트 영역이다. 질문의 답을 확인할 때 Paper 근거를 사용할 수 있지만, 질문 후보 자체는 대화에서 발생해야 한다. 논문을 처음 받았거나 PDF를 전부 분석했다는 사실만으로 작성하지 않으며, 학습 세션을 마무리할 때 마지막 checkpoint 이후 대화의 Question Inventory를 만든 뒤 다음 gate를 순서대로 적용한다.
+
+1. **Origin Gate:** 사용자가 실제로 질문했거나, GPT가 제안한 질문을 사용자가 명시적으로 채택해 실제로 탐구했다.
+2. **Paper Grounding Gate:** Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs, Limitations, 특정 figure·table·equation·claim 또는 논문 이해에 필요한 핵심 prerequisite 중 하나와 직접 연결된다.
+3. **Learning Value Gate:** 핵심 이해의 막힘 해소, 의미 있는 오해 수정, 논문 내 개념·section 연결, claim·evidence·assumption·comparison 평가, 가치 있는 미해결 next action 또는 구체적인 후속 연구 발전 중 하나 이상에 실제 영향을 준다.
+4. **Persistence Gate:** 답, 해결 과정 또는 남은 불확실성을 다음 세션에서 복구할 가치가 있다.
+5. **Deduplication Gate:** 기존 질문과 중복되지 않는다. 질문이 재표현되거나 발전한 경우 별도 항목을 만들지 않고 기존 기록에 통합한다.
+
+단순 용어 뜻을 즉시 확인해 이후 이해에 영향이 없었던 질문, 기술 의미를 바꾸지 않는 번역·문법 질문, 학습 절차·기록 방식에 관한 meta 질문, 학습 영향이 없는 단순 정보 조회는 제외한다. GPT가 사용자가 하지 않은 질문을 만들어 기록하지 않는다. GPT가 제안만 한 질문도 제외하며, 사용자가 명시적으로 받아들여 실제로 탐구한 경우에만 Origin Gate를 통과한다. §12의 tutoring verification 질문도 사용자가 자신의 질문으로 받아들여 탐구하지 않았다면 Paper Note Questions가 아니다.
+
+통과한 질문은 목적에 따라 `이해를 위한 질문`, `비판적 질문`, `후속 연구 질문` 중 하나에 배치한다. 이해를 위한 질문은 핵심 mechanism, prerequisite, 개념 간 연결 또는 이후 해석을 막는 오해에 관한 것이어야 한다. 비판적 질문은 claim, evidence, assumption, comparison, 적용 범위 또는 평가 타당성에 영향을 주어야 한다. 후속 연구 질문은 논문에서 확인된 한계, 열린 문제 또는 비교 필요성을 구체적인 검증 대상이나 다음 research action으로 발전시켜야 한다.
+
+각 기록에는 `사용자의 질문`, `질문이 발생한 위치 또는 맥락`, `선정 이유`, `해결 과정`, `해결하며 알게 된 내용`, `해결 상태`, `해결하지 못한 부분`, `해결에 사용한 근거`를 남긴다. 해결 상태는 다음 의미로만 사용한다.
+
+- `resolved`: 질문의 핵심 답이 Paper 또는 대화에서 확인되었고, 남은 핵심 불확실성이 없다.
+- `partially-resolved`: 핵심의 일부는 확인했지만 중요한 조건, 근거 또는 적용 범위가 남아 있다.
+- `unresolved`: Paper와 현재 대화에서 핵심 답을 확인하지 못했다.
+
+Paper direct evidence, GPT supplementary explanation, User interpretation / hypothesis를 분리한다. GPT 설명만으로 사용자의 이해가 확인되었다고 기록하지 않는다. Paper에 직접 답이 없으면 `논문에서 언급되지 않음`으로 표시하고 GPT 추론으로 해결 상태를 높이지 않는다. 대화에서 해결 과정이나 사용자 해석을 확인할 수 없는 field는 추정하지 않고 `대화에서 확인되지 않음`으로 표시한다. 해결된 질문의 `해결하지 못한 부분`은 `해당 없음`으로 쓰고, 부분 해결 또는 미해결 질문은 무엇이 부족하며 다음에 무엇을 확인해야 하는지 구체적으로 기록한다. 해당 category에 통과한 질문이 없으면 placeholder record를 만들지 않고 `선정된 질문 없음`으로 표시한다. 기존 질문의 후속 대화가 생기면 원래 질문과 이전 해결 이력을 보존하면서 해결 과정, 알게 된 내용과 상태를 갱신한다.
+
 ## 9. 사용자 선택 PB Inventory와 Bridge Audit
 
 Paper Note 저장안을 작성하기 전에 마지막으로 저장된 checkpoint 이후 현재 conversation에서 사용자가 명시적으로 선택한 개념만 `PB Inventory`로 모은다. 다음 두 경우만 포함한다.
@@ -158,6 +189,13 @@ Prerequisite Bridge audit
 - 단순한 challenge나 Trade-off를 Limitation으로 자동 승격하지 않았는가?
 - User-Identified Limitations에는 사용자가 직접 제기한 항목만 있으며 학습 종료 시점에 업데이트했는가?
 - 사용자의 단순한 질문이나 GPT의 correction을 User-Identified Limitation으로 만들지 않았는가?
+- Questions를 논문을 처음 받았을 때 자동으로 작성하지 않고 학습 종료 시 Question Inventory에 gate를 적용했는가?
+- 사용자가 실제로 질문했거나 GPT 제안을 명시적으로 채택해 탐구한 질문만 포함했는가?
+- 각 질문이 구체적인 paper element와 연결되고 학습 가치 및 다음 세션 복구 가치를 갖는가?
+- 단순 용어 확인, 의미 변화 없는 번역·문법, meta 질문과 학습 영향 없는 조회를 제외했는가?
+- 중복되거나 발전한 질문을 새 항목으로 늘리지 않고 기존 기록에 통합했는가?
+- 각 질문에 해결 과정, 알게 된 내용, 해결 상태, 미해결 부분과 구분된 근거가 있는가?
+- GPT의 설명만으로 사용자의 이해가 확인되었다고 기록하거나 Paper에 없는 답을 추론하지 않았는가?
 - Architecture와 Method의 모든 사실이 첨부 PDF에서 직접 확인되었는가?
 - 논문에 없거나 근거가 부족한 field를 `논문에서 언급되지 않음`으로 표시했는가?
 - 일반 지식, 다른 논문, GPT의 추론 또는 구조적 개연성으로 source-grounded field를 채우지 않았는가?

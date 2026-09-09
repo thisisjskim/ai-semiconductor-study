@@ -201,6 +201,51 @@ def assert_template_contract() -> None:
         "- 추가 확인이 필요한 부분:",
     ):
         assert user_limitation_field in template
+    assert "## 11. Questions" in template
+    for question_gate in (
+        "### Question Selection Gate",
+        "**Conversation-derived section**",
+        "**Paper-source immediate sections**",
+        "Questions의 질문 후보와 업데이트 근거는 실제 사용자–ChatGPT 학습 대화에서만 발생",
+        "PDF 전체를 분석했다는 이유만으로 작성하거나 업데이트하지 않는다",
+        "**Origin Gate:**",
+        "**Paper Grounding Gate:**",
+        "**Learning Value Gate:**",
+        "**Persistence Gate:**",
+        "**Deduplication Gate:**",
+        "논문을 처음 받았다는 이유나 PDF 전체를 분석했다는 이유만으로 작성하거나 업데이트하지 않는다",
+        "GPT가 사용자가 하지 않은 질문을 만들지 않는다",
+        "사용자가 명시적으로 받아들여 실제로 탐구한 경우에만 후보",
+        "기술 의미를 바꾸지 않는 번역·문법 질문",
+        "학습 절차나 기록 방식에 관한 meta 질문",
+        "같은 질문이 발전한 경우 새 항목을 만들지 않고 기존 기록에 통합",
+        "GPT가 설명했다는 사실만으로 사용자가 이해한 것으로 기록하지 않는다",
+        "대화에서 확인되지 않음",
+        "선정된 질문 없음",
+    ):
+        assert question_gate in template, question_gate
+    for question_category in (
+        "### 이해를 위한 질문",
+        "### 비판적 질문",
+        "### 후속 연구 질문",
+    ):
+        assert question_category in template
+    for question_field in (
+        "- 사용자의 질문:",
+        "- 질문이 발생한 위치 또는 맥락:",
+        "- 선정 이유:",
+        "- 해결 과정:",
+        "- 해결하며 알게 된 내용:",
+        "- 해결 상태: resolved | partially-resolved | unresolved",
+        "- 해결하지 못한 부분:",
+        "- 해결에 사용한 근거:",
+        "- Paper direct evidence:",
+        "- GPT supplementary explanation:",
+        "- User interpretation / hypothesis:",
+    ):
+        assert template.count(question_field) == 3, question_field
+    assert "- Question Selection Gate를 통과한 질문과 해결 상태:" in template
+    assert "- 새롭게 발생한 질문:" not in template
     assert "## 14. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",
@@ -362,6 +407,8 @@ def assert_paper_tutoring_policy_contract() -> None:
         "같은 핵심 자기 설명을 한 번만 다시 요청한다",
         "한 번 재요청한 뒤에도 자기 설명 없이 계속 진행하겠다고 하면",
         "사용자 자기 설명이 확인되지 않은 상태로 기록하고 다음 읽기를 기다린다",
+        "tutoring verification 질문은 그 자체로 Paper Note의 `Questions`가 아니다",
+        "§13의 Question Selection Gate를 통과한 경우에만 기록 후보",
     ):
         assert required in question_policy
     assert "보통 1~3개" not in question_policy
@@ -371,6 +418,11 @@ def assert_paper_tutoring_policy_contract() -> None:
         "## 14. Resume Point", 1
     )[0]
     for required in (
+        "### Paper Note section lifecycle boundary",
+        "**Paper-source immediate sections:** Architecture, Method, Trade-offs, Paper-Reported Limitations",
+        "**Conversation-derived sections:** User-Identified Limitations와 Questions",
+        "PDF를 받거나 전체 분석했다는 이유만으로 자동 작성하지 않는다",
+        "Conversation-derived section은 PDF 분석만으로 사용자의 observation이나 question을 만들어내지 않는다",
         "### Paper-source section의 no-inference rule",
         "합리적으로 추론할 수 있는 내용도 paper fact가 아니다",
         "정확히 `논문에서 언급되지 않음`으로 표시",
@@ -393,6 +445,22 @@ def assert_paper_tutoring_policy_contract() -> None:
         "논문을 처음 받았을 때 자동으로 작성하지 않는다",
         "단순한 질문은 limitation으로 확정하지 않고 `Questions`에 유지한다",
         "사용자가 학습 세션을 마무리하면",
+        "### Questions의 selection gate와 지연 업데이트",
+        "`Questions`의 update source는 실제 사용자–ChatGPT 학습 대화다",
+        "PDF 자체는 Question 생성 trigger가 아니다",
+        "마지막 checkpoint 이후 사용자가 실제로 질문한 항목",
+        "사용자가 명시적으로 채택해 실제로 탐구한 항목만 Question Inventory",
+        "GPT가 사용자가 하지 않은 질문을 만들거나 제안만 한 질문을 기록해서는 안 된다",
+        "특정 figure·table·equation·claim",
+        "다음 세션에서 복구할 가치",
+        "같은 질문의 재표현이나 발전형은 새 항목으로 만들지 않고 기존 질문에 통합",
+        "기술 의미를 바꾸지 않는 번역·문법 질문",
+        "해결 과정`, `해결하며 알게 된 내용`, `해결 상태`, `해결하지 못한 부분",
+        "`resolved`, 중요한 일부가 남은 `partially-resolved`, 핵심 답을 확인하지 못한 `unresolved`",
+        "Paper direct evidence, GPT supplementary explanation, User interpretation / hypothesis를 분리",
+        "GPT 설명을 사용자 이해 evidence로 승격하지 않는다",
+        "대화에서 해결 과정이나 사용자 해석이 확인되지 않은 field",
+        "해당 category에 통과한 질문이 없으면 질문 record를 만들지 않고 `선정된 질문 없음`",
         "Source-grounded field에는 GPT의 추론을 label과 함께 넣는 방식도 허용하지 않는다",
         "사용자의 자기 설명이나 이해 확인 evidence가 아니다",
     ):
@@ -410,6 +478,8 @@ def assert_paper_tutoring_policy_contract() -> None:
         "Trade-off는 논문이 직접 연결한 Gain–Cost 쌍만 기록하고",
         "같은 Gain–Cost 관계를 Trade-offs와 Limitations에 중복 기록하지 않는다",
         "User-Identified Limitations는 사용자가 직접 limitation을 제기한 경우에만 후보로 모아 학습 세션 종료 시 업데이트",
+        "Questions는 마지막 checkpoint 이후의 실제 사용자 질문에 selection gate를 적용해 학습 세션 종료 시 업데이트",
+        "GPT가 제안만 한 질문, 사소한 질문, meta 질문과 중복 질문은 기록하지 않으며",
         "Full-paper source synthesis를 사용자가 해당 범위를 읽거나 이해했다는 evidence로 기록하지 않는다",
     ):
         assert required in behavior_scenarios
@@ -458,11 +528,16 @@ def assert_paper_tutoring_policy_contract() -> None:
     assert "사용자의 명시적 요청이나 GPT 제안에 대한 동의 없이 prerequisite를 PB에 자동 추가하지 않는다" in tutoring
     assert "### Paper-source section의 evidence boundary" in authoring
     assert "합리적으로 추론할 수 있어도 paper fact로 작성하지 않는다" in authoring
-    assert "## 8. Full-paper source synthesis와 User-Identified Limitations" in authoring
+    assert "## 8. Full-paper source synthesis와 conversation-following sections" in authoring
     architecture_authoring = authoring.split(
-        "## 8. Full-paper source synthesis와 User-Identified Limitations", 1
+        "## 8. Full-paper source synthesis와 conversation-following sections", 1
     )[1].split("## 9. 사용자 선택 PB Inventory와 Bridge Audit", 1)[0]
     for required in (
+        "### Section lifecycle boundary",
+        "**Paper-source immediate sections:** `Architecture`, `Method`, `Trade-offs`, `Paper-Reported Limitations`",
+        "**Conversation-derived sections:** `User-Identified Limitations`, `Questions`",
+        "실제 사용자–ChatGPT 학습 대화에서 발생하고 확인된 내용만 후보",
+        "PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation이나 Question을 만들지 않는다",
         "사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다",
         "Architecture`, `## 6. Method`, `## 9. Trade-offs`와 `Paper-Reported Limitations`",
         "네 영역의 초안을 바로 작성한다",
@@ -488,6 +563,25 @@ def assert_paper_tutoring_policy_contract() -> None:
         "논문을 처음 받았을 때 자동 생성하지 않는다",
         "단순한 질문이나 GPT의 correction은 limitation으로 확정하지 않고",
         "학습 세션을 마무리할 때",
+        "### Questions",
+        "Questions는 full-paper source synthesis 영역이 아니라 실제 사용자–ChatGPT 학습 대화를 source로 삼는 지연 업데이트 영역",
+        "질문의 답을 확인할 때 Paper 근거를 사용할 수 있지만, 질문 후보 자체는 대화에서 발생해야 한다",
+        "**Origin Gate:**",
+        "**Paper Grounding Gate:**",
+        "**Learning Value Gate:**",
+        "**Persistence Gate:**",
+        "**Deduplication Gate:**",
+        "GPT가 제안만 한 질문도 제외",
+        "§12의 tutoring verification 질문도",
+        "이해를 위한 질문`, `비판적 질문`, `후속 연구 질문",
+        "`해결 과정`, `해결하며 알게 된 내용`, `해결 상태`, `해결하지 못한 부분`",
+        "`resolved`: 질문의 핵심 답",
+        "`partially-resolved`:",
+        "`unresolved`:",
+        "GPT 설명만으로 사용자의 이해가 확인되었다고 기록하지 않는다",
+        "대화에서 해결 과정이나 사용자 해석을 확인할 수 없는 field",
+        "placeholder record를 만들지 않고 `선정된 질문 없음`",
+        "기존 질문의 후속 대화가 생기면 원래 질문과 이전 해결 이력을 보존",
     ):
         assert required in architecture_authoring, required
     assert "## 9. 사용자 선택 PB Inventory와 Bridge Audit" in authoring

@@ -52,6 +52,7 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - Paper-source field는 첨부 PDF에 직접 명시된 내용만 허용하고, 근거가 없거나 부족하면 `논문에서 언급되지 않음`으로 표시하며 GPT 추론으로 빈칸을 채우지 않는 no-inference 규율 추가
 - Trade-off를 논문이 직접 연결한 Gain–Cost 관계로 제한하고, Paper-Reported Limitation은 capability·applicability 경계만 선정해 두 section의 중복을 방지
 - Paper-Reported Limitations는 PDF 전체에서 즉시 작성하되 User-Identified Limitations만 사용자의 직접 observation을 학습 종료 시 반영하도록 lifecycle 분리
+- Paper-source immediate sections와 conversation-derived sections의 lifecycle을 분리하고, Questions는 실제 사용자–ChatGPT 대화에서 발생해 gate를 통과한 핵심 질문만 해결 과정·학습 내용·해결 상태·미해결 부분과 함께 기록하도록 구조화
 - 논문 직접 사실, 이해를 위한 보충 설명과 reference 확인이 필요한 GPT 추론을 혼동 가능성이 있을 때만 구분하고, 원문에서 확인한 exact fact는 불필요하게 약화하지 않도록 provenance 판정 규율 강화
 - 논문 tutoring을 일반 Explain-first Tutor Loop와 분리하고 Current Context → Paper Tutor Policy → Current Paper Note 순서로 복구하도록 routing 통합
 - Roadmap과 Research OS에 분산돼 있던 논문 읽기 pass·세부 tutoring 규율을 새 canonical policy 참조로 축소

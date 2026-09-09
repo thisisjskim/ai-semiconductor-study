@@ -198,17 +198,73 @@ Operation은 MAC에 한정하지 않는다. 논문에 따라 arithmetic operatio
 
 ## 11. Questions
 
+이 section은 **Conversation-derived section**이다. 첨부 PDF만을 읽어 바로 작성하는 **Paper-source immediate sections**인 Architecture, Method, Trade-offs, Paper-Reported Limitations와 명확히 구분한다. Questions의 질문 후보와 업데이트 근거는 실제 사용자–ChatGPT 학습 대화에서만 발생하며, 논문을 처음 받았다는 이유나 PDF 전체를 분석했다는 이유만으로 작성하거나 업데이트하지 않는다. 학습 세션을 마무리할 때 대화를 검토하고, 모든 질문이 아니라 아래 Question Selection Gate를 모두 통과한 질문만 반영한다. GPT가 사용자가 하지 않은 질문을 만들지 않는다. GPT가 제안한 질문은 사용자가 명시적으로 받아들여 실제로 탐구한 경우에만 후보가 된다.
+
+### Question Selection Gate
+
+1. **Origin Gate:** 사용자가 실제로 질문했거나, GPT가 제안한 질문을 사용자가 명시적으로 채택해 탐구했는가?
+2. **Paper Grounding Gate:** 질문이 Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs, Limitations, 특정 figure·table·equation·claim 또는 논문 이해에 필요한 핵심 prerequisite와 직접 연결되는가?
+3. **Learning Value Gate:** 질문이 핵심 이해의 막힘을 해소하거나, 의미 있는 오해를 수정하거나, 논문 내 개념·section을 연결하거나, claim·evidence·assumption·comparison을 평가하거나, 구체적인 후속 연구 방향을 만드는가?
+4. **Persistence Gate:** 답, 해결 과정 또는 남은 불확실성을 다음 세션에서 복구할 가치가 있는가?
+5. **Deduplication Gate:** 기존 질문의 단순 반복이나 표현 변경이 아닌가? 같은 질문이 발전한 경우 새 항목을 만들지 않고 기존 기록에 통합한다.
+
+단순 용어 뜻을 즉시 확인하고 이후 이해에 영향이 없었던 질문, 기술 의미를 바꾸지 않는 번역·문법 질문, 학습 절차나 기록 방식에 관한 meta 질문, 학습 영향이 없는 단순 정보 조회는 기록하지 않는다.
+
+각 질문은 사용자의 표현을 가능한 한 보존한다. Paper의 직접 답, GPT의 보충 설명, 사용자의 해석이나 hypothesis를 서로 구분하며, GPT가 설명했다는 사실만으로 사용자가 이해한 것으로 기록하지 않는다. Paper에서 답을 찾을 수 없으면 추론으로 채우지 않고 `논문에서 언급되지 않음`이라고 표시한다. 대화에서 해결 과정이나 사용자 해석이 확인되지 않은 field는 추정하지 않고 `대화에서 확인되지 않음`으로 표시한다. 해당 category에 gate를 통과한 질문이 없으면 질문 항목을 만들지 않고 `선정된 질문 없음`으로 표시한다.
+
 ### 이해를 위한 질문
 
--
+핵심 mechanism, prerequisite, 개념 간 연결 또는 이후 해석을 막는 오해를 해결한 질문만 기록한다.
+
+#### {Question Title}
+
+- 사용자의 질문:
+- 질문이 발생한 위치 또는 맥락:
+- 선정 이유:
+- 해결 과정:
+- 해결하며 알게 된 내용:
+- 해결 상태: resolved | partially-resolved | unresolved
+- 해결하지 못한 부분: 해결된 경우 `해당 없음`; Paper에 답이 없으면 `논문에서 언급되지 않음`과 남은 확인 사항을 함께 기록
+- 해결에 사용한 근거:
+  - Paper direct evidence:
+  - GPT supplementary explanation:
+  - User interpretation / hypothesis:
 
 ### 비판적 질문
 
--
+논문의 claim, evidence, assumption, comparison, 적용 범위 또는 평가 타당성을 검토하는 데 실제 영향을 준 질문만 기록한다.
+
+#### {Question Title}
+
+- 사용자의 질문:
+- 질문이 발생한 위치 또는 맥락:
+- 선정 이유:
+- 해결 과정:
+- 해결하며 알게 된 내용:
+- 해결 상태: resolved | partially-resolved | unresolved
+- 해결하지 못한 부분: 해결된 경우 `해당 없음`; Paper에 답이 없으면 `논문에서 언급되지 않음`과 남은 확인 사항을 함께 기록
+- 해결에 사용한 근거:
+  - Paper direct evidence:
+  - GPT supplementary explanation:
+  - User interpretation / hypothesis:
 
 ### 후속 연구 질문
 
--
+논문에서 확인된 한계, 열린 문제 또는 비교 필요성을 구체적인 검증 대상이나 다음 research action으로 발전시킨 질문만 기록한다.
+
+#### {Question Title}
+
+- 사용자의 질문:
+- 질문이 발생한 위치 또는 맥락:
+- 선정 이유:
+- 해결 과정:
+- 해결하며 알게 된 내용:
+- 해결 상태: resolved | partially-resolved | unresolved
+- 해결하지 못한 부분: 해결된 경우 `해당 없음`; Paper에 답이 없으면 `논문에서 언급되지 않음`과 남은 확인 사항을 함께 기록
+- 해결에 사용한 근거:
+  - Paper direct evidence:
+  - GPT supplementary explanation:
+  - User interpretation / hypothesis:
 
 ## 12. Connection to My Research Interest
 
@@ -257,7 +313,7 @@ Operation은 MAC에 한정하지 않는다. 논문에 따라 arithmetic operatio
 
 - 읽은 범위:
 - 이해한 내용:
-- 새롭게 발생한 질문:
+- Question Selection Gate를 통과한 질문과 해결 상태:
 - Bridge 변화:
 - 종료 당시 Resume Point:
 
