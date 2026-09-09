@@ -186,7 +186,7 @@ Operation은 MAC에 한정하지 않는다. 논문에 따라 arithmetic operatio
 
 ### User-Identified Limitations
 
-이 subsection만 사용자의 학습과 대화를 따라간다. 논문을 처음 받았을 때 자동으로 만들지 않는다. 사용자가 limitation을 직접 제기한 경우에만 후보로 수집하고, 단순한 질문은 limitation으로 확정하지 않고 `## 11. Questions`에 유지한다. GPT가 사용자의 발언을 확대하거나 새로운 limitation을 만들어서는 안 된다. 사용자의 표현을 가능한 한 보존하고, 학습 세션을 마무리할 때 이번 대화에서 확인된 후보만 Paper Note update안에 반영한다.
+이 subsection은 사용자의 학습과 대화를 따라간다. 논문을 처음 받았을 때 자동으로 만들지 않는다. 사용자가 limitation을 직접 제기한 경우에만 후보로 수집하고, 단순한 질문은 limitation으로 확정하지 않고 `## 11. Questions`에 유지한다. GPT가 사용자의 발언을 확대하거나 새로운 limitation을 만들어서는 안 된다. 사용자의 표현을 가능한 한 보존하고, 학습 세션을 마무리할 때 이번 대화에서 확인된 후보만 Paper Note update안에 반영한다.
 
 #### {User Observation}
 
@@ -266,18 +266,38 @@ Operation은 MAC에 한정하지 않는다. 논문에 따라 arithmetic operatio
   - GPT supplementary explanation:
   - User interpretation / hypothesis:
 
-## 12. Connection to My Research Interest
+## 12. Connection to My Research Direction
 
-이 논문이 NPU architecture, memory architecture, PIM/CIM 및 KAIST SSL Lab 개별연구 목표와 어떻게 연결되는가?
+이 section은 **Conversation-derived section**이다. 사용자가 실제 학습 대화에서 표현한 research interest·goal·problem awareness와 논문의 구체적인 element 사이에서 확인된 연결만 학습 세션을 마무리할 때 기록한다. 논문을 받거나 PDF 전체를 분석했다는 이유만으로 작성하지 않는다. GPT가 연결 후보를 제안할 수는 있지만, 사용자가 명시적으로 받아들여 실제로 탐구하기 전에는 기록하지 않는다.
 
-- 흥미로운 점:
-- 더 탐구하고 싶은 부분:
-- 다른 논문과의 연결:
-- 가능한 research direction:
+### Research Connection Gate
+
+다음 조건을 모두 만족하는 connection만 기록한다.
+
+1. **User-Origin Gate:** 사용자가 research interest·goal·problem awareness를 직접 표현했거나, GPT가 제안한 연결을 명시적으로 받아들여 실제로 탐구했는가?
+2. **Paper-Anchor Gate:** 연결되는 claim, architecture, method, result, trade-off, limitation 또는 question과 그 Paper 근거 위치를 특정할 수 있는가?
+3. **Mechanism Gate:** 단순한 keyword 유사성이 아니라 사용자 관심과 Paper element가 왜 연결되는지 기술적으로 설명할 수 있는가?
+4. **Directional-Value Gate:** 이 연결이 research framing, paper comparison, anchor-paper 선정, portfolio evidence 또는 후속 연구 방향 중 하나에 실제 영향을 주는가?
+5. **Non-Duplication Gate:** Questions, Limitations, Final Summary의 내용을 반복하지 않고, 이 논문이 사용자 연구 방향에서 수행하는 역할을 설명하는가?
+
+통과한 connection이 없으면 새 Paper Note에는 connection placeholder를 만들지 않고 `확인된 연구 연결 없음`으로 표시한다. 기존 Paper Note에서 이번 세션에 새로운 connection이 없으면 기존 기록을 보존하고 이 section을 변경하지 않는다. Paper 근거가 없으면 `논문에서 언급되지 않음`, 사용자 대화 근거가 없으면 `대화에서 확인되지 않음`으로 표시하며 연결을 추론해 채우지 않는다.
+
+### {Connection Title}
+
+- 사용자가 표현한 research interest 또는 goal:
+- 연결되는 Paper element:
+- 연결 근거 위치: Section / PDF p. / Figure / Table / Equation
+- 연결 방식:
+- 이 논문이 내 연구 방향에서 수행하는 역할:
+- 기존 Questions / Limitations와의 관계:
+- 연결의 경계 또는 아직 확인되지 않은 부분:
+- 향후 활용: comparison paper | anchor paper | portfolio evidence | research framing | 기타 사용자 확인 내용
 
 ## 13. Final Summary
 
-부분 분석 중이면 확인된 항목만 작성하고 나머지는 `아직 분석하지 않음`으로 둔다.
+이 section은 **Reading-completion synthesis**다. 사용자가 논문 본문을 끝까지 읽었다고 명시하고 Reading Checkpoint와 Reading Session History에서 마지막 본문 section까지의 읽기 완료가 확인된 경우에만 마지막 정리로 작성한다. 논문을 받았거나 GPT가 PDF 전체를 분석했다는 이유만으로 미리 작성하지 않는다. 완독 전에는 일부 field를 먼저 채우지 않고 Final Summary 전체를 `아직 분석하지 않음`으로 둔다.
+
+완독 후에도 Paper claim은 PDF Source Gate를 통과한 논문의 직접 근거만 사용한다. 사용자의 해석이나 기억할 한 문장은 실제 대화에서 확인된 내용과 구분해 기록하며 GPT가 임의로 사용자의 이해나 결론을 만들어서는 안 된다. Final Summary 작성은 사용자가 논문을 끝까지 읽었다는 사실만 나타내며, 모든 내용을 완전히 이해하거나 검증했다는 evidence로 사용하지 않는다.
 
 ### Problem
 

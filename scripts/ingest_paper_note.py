@@ -52,7 +52,7 @@ REQUIRED_HEADINGS = (
     "## 9. Trade-offs",
     "## 10. Limitations",
     "## 11. Questions",
-    "## 12. Connection to My Research Interest",
+    "## 12. Connection to My Research Direction",
     "## 13. Final Summary",
     "## 14. Reading Session History",
     "## 사용자 분석 근거",

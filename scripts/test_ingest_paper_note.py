@@ -190,7 +190,7 @@ def assert_template_contract() -> None:
     assert "단순히 `challenge`라고 표현했지만" in template
     assert "모든 structure에 limitation을 의무적으로 만들지 않으며" in template
     assert "### User-Identified Limitations" in template
-    assert "이 subsection만 사용자의 학습과 대화를 따라간다" in template
+    assert "이 subsection은 사용자의 학습과 대화를 따라간다" in template
     assert "논문을 처음 받았을 때 자동으로 만들지 않는다" in template
     assert "단순한 질문은 limitation으로 확정하지 않고 `## 11. Questions`에 유지한다" in template
     assert "학습 세션을 마무리할 때" in template
@@ -246,6 +246,66 @@ def assert_template_contract() -> None:
         assert template.count(question_field) == 3, question_field
     assert "- Question Selection Gate를 통과한 질문과 해결 상태:" in template
     assert "- 새롭게 발생한 질문:" not in template
+    assert "## 12. Connection to My Research Direction" in template
+    assert "## 12. Connection to My Research Interest" not in template
+    for connection_rule in (
+        "### Research Connection Gate",
+        "사용자가 실제 학습 대화에서 표현한 research interest·goal·problem awareness",
+        "논문을 받거나 PDF 전체를 분석했다는 이유만으로 작성하지 않는다",
+        "사용자가 명시적으로 받아들여 실제로 탐구하기 전에는 기록하지 않는다",
+        "**User-Origin Gate:**",
+        "**Paper-Anchor Gate:**",
+        "**Mechanism Gate:**",
+        "**Directional-Value Gate:**",
+        "**Non-Duplication Gate:**",
+        "connection placeholder를 만들지 않고 `확인된 연구 연결 없음`",
+        "기존 기록을 보존하고 이 section을 변경하지 않는다",
+        "연결을 추론해 채우지 않는다",
+    ):
+        assert connection_rule in template, connection_rule
+    for connection_field in (
+        "- 사용자가 표현한 research interest 또는 goal:",
+        "- 연결되는 Paper element:",
+        "- 연결 근거 위치: Section / PDF p. / Figure / Table / Equation",
+        "- 연결 방식:",
+        "- 이 논문이 내 연구 방향에서 수행하는 역할:",
+        "- 기존 Questions / Limitations와의 관계:",
+        "- 연결의 경계 또는 아직 확인되지 않은 부분:",
+        "- 향후 활용: comparison paper | anchor paper | portfolio evidence | research framing | 기타 사용자 확인 내용",
+    ):
+        assert connection_field in template, connection_field
+    for removed_connection_field in (
+        "- 흥미로운 점:",
+        "- 더 탐구하고 싶은 부분:",
+        "- 다른 논문과의 연결:",
+        "- 가능한 research direction:",
+    ):
+        assert removed_connection_field not in template
+    assert "## 12. Connection to My Research Direction" in ingest.REQUIRED_HEADINGS
+    assert "## 12. Connection to My Research Interest" not in ingest.REQUIRED_HEADINGS
+    assert "## 13. Final Summary" in template
+    for final_summary_rule in (
+        "**Reading-completion synthesis**",
+        "사용자가 논문 본문을 끝까지 읽었다고 명시",
+        "Reading Checkpoint와 Reading Session History에서 마지막 본문 section까지의 읽기 완료가 확인",
+        "GPT가 PDF 전체를 분석했다는 이유만으로 미리 작성하지 않는다",
+        "완독 전에는 일부 field를 먼저 채우지 않고 Final Summary 전체를 `아직 분석하지 않음`",
+        "Paper claim은 PDF Source Gate를 통과한 논문의 직접 근거만 사용",
+        "GPT가 임의로 사용자의 이해나 결론을 만들어서는 안 된다",
+        "모든 내용을 완전히 이해하거나 검증했다는 evidence로 사용하지 않는다",
+    ):
+        assert final_summary_rule in template, final_summary_rule
+    assert "부분 분석 중이면 확인된 항목만 작성" not in template
+    for final_summary_heading in (
+        "### Problem",
+        "### Key Idea",
+        "### Architecture",
+        "### Main Result",
+        "### Main Trade-off",
+        "### Limitation",
+        "### 내가 기억할 한 문장",
+    ):
+        assert final_summary_heading in template
     assert "## 14. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",
@@ -420,9 +480,12 @@ def assert_paper_tutoring_policy_contract() -> None:
     for required in (
         "### Paper Note section lifecycle boundary",
         "**Paper-source immediate sections:** Architecture, Method, Trade-offs, Paper-Reported Limitations",
-        "**Conversation-derived sections:** User-Identified Limitations와 Questions",
+        "**Conversation-derived sections:** User-Identified Limitations, Questions와 Connection to My Research Direction",
+        "**Reading-completion synthesis:** Final Summary",
+        "checkpoint evidence가 마지막 본문 section까지의 읽기 완료를 뒷받침",
+        "PDF 전체 분석만으로 미리 작성하지 않는다",
         "PDF를 받거나 전체 분석했다는 이유만으로 자동 작성하지 않는다",
-        "Conversation-derived section은 PDF 분석만으로 사용자의 observation이나 question을 만들어내지 않는다",
+        "Conversation-derived section은 PDF 분석만으로 사용자의 observation, question 또는 research connection을 만들어내지 않는다",
         "### Paper-source section의 no-inference rule",
         "합리적으로 추론할 수 있는 내용도 paper fact가 아니다",
         "정확히 `논문에서 언급되지 않음`으로 표시",
@@ -461,6 +524,25 @@ def assert_paper_tutoring_policy_contract() -> None:
         "GPT 설명을 사용자 이해 evidence로 승격하지 않는다",
         "대화에서 해결 과정이나 사용자 해석이 확인되지 않은 field",
         "해당 category에 통과한 질문이 없으면 질문 record를 만들지 않고 `선정된 질문 없음`",
+        "### Connection to My Research Direction의 selection gate와 지연 업데이트",
+        "update source는 실제 사용자–ChatGPT 학습 대화다",
+        "PDF 자체는 Research Connection 생성 trigger가 아니며",
+        "Research Connection Inventory",
+        "keyword 유사성이 아니라",
+        "Questions에는 알아내야 할 gap과 해결 상태를 기록하고",
+        "Research Connection에는 그 질문이나 Paper element가 사용자의 연구 방향에서 중요한 이유와 역할",
+        "사용자가 받아들이지 않은 GPT 제안",
+        "`확인된 연구 연결 없음`",
+        "추가·갱신·제외 후보와 이유를 보여 준 뒤 사용자 승인 후에만 저장",
+        "### Final Summary의 reading-completion gate",
+        "사용자가 현재 논문 본문을 끝까지 읽었다고 명시",
+        "Reading Checkpoint, Resume Point와 Reading Session History",
+        "paper-source immediate sections를 완성했다는 사실은 이 gate를 통과시키지 않는다",
+        "Final Summary 일부 field를 먼저 채우지 않고 section 전체를 `아직 분석하지 않음`",
+        "중간 요약을 요청하면 현재 읽은 범위 안에서 대화로 답할 수 있지만 canonical Final Summary에는 저장하지 않는다",
+        "`내가 기억할 한 문장`은 실제 대화에서 확인된 내용만 기록",
+        "reading coverage evidence일 뿐",
+        "mastery evidence가 아니다",
         "Source-grounded field에는 GPT의 추론을 label과 함께 넣는 방식도 허용하지 않는다",
         "사용자의 자기 설명이나 이해 확인 evidence가 아니다",
     ):
@@ -480,6 +562,10 @@ def assert_paper_tutoring_policy_contract() -> None:
         "User-Identified Limitations는 사용자가 직접 limitation을 제기한 경우에만 후보로 모아 학습 세션 종료 시 업데이트",
         "Questions는 마지막 checkpoint 이후의 실제 사용자 질문에 selection gate를 적용해 학습 세션 종료 시 업데이트",
         "GPT가 제안만 한 질문, 사소한 질문, meta 질문과 중복 질문은 기록하지 않으며",
+        "Connection to My Research Direction은 대화에서 확인된 사용자 관심과 구체적인 Paper anchor가 모두 있을 때만",
+        "Research Connection은 관련 Question이나 Limitation을 복사하지 않고",
+        "Final Summary는 사용자의 완독 선언과 마지막 본문 범위까지의 checkpoint가 모두 확인된 경우에만",
+        "Final Summary 작성이나 완독 사실을 사용자의 전체 이해 또는 mastery evidence로 기록하지 않는다",
         "Full-paper source synthesis를 사용자가 해당 범위를 읽거나 이해했다는 evidence로 기록하지 않는다",
     ):
         assert required in behavior_scenarios
@@ -535,9 +621,12 @@ def assert_paper_tutoring_policy_contract() -> None:
     for required in (
         "### Section lifecycle boundary",
         "**Paper-source immediate sections:** `Architecture`, `Method`, `Trade-offs`, `Paper-Reported Limitations`",
-        "**Conversation-derived sections:** `User-Identified Limitations`, `Questions`",
+        "**Conversation-derived sections:** `User-Identified Limitations`, `Questions`, `Connection to My Research Direction`",
+        "**Reading-completion synthesis:** `Final Summary`",
+        "checkpoint evidence가 마지막 본문 section까지의 읽기 완료를 뒷받침",
+        "GPT가 PDF 전체를 분석했다는 사실만으로 작성하지 않는다",
         "실제 사용자–ChatGPT 학습 대화에서 발생하고 확인된 내용만 후보",
-        "PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation이나 Question을 만들지 않는다",
+        "PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation, Question 또는 Research Connection을 만들지 않는다",
         "사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다",
         "Architecture`, `## 6. Method`, `## 9. Trade-offs`와 `Paper-Reported Limitations`",
         "네 영역의 초안을 바로 작성한다",
@@ -559,7 +648,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "단순한 Gain–Cost 관계이거나 Trade-offs에 같은 내용이 있으면 제외",
         "`challenge`라고 표현했더라도 제한되는 capability 또는 applicability를 설명하지 않았다면 Limitation으로 승격하지 않는다",
         "### User-Identified Limitations",
-        "이 subsection만 사용자의 학습과 대화를 따라 업데이트한다",
+        "이 subsection은 사용자의 학습과 대화를 따라 업데이트한다",
         "논문을 처음 받았을 때 자동 생성하지 않는다",
         "단순한 질문이나 GPT의 correction은 limitation으로 확정하지 않고",
         "학습 세션을 마무리할 때",
@@ -582,6 +671,30 @@ def assert_paper_tutoring_policy_contract() -> None:
         "대화에서 해결 과정이나 사용자 해석을 확인할 수 없는 field",
         "placeholder record를 만들지 않고 `선정된 질문 없음`",
         "기존 질문의 후속 대화가 생기면 원래 질문과 이전 해결 이력을 보존",
+        "### Connection to My Research Direction",
+        "Paper를 처음 받았을 때 자동으로 작성하지 않으며",
+        "Research Connection Inventory",
+        "**User-Origin Gate:**",
+        "**Paper-Anchor Gate:**",
+        "**Mechanism Gate:**",
+        "**Directional-Value Gate:**",
+        "**Non-Duplication Gate:**",
+        "Questions는 알아내야 할 epistemic gap과 그 해결 상태를 기록한다",
+        "이 논문이 사용자 연구 방향에서 수행하는 역할",
+        "단순한 흥미 표현",
+        "`사용자가 표현한 research interest 또는 goal`",
+        "새 Paper Note에서 통과한 connection이 없으면 `확인된 연구 연결 없음`",
+        "기존 Paper Note에서 이번 세션에 새로운 connection이 없으면 기존 기록을 그대로 보존",
+        "새 connection, 기존 connection 갱신, 제외 후보와 제외 이유를 저장안에 보여 준 뒤 사용자 승인 후에만",
+        "### Final Summary",
+        "Final Summary는 full-paper source synthesis로 미리 채우는 section도, 각 학습 세션에서 부분적으로 누적하는 section도 아니다",
+        "사용자가 현재 논문 본문을 끝까지 읽었다고 명시했다",
+        "Reading Checkpoint, Resume Point와 Reading Session History",
+        "Final Summary에 포함할 Paper claim을 현재 conversation의 첨부 PDF에서 직접 확인",
+        "Final Summary 전체를 `아직 분석하지 않음`",
+        "full-paper source synthesis로 작성했더라도 Final Summary 작성 조건을 충족한 것이 아니다",
+        "`내가 기억할 한 문장`이 사용자 대화에서 확인되지 않았다면 GPT가 대신 만들지 않고 `대화에서 확인되지 않음`",
+        "완독은 reading coverage evidence일 뿐",
     ):
         assert required in architecture_authoring, required
     assert "## 9. 사용자 선택 PB Inventory와 Bridge Audit" in authoring

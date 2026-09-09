@@ -77,18 +77,19 @@ Paper Note의 분석 내용과 Bridge 이해는 다음을 구분한다.
 
 `Problem`, `Key Idea`, `Architecture`, `Method`, `Experiments`, `Results`, `Trade-offs`, `Paper-Reported Limitations`와 Final Summary의 paper claim은 PDF Source Gate를 통과한 첨부 PDF에서 직접 확인한 내용만 기록한다. GPT는 일반 지식, 다른 논문, 구조적 개연성 또는 자신의 reasoning으로 빈칸을 채우지 않는다. 논문이 원인, 연결 관계, operation, benefit, limitation이나 저자의 의도를 직접 설명하지 않았다면 그럴듯하게 보이더라도 paper fact로 작성하지 않는다. 합리적으로 추론할 수 있어도 paper fact로 작성하지 않는다.
 
-아직 해당 범위를 확인하지 않았다면 `아직 분석하지 않음`, 필요한 범위를 확인했지만 특정 field에 해당하는 내용이 없거나 근거가 부족하면 정확히 `논문에서 언급되지 않음`으로 구분한다. `논문에서 언급되지 않음`을 보충하기 위해 외부 reference나 GPT 추론을 source-grounded field에 넣지 않는다. GPT 또는 사용자의 해석은 `User-Identified Limitations`, `Questions`, `Connection to My Research Interest`, `사용자 분석 근거`처럼 해석을 허용한 영역에만 paper claim과 구분해 기록한다.
+아직 해당 범위를 확인하지 않았다면 `아직 분석하지 않음`, 필요한 범위를 확인했지만 특정 field에 해당하는 내용이 없거나 근거가 부족하면 정확히 `논문에서 언급되지 않음`으로 구분한다. `논문에서 언급되지 않음`을 보충하기 위해 외부 reference나 GPT 추론을 source-grounded field에 넣지 않는다. GPT 또는 사용자의 해석은 `User-Identified Limitations`, `Questions`, `Connection to My Research Direction`, `사용자 분석 근거`처럼 해석을 허용한 영역에만 paper claim과 구분해 기록한다.
 
 ## 8. Full-paper source synthesis와 conversation-following sections
 
 ### Section lifecycle boundary
 
-Paper Note section은 작성 source와 update trigger에 따라 다음 두 lifecycle로 구분한다.
+Paper Note section은 작성 source와 update trigger에 따라 다음 세 lifecycle로 구분한다.
 
 - **Paper-source immediate sections:** `Architecture`, `Method`, `Trade-offs`, `Paper-Reported Limitations`. PDF Source Gate를 통과하면 사용자와의 학습 대화를 기다리지 않고 첨부 PDF 전체의 직접 근거만으로 바로 초안을 작성한다.
-- **Conversation-derived sections:** `User-Identified Limitations`, `Questions`. 실제 사용자–ChatGPT 학습 대화에서 발생하고 확인된 내용만 후보로 삼아 학습 세션을 마무리할 때 업데이트한다. 첨부 PDF만 읽어서 자동 생성하거나 갱신하지 않는다.
+- **Conversation-derived sections:** `User-Identified Limitations`, `Questions`, `Connection to My Research Direction`. 실제 사용자–ChatGPT 학습 대화에서 발생하고 확인된 내용만 후보로 삼아 학습 세션을 마무리할 때 업데이트한다. 첨부 PDF만 읽어서 자동 생성하거나 갱신하지 않는다.
+- **Reading-completion synthesis:** `Final Summary`. 사용자가 논문 본문을 끝까지 읽었다고 명시하고 checkpoint evidence가 마지막 본문 section까지의 읽기 완료를 뒷받침할 때만 마지막 정리로 작성한다. GPT가 PDF 전체를 분석했다는 사실만으로 작성하지 않는다.
 
-두 lifecycle을 서로 대신하지 않는다. 대화가 있었다는 이유로 PDF 근거 없이 Paper-source immediate section을 채우지 않으며, PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation이나 Question을 만들지 않는다.
+두 lifecycle을 서로 대신하지 않는다. 대화가 있었다는 이유로 PDF 근거 없이 Paper-source immediate section을 채우지 않으며, PDF 전체를 분석했다는 이유로 사용자가 제기하지 않은 User-Identified Limitation, Question 또는 Research Connection을 만들지 않는다.
 
 `## 5. Architecture`, `## 6. Method`, `## 9. Trade-offs`와 `Paper-Reported Limitations`는 사용자의 읽기 진도에서 수집한 이해 evidence를 기다려 채우는 section이 아니다. 현재 conversation의 첨부 PDF가 `system/PAPER_READING_TUTOR_POLICY.md`의 PDF Source Gate를 통과하면, ChatGPT는 논문 전체에서 관련 section, figure, subfigure, caption, table, equation과 연결된 본문을 확인하고 네 영역의 초안을 바로 작성한다. 이 예외는 source-grounded 초안 작성에만 적용하며, 사용자의 실제 읽기 범위나 이해 evidence로 승격하지 않는다. 파일 저장과 기존 Paper Note update는 여전히 사용자 승인을 받아야 한다.
 
@@ -125,7 +126,7 @@ Paper-Reported Limitation은 논문이 limitation, constraint 또는 지원 범�
 
 ### User-Identified Limitations
 
-이 subsection만 사용자의 학습과 대화를 따라 업데이트한다. 논문을 처음 받았을 때 자동 생성하지 않는다. 사용자가 limitation을 직접 제기한 경우에만 후보로 수집하며, 단순한 질문이나 GPT의 correction은 limitation으로 확정하지 않고 `Questions` 또는 적절한 evidence 영역에 둔다. GPT는 사용자의 발언을 확대하거나 새로운 limitation을 만들지 않고 가능한 한 사용자의 표현을 보존한다.
+이 subsection은 사용자의 학습과 대화를 따라 업데이트한다. 논문을 처음 받았을 때 자동 생성하지 않는다. 사용자가 limitation을 직접 제기한 경우에만 후보로 수집하며, 단순한 질문이나 GPT의 correction은 limitation으로 확정하지 않고 `Questions` 또는 적절한 evidence 영역에 둔다. GPT는 사용자의 발언을 확대하거나 새로운 limitation을 만들지 않고 가능한 한 사용자의 표현을 보존한다.
 
 학습 세션을 마무리할 때 마지막 checkpoint 이후 대화에서 확인된 후보를 모아 `사용자가 지적한 limitation`, `Related Architecture / Method`, `사용자가 근거로 사용한 paper content`, `Paper에서 직접 확인된 내용`, `추가 확인이 필요한 부분`으로 정리한다. Paper claim과 user observation을 혼동하지 않으며, Paper Note update와 저장은 기존 승인 절차를 따른다.
 
@@ -150,6 +151,36 @@ Questions는 full-paper source synthesis 영역이 아니라 실제 사용자–
 - `unresolved`: Paper와 현재 대화에서 핵심 답을 확인하지 못했다.
 
 Paper direct evidence, GPT supplementary explanation, User interpretation / hypothesis를 분리한다. GPT 설명만으로 사용자의 이해가 확인되었다고 기록하지 않는다. Paper에 직접 답이 없으면 `논문에서 언급되지 않음`으로 표시하고 GPT 추론으로 해결 상태를 높이지 않는다. 대화에서 해결 과정이나 사용자 해석을 확인할 수 없는 field는 추정하지 않고 `대화에서 확인되지 않음`으로 표시한다. 해결된 질문의 `해결하지 못한 부분`은 `해당 없음`으로 쓰고, 부분 해결 또는 미해결 질문은 무엇이 부족하며 다음에 무엇을 확인해야 하는지 구체적으로 기록한다. 해당 category에 통과한 질문이 없으면 placeholder record를 만들지 않고 `선정된 질문 없음`으로 표시한다. 기존 질문의 후속 대화가 생기면 원래 질문과 이전 해결 이력을 보존하면서 해결 과정, 알게 된 내용과 상태를 갱신한다.
+
+### Connection to My Research Direction
+
+이 section은 사용자가 대화에서 표현하거나 명시적으로 받아들인 research interest·goal·problem awareness와 논문의 구체적인 element 사이의 확인된 관계만 기록한다. Paper를 처음 받았을 때 자동으로 작성하지 않으며, PDF 전체 분석은 connection 후보를 생성하는 근거가 아니다. GPT는 연결 후보를 제안할 수 있지만 사용자가 받아들여 실제로 탐구하기 전에는 기록하지 않는다.
+
+학습 세션을 마무리할 때 마지막 checkpoint 이후 대화에서 Research Connection Inventory를 만들고 다음 gate를 모두 적용한다.
+
+1. **User-Origin Gate:** 사용자가 research interest·goal·problem awareness를 직접 표현했거나 GPT 제안을 명시적으로 채택해 탐구했다.
+2. **Paper-Anchor Gate:** 연결되는 claim, architecture, method, result, trade-off, limitation 또는 question과 PDF 근거 위치를 특정할 수 있다.
+3. **Mechanism Gate:** keyword가 비슷하다는 이유가 아니라 사용자 관심과 Paper element가 연결되는 기술적 이유를 설명할 수 있다.
+4. **Directional-Value Gate:** research framing, paper comparison, anchor-paper 선정, portfolio evidence 또는 후속 연구 방향 중 하나에 실제 영향을 준다.
+5. **Non-Duplication Gate:** Questions, Limitations, Final Summary를 반복하지 않고 이 논문이 사용자 연구 방향에서 수행하는 역할을 설명한다.
+
+Questions는 알아내야 할 epistemic gap과 그 해결 상태를 기록한다. Research Connection은 그 질문이나 Paper element가 사용자의 연구 방향에서 왜 중요한지와 어떤 역할을 하는지를 기록한다. 같은 질문이나 limitation 본문을 복사하지 않고 `기존 Questions / Limitations와의 관계`에서 참조한다. 단순한 흥미 표현, 사용자가 받아들이지 않은 GPT 연결 제안, 구체적인 Paper anchor가 없는 일반적 진로 문장과 다른 section의 재요약은 제외한다.
+
+통과한 각 connection은 `사용자가 표현한 research interest 또는 goal`, `연결되는 Paper element`, `연결 근거 위치`, `연결 방식`, `이 논문이 내 연구 방향에서 수행하는 역할`, `기존 Questions / Limitations와의 관계`, `연결의 경계 또는 아직 확인되지 않은 부분`, `향후 활용`으로 정리한다. Paper fact와 user observation을 분리하며 사용자의 관심 범위를 확대하지 않는다. Paper 근거가 없으면 `논문에서 언급되지 않음`, 대화 근거가 없으면 `대화에서 확인되지 않음`으로 표시하고 임의로 연결하지 않는다.
+
+새 Paper Note에서 통과한 connection이 없으면 `확인된 연구 연결 없음`으로 표시한다. 기존 Paper Note에서 이번 세션에 새로운 connection이 없으면 기존 기록을 그대로 보존하고 section을 변경하지 않는다. 새 connection, 기존 connection 갱신, 제외 후보와 제외 이유를 저장안에 보여 준 뒤 사용자 승인 후에만 Paper Note를 수정한다.
+
+### Final Summary
+
+Final Summary는 full-paper source synthesis로 미리 채우는 section도, 각 학습 세션에서 부분적으로 누적하는 section도 아니다. 다음 조건을 모두 만족할 때 한 번의 reading-completion synthesis로 작성한다.
+
+1. 사용자가 현재 논문 본문을 끝까지 읽었다고 명시했다.
+2. Reading Checkpoint, Resume Point와 Reading Session History가 conclusion 또는 사용자가 정한 마지막 본문 범위까지 도달했음을 뒷받침한다.
+3. Final Summary에 포함할 Paper claim을 현재 conversation의 첨부 PDF에서 직접 확인할 수 있다.
+
+완독 전에는 확인된 field만 부분적으로 채우지 않고 Final Summary 전체를 `아직 분석하지 않음`으로 둔다. GPT가 Architecture, Method, Trade-offs와 Paper-Reported Limitations를 full-paper source synthesis로 작성했더라도 Final Summary 작성 조건을 충족한 것이 아니다. 사용자가 중간 요약을 요청하면 대화에서 답할 수 있지만 이를 canonical Final Summary에 저장하지 않는다.
+
+완독 후 기존 구조인 `Problem`, `Key Idea`, `Architecture`, `Main Result`, `Main Trade-off`, `Limitation`, `내가 기억할 한 문장`을 사용한다. Paper claim은 PDF 직접 근거로만 작성하고, 사용자의 해석과 기억 문장은 실제 대화 evidence를 보존한다. `내가 기억할 한 문장`이 사용자 대화에서 확인되지 않았다면 GPT가 대신 만들지 않고 `대화에서 확인되지 않음`으로 표시한다. 완독은 reading coverage evidence일 뿐 모든 mechanism의 이해, 질문 해결 또는 mastery evidence가 아니다.
 
 ## 9. 사용자 선택 PB Inventory와 Bridge Audit
 
@@ -196,6 +227,18 @@ Prerequisite Bridge audit
 - 중복되거나 발전한 질문을 새 항목으로 늘리지 않고 기존 기록에 통합했는가?
 - 각 질문에 해결 과정, 알게 된 내용, 해결 상태, 미해결 부분과 구분된 근거가 있는가?
 - GPT의 설명만으로 사용자의 이해가 확인되었다고 기록하거나 Paper에 없는 답을 추론하지 않았는가?
+- Connection to My Research Direction을 Paper 전체 분석만으로 자동 작성하지 않고 대화 기반 Research Connection Inventory에서 만들었는가?
+- 사용자가 직접 표현하거나 명시적으로 채택한 research interest·goal·problem awareness만 사용했는가?
+- 각 connection에 구체적인 Paper anchor와 기술적인 연결 방식이 있는가?
+- 각 connection이 사용자 연구 방향에서 수행하는 역할과 실제 directional value가 있는가?
+- Questions, Limitations와 Final Summary를 반복하지 않고 필요한 경우 참조만 했는가?
+- 단순한 흥미 표현, 승인되지 않은 GPT 제안과 generic career statement를 제외했는가?
+- 연결이 없을 때 억지로 만들지 않고, 기존 기록은 새로운 후보가 없다는 이유로 덮어쓰지 않았는가?
+- Final Summary를 사용자의 명시적 완독과 마지막 본문 section까지의 checkpoint evidence가 모두 확인된 뒤 작성했는가?
+- 완독 전에 Final Summary 일부 field를 채우거나 full-paper source synthesis 결과만으로 미리 작성하지 않았는가?
+- Final Summary의 Paper claim은 첨부 PDF의 직접 근거만 사용했는가?
+- `내가 기억할 한 문장`을 사용자 대화에서 확인하지 않고 GPT가 대신 만들지 않았는가?
+- 완독 사실을 사용자의 전체 이해나 mastery evidence로 확대하지 않았는가?
 - Architecture와 Method의 모든 사실이 첨부 PDF에서 직접 확인되었는가?
 - 논문에 없거나 근거가 부족한 field를 `논문에서 언급되지 않음`으로 표시했는가?
 - 일반 지식, 다른 논문, GPT의 추론 또는 구조적 개연성으로 source-grounded field를 채우지 않았는가?
