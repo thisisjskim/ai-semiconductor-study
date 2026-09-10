@@ -45,6 +45,7 @@ CHECKBOX_RE = re.compile(r"^- \[(?P<state>[ xX])\]\s*(?P<text>.+)$")
 LIST_RE = re.compile(r"^(?:[-*+] |\d+[.)]\s+)(?P<text>.+)$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RECORDED_AT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
 PAPER_NOTE_PATH_RE = re.compile(
     r"^paper-notes/(?P<paper_type>foundational|ssl-lab|related)/"
     r"\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
@@ -104,10 +105,39 @@ def repository_path(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
 
 
+def markdown_lines_outside_fences(markdown: str) -> list[str]:
+    """Return Markdown lines that are structural, excluding fenced code content."""
+    visible: list[str] = []
+    fence_char = ""
+    fence_length = 0
+    for line in markdown.splitlines():
+        if fence_char:
+            candidate = line.lstrip(" ")
+            indentation = len(line) - len(candidate)
+            if indentation <= 3 and re.fullmatch(
+                rf"{re.escape(fence_char)}{{{fence_length},}}[ \t]*", candidate
+            ):
+                fence_char = ""
+                fence_length = 0
+            continue
+
+        fence_match = FENCE_RE.match(line)
+        if fence_match:
+            fence = fence_match.group("fence")
+            suffix = line[fence_match.end() :]
+            if fence[0] != "`" or "`" not in suffix:
+                fence_char = fence[0]
+                fence_length = len(fence)
+                continue
+
+        visible.append(line)
+    return visible
+
+
 def parse_sections(markdown: str) -> dict[str, str]:
     sections: dict[str, list[str]] = {}
     current = ""
-    for line in markdown.splitlines():
+    for line in markdown_lines_outside_fences(markdown):
         if line.startswith("## "):
             current = line.strip()
             sections.setdefault(current, [])

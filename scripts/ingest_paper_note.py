@@ -128,30 +128,46 @@ def parse_envelope(assembled: str) -> tuple[dict[str, str], str]:
 
 
 def markdown_heading_lines(markdown: str) -> list[str]:
-    headings: list[str] = []
+    return [
+        line.strip()
+        for line in markdown_lines_outside_fences(markdown)
+        if line.startswith("## ")
+    ]
+
+
+def markdown_lines_outside_fences(markdown: str) -> list[str]:
+    """Return Markdown lines that are structural, excluding fenced code content."""
+    visible: list[str] = []
     fence_char = ""
     fence_length = 0
     for line in markdown.splitlines():
+        if fence_char:
+            candidate = line.lstrip(" ")
+            indentation = len(line) - len(candidate)
+            if indentation <= 3 and re.fullmatch(
+                rf"{re.escape(fence_char)}{{{fence_length},}}[ \t]*", candidate
+            ):
+                fence_char = ""
+                fence_length = 0
+            continue
+
         fence_match = FENCE_RE.match(line)
         if fence_match:
             fence = fence_match.group("fence")
-            if not fence_char:
+            suffix = line[fence_match.end() :]
+            if fence[0] != "`" or "`" not in suffix:
                 fence_char = fence[0]
                 fence_length = len(fence)
                 continue
-            if fence[0] == fence_char and len(fence) >= fence_length:
-                fence_char = ""
-                fence_length = 0
-                continue
-        if not fence_char and line.startswith("## "):
-            headings.append(line.strip())
-    return headings
+
+        visible.append(line)
+    return visible
 
 
 def parse_sections(markdown: str) -> dict[str, str]:
     sections: dict[str, list[str]] = {}
     current = ""
-    for line in markdown.splitlines():
+    for line in markdown_lines_outside_fences(markdown):
         if line.startswith("## "):
             current = line.strip()
             sections.setdefault(current, [])
