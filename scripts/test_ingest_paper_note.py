@@ -954,6 +954,53 @@ def assert_envelope_contract() -> None:
         )
 
 
+def assert_fenced_code_is_not_document_structure() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        metadata_example = note().replace(
+            "## 6. Method",
+            """````markdown
+## Metadata
+- Title: This is an example, not Paper Note metadata
+```python
+## 1. Reading Checkpoint
+```
+````
+
+## 6. Method""",
+            1,
+        )
+        ingest.validate_payload(payload(metadata_example), root)
+
+        bridge_with_example_then_invalid_concept = """
+### 논문 안에서 해결한 선수지식
+
+- 없음
+
+### 별도로 이어가는 선수지식
+
+```text
+## Example only
+#### Example prerequisite
+- Status: paused
+```
+
+#### CNN
+
+- Status: studying
+- 논문에서 필요한 이유: dataflow 이해
+- 이 논문에 충분한 기준: convolution mapping 설명
+- Learning Logs:
+  - 없음
+"""
+        expect_error(
+            lambda: ingest.validate_payload(
+                payload(note(bridge_with_example_then_invalid_concept)), root
+            ),
+            "studying-bridge-without-learning-log",
+        )
+
+
 def assert_cli_report() -> None:
     assert "✅ Paper Note 처리 완료" in (
         ingest.RESULT_MARKER + "\n✅ Paper Note 처리 완료"
@@ -971,6 +1018,7 @@ def main() -> int:
     assert_bridge_validation()
     assert_identity_and_checkpoint_validation()
     assert_envelope_contract()
+    assert_fenced_code_is_not_document_structure()
     assert_cli_report()
     print("All Paper Note ingest tests passed")
     return 0

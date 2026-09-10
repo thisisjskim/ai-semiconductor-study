@@ -458,7 +458,18 @@ def main() -> int:
         write_fixture(
             root,
             "paper-notes/foundational/2026-08-26-a-current-paper.md",
-            paper_note("Current Paper", "2026-08-28T12:00:00Z"),
+            paper_note("Current Paper", "2026-08-28T12:00:00Z")
+            + """
+## 3. Analysis
+
+````markdown
+## Metadata
+- Document type: not-a-paper-note
+```text
+## 1. Reading Checkpoint
+```
+````
+""",
         )
         selected = context.build_context(root)
         assert "## Current Paper" in selected
