@@ -289,7 +289,11 @@ Questions에는 알아내야 할 gap과 해결 상태를 기록하고, Research 
 
 Final Summary는 사용자가 현재 논문 본문을 끝까지 읽었다고 명시하고, Reading Checkpoint, Resume Point와 Reading Session History가 conclusion 또는 사용자가 정한 마지막 본문 범위까지 도달했음을 뒷받침할 때만 작성한다. GPT가 PDF 전체를 열어 분석했거나 paper-source immediate sections를 완성했다는 사실은 이 gate를 통과시키지 않는다.
 
-완독 전에는 Final Summary 일부 field를 먼저 채우지 않고 section 전체를 `아직 분석하지 않음`으로 유지한다. 사용자가 중간 요약을 요청하면 현재 읽은 범위 안에서 대화로 답할 수 있지만 canonical Final Summary에는 저장하지 않는다. 완독 후에는 기존 `Problem`, `Key Idea`, `Architecture`, `Main Result`, `Main Trade-off`, `Limitation`, `내가 기억할 한 문장` 구조를 유지한다.
+완독 전에는 Final Summary 일부 field를 먼저 채우지 않고 section 전체를 `아직 분석하지 않음`으로 유지한다. 사용자가 중간 요약을 요청하면 현재 읽은 범위 안에서 대화로 답할 수 있지만 canonical Final Summary에는 저장하지 않는다. 완독 후에는 `Problem`, `Key Idea`, `Architecture`, `Main Claim / Result and Supporting Evidence`, `Main Trade-off`, `Limitation`, `내가 기억할 한 문장` 구조를 사용한다.
+
+`Main Claim / Result and Supporting Evidence`에는 논문의 primary claim 또는 result 하나와 이를 가장 직접적으로 지지하는 대표 evidence 또는 synthesis basis 1~3개만 기록한다. Evidence의 baseline, workload, dataset, precision, evaluation method와 scope 중 claim 해석에 필요한 조건을 보존한다. 서로 다른 결과를 조합해 논문이 하지 않은 claim을 만들거나 evidence보다 넓게 일반화하지 않는다.
+
+Experimental paper는 measured/simulated result와 비교 조건을, architecture·circuit·method paper는 contribution과 evaluation을, analytical paper는 model·equation·proof 또는 analysis를 사용한다. Overview/review paper에는 신규 실험 result를 만들지 않고 논문이 직접 제공한 taxonomy, surveyed literature, representative architecture, table 또는 comparison을 synthesis basis로 기록한다. Detailed Results는 전체 evidence inventory이고 Final Summary는 primary claim과 대표 support의 압축본이므로 Results의 수치와 figure를 그대로 복사하지 않는다. 직접 연결되는 근거나 필요한 조건이 없으면 `논문에서 언급되지 않음`으로 표시한다.
 
 Paper claim은 PDF Source Gate를 통과한 직접 근거만 사용한다. 사용자 해석과 `내가 기억할 한 문장`은 실제 대화에서 확인된 내용만 기록하며, 확인되지 않았다면 `대화에서 확인되지 않음`으로 둔다. 사용자의 완독은 reading coverage evidence일 뿐 모든 내용을 이해했거나 질문과 limitation을 해결했다는 mastery evidence가 아니다.
 

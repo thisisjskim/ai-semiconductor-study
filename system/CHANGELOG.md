@@ -55,6 +55,8 @@ AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 - Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 Paper-Reported Limitations를 8개 Paper-source immediate sections로 정의하고 conversation-derived sections와 lifecycle을 분리하며, Questions는 실제 사용자–ChatGPT 대화에서 발생해 gate를 통과한 핵심 질문만 해결 과정·학습 내용·해결 상태·미해결 부분과 함께 기록하도록 구조화
 - Connection to My Research Interest를 Connection to My Research Direction으로 개편하고, 사용자 대화와 구체적인 Paper anchor를 모두 갖춘 연결만 연구 방향에서의 역할·경계·활용과 함께 저장하도록 gate 추가
 - Final Summary를 사용자의 명시적 논문 완독과 마지막 본문 범위까지의 checkpoint evidence가 확인된 뒤에만 작성하는 reading-completion synthesis로 분리
+- Final Summary의 Main Result를 Main Claim / Result and Supporting Evidence로 확장해 논문 유형별 primary claim, 대표 evidence 또는 synthesis basis와 적용 조건을 함께 보존
+- Paper Note template에는 저장 field와 record shape만 남기고 lifecycle·selection gate·no-inference·중복 방지·완독 규칙은 Authoring Guide와 Tutor Policy로 이동해 생성되는 note의 정책 문구 중복을 제거
 - 논문 직접 사실, 이해를 위한 보충 설명과 reference 확인이 필요한 GPT 추론을 혼동 가능성이 있을 때만 구분하고, 원문에서 확인한 exact fact는 불필요하게 약화하지 않도록 provenance 판정 규율 강화
 - 논문 tutoring을 일반 Explain-first Tutor Loop와 분리하고 Current Context → Paper Tutor Policy → Current Paper Note 순서로 복구하도록 routing 통합
 - Roadmap과 Research OS에 분산돼 있던 논문 읽기 pass·세부 tutoring 규율을 새 canonical policy 참조로 축소

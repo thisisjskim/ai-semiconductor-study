@@ -2,6 +2,8 @@
 
 이 문서는 하나의 living Paper Note를 여러 읽기 세션에 걸쳐 안전하게 갱신하는 기준이다. Paper Note는 논문의 내용을 대신하는 요약문이 아니라 사용자가 실제로 읽고 설명하고 질문한 분석 evidence와 다음 복귀 위치를 보존한다.
 
+`templates/paper-note.md`는 저장 결과의 heading, field와 반복 가능한 record shape만 정의하는 간결한 output schema다. Lifecycle, 선정 gate, no-inference, 중복 방지, evidence 판정과 완독 조건은 이 Authoring Guide와 `system/PAPER_READING_TUTOR_POLICY.md`에서만 설명하며 생성된 Paper Note에 정책 문단을 복사하지 않는다. Template의 placeholder는 실제 항목으로 교체하고, 동적 record가 없을 때는 각 section 규칙이 지정한 `논문에서 언급되지 않음`, `선정된 질문 없음`, `확인된 연구 연결 없음`, `아직 분석하지 않음` 등의 상태만 남긴다.
+
 ## 1. 기존 파일을 먼저 읽는다
 
 Update 전에 `main`의 기존 Paper Note 전체와 최신 blob SHA를 읽는다. 기존 분석, 질문, Bridge와 Reading Session History를 삭제하거나 과거 내용을 새 세션의 evidence처럼 바꾸지 않는다.
@@ -180,7 +182,13 @@ Final Summary는 full-paper source synthesis로 미리 채우는 section도, 각
 
 완독 전에는 확인된 field만 부분적으로 채우지 않고 Final Summary 전체를 `아직 분석하지 않음`으로 둔다. GPT가 Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 Paper-Reported Limitations를 full-paper source synthesis로 작성했더라도 Final Summary 작성 조건을 충족한 것이 아니다. 사용자가 중간 요약을 요청하면 대화에서 답할 수 있지만 이를 canonical Final Summary에 저장하지 않는다.
 
-완독 후 기존 구조인 `Problem`, `Key Idea`, `Architecture`, `Main Result`, `Main Trade-off`, `Limitation`, `내가 기억할 한 문장`을 사용한다. Paper claim은 PDF 직접 근거로만 작성하고, 사용자의 해석과 기억 문장은 실제 대화 evidence를 보존한다. `내가 기억할 한 문장`이 사용자 대화에서 확인되지 않았다면 GPT가 대신 만들지 않고 `대화에서 확인되지 않음`으로 표시한다. 완독은 reading coverage evidence일 뿐 모든 mechanism의 이해, 질문 해결 또는 mastery evidence가 아니다.
+완독 후 `Problem`, `Key Idea`, `Architecture`, `Main Claim / Result and Supporting Evidence`, `Main Trade-off`, `Limitation`, `내가 기억할 한 문장` 구조를 사용한다. Paper claim은 PDF 직접 근거로만 작성하고, 사용자의 해석과 기억 문장은 실제 대화 evidence를 보존한다. `내가 기억할 한 문장`이 사용자 대화에서 확인되지 않았다면 GPT가 대신 만들지 않고 `대화에서 확인되지 않음`으로 표시한다. 완독은 reading coverage evidence일 뿐 모든 mechanism의 이해, 질문 해결 또는 mastery evidence가 아니다.
+
+`Main Claim / Result and Supporting Evidence`에는 논문의 primary claim 또는 result 하나만 선정한다. 이를 가장 직접적으로 지지하는 대표 evidence 또는 synthesis basis를 1~3개 고르고, claim을 해석하는 데 필요한 baseline, workload, dataset, precision, array size, technology, measured/simulated 여부 또는 논문 유형에 맞는 scope를 보존한다. Claim의 범위를 evidence보다 넓히거나, 서로 다른 결과를 합쳐 논문이 하지 않은 종합 주장을 만들지 않는다.
+
+Experimental paper는 measured/simulated result와 비교 조건을, architecture·circuit·method paper는 제안 contribution과 이를 검증한 evaluation을, analytical paper는 model·equation·proof 또는 analysis를 기록할 수 있다. Overview/review paper는 신규 실험 결과를 만들어 넣지 않고 taxonomy, surveyed literature, representative architecture, table 또는 comparison처럼 논문이 실제로 제시한 synthesis basis를 기록한다.
+
+Detailed Results는 주요 figure, table, metric과 조건을 보존하는 전체 evidence inventory다. Final Summary는 이를 복사하지 않고 primary claim 하나와 가장 대표적인 support만 압축한다. Evidence가 claim을 직접 지지하는지 확인할 수 없으면 관계를 추론하지 않으며, 근거나 조건이 논문에 없으면 해당 field를 `논문에서 언급되지 않음`으로 표시한다.
 
 ## 9. 사용자 선택 PB Inventory와 Bridge Audit
 
@@ -237,6 +245,10 @@ Prerequisite Bridge audit
 - Final Summary를 사용자의 명시적 완독과 마지막 본문 section까지의 checkpoint evidence가 모두 확인된 뒤 작성했는가?
 - 완독 전에 Final Summary 일부 field를 채우거나 full-paper source synthesis 결과만으로 미리 작성하지 않았는가?
 - Final Summary의 Paper claim은 첨부 PDF의 직접 근거만 사용했는가?
+- Main Claim / Result를 하나로 제한하고 이를 직접 지지하는 evidence 또는 synthesis basis만 1~3개 선별했는가?
+- Evidence의 baseline, workload, precision, evaluation method와 scope 중 claim 해석에 필요한 조건을 보존했는가?
+- Overview/review paper에 존재하지 않는 신규 실험 결과를 만들지 않고 실제 synthesis basis를 기록했는가?
+- Detailed Results를 복사하거나 evidence보다 넓은 claim을 만들지 않았는가?
 - `내가 기억할 한 문장`을 사용자 대화에서 확인하지 않고 GPT가 대신 만들지 않았는가?
 - 완독 사실을 사용자의 전체 이해나 mastery evidence로 확대하지 않았는가?
 - Architecture와 Method의 모든 사실이 첨부 PDF에서 직접 확인되었는가?

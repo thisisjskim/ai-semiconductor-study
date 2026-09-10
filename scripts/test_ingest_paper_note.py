@@ -115,23 +115,17 @@ def expect_error(function, code: str) -> None:
 def assert_template_contract() -> None:
     template = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
     assert len(EXPECTED_PAPER_SOURCE_IMMEDIATE_SECTIONS) == 8
+    assert len(template.encode("utf-8")) < 7000
+    assert len(template.splitlines()) < 280
     assert "## 1. Citation" not in template
     assert "## 1. Reading Checkpoint" in template
     assert "- Resume Point:" in template
     assert "## 2. Prerequisite Bridge" in template
     assert "### 논문 안에서 해결한 선수지식" in template
-    assert "명시적으로 요청했거나 GPT의 제안에 동의한 개념만 기록한다" in template
-    assert "질문·설명·오해 수정이 있었다는 이유만으로 자동 추가하지 않는다" in template
     assert "- 실제 정의:" in template
     assert "### 별도로 이어가는 선수지식" in template
     assert "studying | paused | sufficient-for-paper" in template
-    assert "저장 시 실제로 존재하는 Learning Log 경로가 하나 이상 필요하다" in template
     assert "## 3. Problem" in template
-    assert (
-        "Problem, Key Idea, Architecture, Method, Experiments, Results, Trade-offs와 "
-        "Paper-Reported Limitations는 **Paper-source immediate sections**다"
-    ) in template
-    assert "첨부 PDF 전체를 확인해 여덟 영역의 초안을 바로 작성한다" in template
     assert "**Problem being addressed:**" in template
     assert "**Limitations of existing approaches:**" in template
     assert "**Why this problem matters:**" in template
@@ -145,23 +139,9 @@ def assert_template_contract() -> None:
     assert "**What is novel or different:**" in template
     assert "> 한 문장 요약:" not in template
     assert "## 9. Trade-offs" in template
-    assert "사용자의 학습 진도를 기다리지 않는다" in template
-    assert "한 행에는 하나의 structure 또는 approach만 기록" in template
     assert "| Structure / Approach | Benefit (Gain) | Trade-off / Cost | Evidence |" in template
     assert "| Gain | Cost / Trade-off | Evidence |" not in template
-    for tradeoff_rule in (
-        "`Benefit (Gain)`과 `Trade-off / Cost`를 모두 설명",
-        "둘의 관계를 직접 연결",
-        "GPT가 서로 떨어진 장점과 단점을 임의로 조합하지 않는다",
-        "Cost만 제시되고 대응하는 gain이 없으면 Trade-off로 선정하지 않고",
-        "Gain–Cost 관계 전체는 Trade-offs에만 기록하고 Limitations에 반복하지 않는다",
-        "residual hard boundary",
-    ):
-        assert tradeoff_rule in template
     assert "## 5. Architecture" in template
-    assert "논문 전체의 architecture 설명, figure, caption과 본문 참조를 확인해 바로 작성" in template
-    assert "사용자의 이해 evidence로 기록하지 않는다" in template
-    assert "정확히 `논문에서 언급되지 않음`으로 표시" in template
     assert "### Overall Architecture" in template
     assert "### {Architecture Family 또는 System Level}" in template
     assert "#### {Figure N(a) 또는 Structure Name}" in template
@@ -176,11 +156,7 @@ def assert_template_contract() -> None:
         "- 논문이 제공하지 않은 세부사항:",
     ):
         assert architecture_field in template
-    assert "Result plot, dataset 예시와 배경 설명용 figure" in template
-    assert "figure caption만이 아니라 연결된 본문 설명까지 확인" in template
     assert "## 6. Method" in template
-    assert "architecture family와 structure의 heading, 이름과 순서를 그대로 따른다" in template
-    assert "Operation은 MAC에 한정하지 않는다" in template
     for method_field in (
         "- Architecture reference:",
         "- Method purpose:",
@@ -194,7 +170,6 @@ def assert_template_contract() -> None:
         "- 근거 위치: Section / PDF p. / Figure / Equation",
     ):
         assert method_field in template
-    assert "일반 지식, 다른 논문, GPT의 추론 또는 구조에서 유추한 인과관계" in template
     assert "## 10. Limitations" in template
     assert "### Authors' Limitations" not in template
     assert "### My Observations" not in template
@@ -211,13 +186,7 @@ def assert_template_contract() -> None:
         "- 근거 위치: Section / PDF p. / Figure / Table",
     ):
         assert limitation_field in template
-    assert "단순히 `challenge`라고 표현했지만" in template
-    assert "모든 structure에 limitation을 의무적으로 만들지 않으며" in template
     assert "### User-Identified Limitations" in template
-    assert "이 subsection은 사용자의 학습과 대화를 따라간다" in template
-    assert "논문을 처음 받았을 때 자동으로 만들지 않는다" in template
-    assert "단순한 질문은 limitation으로 확정하지 않고 `## 11. Questions`에 유지한다" in template
-    assert "학습 세션을 마무리할 때" in template
     for user_limitation_field in (
         "- 사용자가 지적한 limitation:",
         "- 사용자가 근거로 사용한 paper content:",
@@ -226,28 +195,6 @@ def assert_template_contract() -> None:
     ):
         assert user_limitation_field in template
     assert "## 11. Questions" in template
-    for question_gate in (
-        "### Question Selection Gate",
-        "**Conversation-derived section**",
-        "**Paper-source immediate sections**",
-        "Questions의 질문 후보와 업데이트 근거는 실제 사용자–ChatGPT 학습 대화에서만 발생",
-        "PDF 전체를 분석했다는 이유만으로 작성하거나 업데이트하지 않는다",
-        "**Origin Gate:**",
-        "**Paper Grounding Gate:**",
-        "**Learning Value Gate:**",
-        "**Persistence Gate:**",
-        "**Deduplication Gate:**",
-        "논문을 처음 받았다는 이유나 PDF 전체를 분석했다는 이유만으로 작성하거나 업데이트하지 않는다",
-        "GPT가 사용자가 하지 않은 질문을 만들지 않는다",
-        "사용자가 명시적으로 받아들여 실제로 탐구한 경우에만 후보",
-        "기술 의미를 바꾸지 않는 번역·문법 질문",
-        "학습 절차나 기록 방식에 관한 meta 질문",
-        "같은 질문이 발전한 경우 새 항목을 만들지 않고 기존 기록에 통합",
-        "GPT가 설명했다는 사실만으로 사용자가 이해한 것으로 기록하지 않는다",
-        "대화에서 확인되지 않음",
-        "선정된 질문 없음",
-    ):
-        assert question_gate in template, question_gate
     for question_category in (
         "### 이해를 위한 질문",
         "### 비판적 질문",
@@ -272,21 +219,6 @@ def assert_template_contract() -> None:
     assert "- 새롭게 발생한 질문:" not in template
     assert "## 12. Connection to My Research Direction" in template
     assert "## 12. Connection to My Research Interest" not in template
-    for connection_rule in (
-        "### Research Connection Gate",
-        "사용자가 실제 학습 대화에서 표현한 research interest·goal·problem awareness",
-        "논문을 받거나 PDF 전체를 분석했다는 이유만으로 작성하지 않는다",
-        "사용자가 명시적으로 받아들여 실제로 탐구하기 전에는 기록하지 않는다",
-        "**User-Origin Gate:**",
-        "**Paper-Anchor Gate:**",
-        "**Mechanism Gate:**",
-        "**Directional-Value Gate:**",
-        "**Non-Duplication Gate:**",
-        "connection placeholder를 만들지 않고 `확인된 연구 연결 없음`",
-        "기존 기록을 보존하고 이 section을 변경하지 않는다",
-        "연결을 추론해 채우지 않는다",
-    ):
-        assert connection_rule in template, connection_rule
     for connection_field in (
         "- 사용자가 표현한 research interest 또는 goal:",
         "- 연결되는 Paper element:",
@@ -308,28 +240,36 @@ def assert_template_contract() -> None:
     assert "## 12. Connection to My Research Direction" in ingest.REQUIRED_HEADINGS
     assert "## 12. Connection to My Research Interest" not in ingest.REQUIRED_HEADINGS
     assert "## 13. Final Summary" in template
-    for final_summary_rule in (
-        "**Reading-completion synthesis**",
-        "사용자가 논문 본문을 끝까지 읽었다고 명시",
-        "Reading Checkpoint와 Reading Session History에서 마지막 본문 section까지의 읽기 완료가 확인",
-        "GPT가 PDF 전체를 분석했다는 이유만으로 미리 작성하지 않는다",
-        "완독 전에는 일부 field를 먼저 채우지 않고 Final Summary 전체를 `아직 분석하지 않음`",
-        "Paper claim은 PDF Source Gate를 통과한 논문의 직접 근거만 사용",
-        "GPT가 임의로 사용자의 이해나 결론을 만들어서는 안 된다",
-        "모든 내용을 완전히 이해하거나 검증했다는 evidence로 사용하지 않는다",
-    ):
-        assert final_summary_rule in template, final_summary_rule
     assert "부분 분석 중이면 확인된 항목만 작성" not in template
     for final_summary_heading in (
         "### Problem",
         "### Key Idea",
         "### Architecture",
-        "### Main Result",
+        "### Main Claim / Result and Supporting Evidence",
         "### Main Trade-off",
         "### Limitation",
         "### 내가 기억할 한 문장",
     ):
         assert final_summary_heading in template
+    assert "\n### Main Result\n" not in template
+    for main_claim_rule in (
+        "- Main claim / result:",
+        "- Representative supporting evidence or synthesis basis:",
+        "- Evidence conditions / scope:",
+        "- 근거 위치: Section / PDF p. / Figure / Table / Equation",
+    ):
+        assert main_claim_rule in template, main_claim_rule
+    for policy_text in (
+        "**Paper-source immediate sections**",
+        "### Question Selection Gate",
+        "### Research Connection Gate",
+        "**Reading-completion synthesis**",
+        "PDF Source Gate를 통과한 뒤",
+        "GPT가 서로 떨어진 장점과 단점을 임의로 조합하지 않는다",
+        "논문을 처음 받았을 때 자동으로 만들지 않는다",
+        "완독 전에는 일부 field를 먼저 채우지 않고",
+    ):
+        assert policy_text not in template, policy_text
     assert "## 14. Reading Session History" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",
@@ -564,6 +504,13 @@ def assert_paper_tutoring_policy_contract() -> None:
         "paper-source immediate sections를 완성했다는 사실은 이 gate를 통과시키지 않는다",
         "Final Summary 일부 field를 먼저 채우지 않고 section 전체를 `아직 분석하지 않음`",
         "중간 요약을 요청하면 현재 읽은 범위 안에서 대화로 답할 수 있지만 canonical Final Summary에는 저장하지 않는다",
+        "`Main Claim / Result and Supporting Evidence`에는 논문의 primary claim 또는 result 하나",
+        "대표 evidence 또는 synthesis basis 1~3개만 기록",
+        "Evidence의 baseline, workload, dataset, precision, evaluation method와 scope",
+        "서로 다른 결과를 조합해 논문이 하지 않은 claim을 만들거나 evidence보다 넓게 일반화하지 않는다",
+        "Overview/review paper에는 신규 실험 result를 만들지 않고",
+        "Detailed Results는 전체 evidence inventory이고 Final Summary는 primary claim과 대표 support의 압축본",
+        "Results의 수치와 figure를 그대로 복사하지 않는다",
         "`내가 기억할 한 문장`은 실제 대화에서 확인된 내용만 기록",
         "reading coverage evidence일 뿐",
         "mastery evidence가 아니다",
@@ -627,6 +574,9 @@ def assert_paper_tutoring_policy_contract() -> None:
     authoring = (ROOT / "system/PAPER_NOTE_AUTHORING_GUIDE.md").read_text(
         encoding="utf-8"
     )
+    assert "반복 가능한 record shape만 정의하는 간결한 output schema" in authoring
+    assert "생성된 Paper Note에 정책 문단을 복사하지 않는다" in authoring
+    assert "Template의 placeholder는 실제 항목으로 교체" in authoring
     assert "별도 evidence status 필드를 추가하지 않고" in authoring
     assert "저장 전에 사용자의 짧은 자기 설명을 한 번 요청한다" not in authoring
     assert "## 2. 첨부 PDF에서 논문 identity를 확인한다" in authoring
@@ -717,6 +667,14 @@ def assert_paper_tutoring_policy_contract() -> None:
         "Final Summary에 포함할 Paper claim을 현재 conversation의 첨부 PDF에서 직접 확인",
         "Final Summary 전체를 `아직 분석하지 않음`",
         "full-paper source synthesis로 작성했더라도 Final Summary 작성 조건을 충족한 것이 아니다",
+        "`Main Claim / Result and Supporting Evidence`",
+        "primary claim 또는 result 하나만 선정",
+        "대표 evidence 또는 synthesis basis를 1~3개",
+        "baseline, workload, dataset, precision, array size, technology, measured/simulated 여부",
+        "Claim의 범위를 evidence보다 넓히거나",
+        "Overview/review paper는 신규 실험 결과를 만들어 넣지 않고",
+        "Detailed Results는 주요 figure, table, metric과 조건을 보존하는 전체 evidence inventory",
+        "Final Summary는 이를 복사하지 않고 primary claim 하나와 가장 대표적인 support만 압축",
         "`내가 기억할 한 문장`이 사용자 대화에서 확인되지 않았다면 GPT가 대신 만들지 않고 `대화에서 확인되지 않음`",
         "완독은 reading coverage evidence일 뿐",
     ):
