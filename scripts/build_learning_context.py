@@ -45,11 +45,16 @@ CHECKBOX_RE = re.compile(r"^- \[(?P<state>[ xX])\]\s*(?P<text>.+)$")
 LIST_RE = re.compile(r"^(?:[-*+] |\d+[.)]\s+)(?P<text>.+)$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RECORDED_AT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
 PAPER_NOTE_PATH_RE = re.compile(
     r"^paper-notes/(?P<paper_type>foundational|ssl-lab|related)/"
     r"\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
 )
 BRIDGE_STATUSES = {"studying", "paused", "sufficient-for-paper"}
+PAPER_NOTE_SECTION_PAIRS = (
+    ("## 1. Reading Checkpoint", "## 2. Prerequisite Bridge"),
+    ("## 2. Reading Checkpoint", "## 3. Prerequisite Bridge"),
+)
 
 
 def git_blob_sha(path: Path) -> str:
@@ -100,10 +105,39 @@ def repository_path(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
 
 
+def markdown_lines_outside_fences(markdown: str) -> list[str]:
+    """Return Markdown lines that are structural, excluding fenced code content."""
+    visible: list[str] = []
+    fence_char = ""
+    fence_length = 0
+    for line in markdown.splitlines():
+        if fence_char:
+            candidate = line.lstrip(" ")
+            indentation = len(line) - len(candidate)
+            if indentation <= 3 and re.fullmatch(
+                rf"{re.escape(fence_char)}{{{fence_length},}}[ \t]*", candidate
+            ):
+                fence_char = ""
+                fence_length = 0
+            continue
+
+        fence_match = FENCE_RE.match(line)
+        if fence_match:
+            fence = fence_match.group("fence")
+            suffix = line[fence_match.end() :]
+            if fence[0] != "`" or "`" not in suffix:
+                fence_char = fence[0]
+                fence_length = len(fence)
+                continue
+
+        visible.append(line)
+    return visible
+
+
 def parse_sections(markdown: str) -> dict[str, str]:
     sections: dict[str, list[str]] = {}
     current = ""
-    for line in markdown.splitlines():
+    for line in markdown_lines_outside_fences(markdown):
         if line.startswith("## "):
             current = line.strip()
             sections.setdefault(current, [])
@@ -212,12 +246,17 @@ def classify_paper_note(path: Path, root: Path) -> PaperNote | None:
     if not markdown.startswith("# Paper Note:"):
         return None
     sections = parse_sections(markdown)
-    if not {
-        "## Metadata",
-        "## 2. Reading Checkpoint",
-        "## 3. Prerequisite Bridge",
-    }.issubset(sections):
+    section_pair = next(
+        (
+            (checkpoint_heading, bridge_heading)
+            for checkpoint_heading, bridge_heading in PAPER_NOTE_SECTION_PAIRS
+            if checkpoint_heading in sections and bridge_heading in sections
+        ),
+        None,
+    )
+    if "## Metadata" not in sections or section_pair is None:
         return None
+    checkpoint_heading, bridge_heading = section_pair
     metadata = parse_metadata(sections)
     if metadata.get("Document type") != "paper-note":
         return None
@@ -234,13 +273,13 @@ def classify_paper_note(path: Path, root: Path) -> PaperNote | None:
         return None
 
     checkpoint_fields = parse_metadata(
-        {"## Metadata": sections["## 2. Reading Checkpoint"]}
+        {"## Metadata": sections[checkpoint_heading]}
     )
     if not checkpoint_fields.get("Resume Point"):
         return None
     statuses = [
         match.group("value").strip()
-        for line in sections["## 3. Prerequisite Bridge"].splitlines()
+        for line in sections[bridge_heading].splitlines()
         if (match := METADATA_RE.fullmatch(line.strip()))
         and match.group("key").strip() == "Status"
     ]

@@ -41,23 +41,20 @@ REQUIRED_METADATA = (
 )
 REQUIRED_HEADINGS = (
     "## Metadata",
-    "## 1. Citation",
-    "## 2. Reading Checkpoint",
-    "## 3. Prerequisite Bridge",
-    "## 4. Problem",
-    "## 5. Motivation and Prior-Work Gap",
-    "## 6. Prerequisites",
-    "## 7. Key Idea",
-    "## 8. Architecture",
-    "## 9. Method",
-    "## 10. Experiments",
-    "## 11. Results",
-    "## 12. Trade-offs",
-    "## 13. Limitations",
-    "## 14. Questions",
-    "## 15. Connection to My Research Interest",
-    "## 16. Final Summary",
-    "## 17. Reading Session History",
+    "## 1. Reading Checkpoint",
+    "## 2. Prerequisite Bridge",
+    "## 3. Problem",
+    "## 4. Key Idea",
+    "## 5. Architecture",
+    "## 6. Method",
+    "## 7. Experiments",
+    "## 8. Results",
+    "## 9. Trade-offs",
+    "## 10. Limitations",
+    "## 11. Questions",
+    "## 12. Connection to My Research Direction",
+    "## 13. Final Summary",
+    "## 14. Reading Session History",
     "## 사용자 분석 근거",
 )
 FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})")
@@ -131,30 +128,46 @@ def parse_envelope(assembled: str) -> tuple[dict[str, str], str]:
 
 
 def markdown_heading_lines(markdown: str) -> list[str]:
-    headings: list[str] = []
+    return [
+        line.strip()
+        for line in markdown_lines_outside_fences(markdown)
+        if line.startswith("## ")
+    ]
+
+
+def markdown_lines_outside_fences(markdown: str) -> list[str]:
+    """Return Markdown lines that are structural, excluding fenced code content."""
+    visible: list[str] = []
     fence_char = ""
     fence_length = 0
     for line in markdown.splitlines():
+        if fence_char:
+            candidate = line.lstrip(" ")
+            indentation = len(line) - len(candidate)
+            if indentation <= 3 and re.fullmatch(
+                rf"{re.escape(fence_char)}{{{fence_length},}}[ \t]*", candidate
+            ):
+                fence_char = ""
+                fence_length = 0
+            continue
+
         fence_match = FENCE_RE.match(line)
         if fence_match:
             fence = fence_match.group("fence")
-            if not fence_char:
+            suffix = line[fence_match.end() :]
+            if fence[0] != "`" or "`" not in suffix:
                 fence_char = fence[0]
                 fence_length = len(fence)
                 continue
-            if fence[0] == fence_char and len(fence) >= fence_length:
-                fence_char = ""
-                fence_length = 0
-                continue
-        if not fence_char and line.startswith("## "):
-            headings.append(line.strip())
-    return headings
+
+        visible.append(line)
+    return visible
 
 
 def parse_sections(markdown: str) -> dict[str, str]:
     sections: dict[str, list[str]] = {}
     current = ""
-    for line in markdown.splitlines():
+    for line in markdown_lines_outside_fences(markdown):
         if line.startswith("## "):
             current = line.strip()
             sections.setdefault(current, [])
@@ -260,13 +273,55 @@ def validate_bridges(bridge_text: str, root: Path) -> None:
             "한 Paper Note에서 studying인 선수지식은 최대 하나만 허용합니다.",
             "multiple-studying-bridges",
         )
+    resolved_heading = "### 논문 안에서 해결한 선수지식"
     tracked_heading = "### 별도로 이어가는 선수지식"
+    resolved_start = bridge_text.find(resolved_heading)
     tracked_start = bridge_text.find(tracked_heading)
+    if resolved_start < 0:
+        raise IngestError(
+            "Prerequisite Bridge에 '논문 안에서 해결한 선수지식' section이 없습니다.",
+            "missing-resolved-bridge-section",
+        )
     if tracked_start < 0:
         raise IngestError(
             "Prerequisite Bridge에 '별도로 이어가는 선수지식' section이 없습니다.",
             "missing-tracked-bridge-section",
         )
+    if resolved_start > tracked_start:
+        raise IngestError(
+            "Prerequisite Bridge section 순서를 확인하세요.",
+            "invalid-bridge-section-order",
+        )
+    resolved_text = bridge_text[
+        resolved_start + len(resolved_heading) : tracked_start
+    ]
+    resolved_concepts = list(
+        re.finditer(r"(?m)^####\s+(?P<concept>.+?)\s*$", resolved_text)
+    )
+    required_resolved_fields = (
+        "등장 위치",
+        "논문에서 필요한 이유",
+        "실제 정의",
+        "사용자의 이해",
+    )
+    for index, concept_match in enumerate(resolved_concepts):
+        block_end = (
+            resolved_concepts[index + 1].start()
+            if index + 1 < len(resolved_concepts)
+            else len(resolved_text)
+        )
+        concept = concept_match.group("concept").strip()
+        block = resolved_text[concept_match.end() : block_end]
+        fields = parse_fields(block, f"논문 안에서 해결한 선수지식 '{concept}'")
+        missing_fields = [
+            field for field in required_resolved_fields if not fields.get(field)
+        ]
+        if missing_fields:
+            raise IngestError(
+                f"논문 안에서 해결한 선수지식 '{concept}'의 필수 필드 누락: "
+                + ", ".join(missing_fields),
+                "missing-resolved-bridge-field",
+            )
     tracked_text = bridge_text[tracked_start + len(tracked_heading) :]
     next_section = re.search(r"(?m)^###\s+", tracked_text)
     if next_section:
@@ -358,12 +413,12 @@ def validate_markdown(markdown: str, target_match: re.Match[str], root: Path) ->
     if normalize_timestamp(checkpoint) != checkpoint:
         raise IngestError("Checkpoint recorded at이 정규화된 UTC 형식이 아닙니다.")
     checkpoint_fields = parse_fields(
-        sections["## 2. Reading Checkpoint"], "Reading Checkpoint"
+        sections["## 1. Reading Checkpoint"], "Reading Checkpoint"
     )
     resume_point = checkpoint_fields.get("Resume Point", "").strip()
     if not resume_point or resume_point in {"없음", "아직 기록되지 않음"}:
         raise IngestError("Reading Checkpoint의 Resume Point가 필요합니다.")
-    validate_bridges(sections["## 3. Prerequisite Bridge"], root)
+    validate_bridges(sections["## 2. Prerequisite Bridge"], root)
 
 
 def validate_payload(payload: dict, root: Path) -> tuple[str, str, str, str]:
