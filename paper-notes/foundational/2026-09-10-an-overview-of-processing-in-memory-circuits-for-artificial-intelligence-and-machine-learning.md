@@ -9,18 +9,37 @@
 - Authors: Donghyuk Kim; Chengshuo Yu; Shanshan Xie; Yuzong Chen; Joo-Young Kim; Bongjin Kim; Jaydeep P. Kulkarni; Tony Tae-Hyoung Kim
 - Paper link: https://doi.org/10.1109/JETCAS.2022.3160455
 - Started: 2026-09-10
-- Checkpoint recorded at: 2026-09-10T14:04:11Z
+- Checkpoint recorded at: 2026-09-11T15:03:20Z
 - Related notes: 없음
 
 ## 1. Reading Checkpoint
 
-- Resume Point: 사용자 reading은 아직 시작되지 않음. Abstract, PDF p.1 (journal p.338)의 첫 문장부터 시작한다.
+- Resume Point: Section III-A — Background of DRAM Architecture and Operation, PDF p.4. 다음 세션에서 첫 문단 “A DRAM chip consists of the memory cells...”부터 1T1C 구조, VDD/2 bitline precharge, charge sharing, sense-amplifier 동작을 읽으며 재개한다. Abstract/Introduction, Section II SRAM PIM, Section III 도입부와 Fig. 5의 cell-level/bank-level/3-D-level 분류까지 사용자 reading과 문답을 완료했다.
 
 ## 2. Prerequisite Bridge
 
 ### 논문 안에서 해결한 선수지식
 
-- 없음
+#### SRAM Read Disturbance
+
+- 등장 위치: Section II-B, PDF p.3, Fig. 2(a)-(b)
+- 논문에서 필요한 이유: standard 6T SRAM PIM의 shared write/read path가 왜 disturbance를 만들 수 있고 independent read path를 둔 8T 구조가 무엇을 개선하는지 이해하는 데 필요하다.
+- 실제 정의: 논문은 standard 6T SRAM이 shared write/read path 때문에 disturbance issue를 겪는다고 설명한다. 회로적으로는 read 시 bitline과 storage node의 전기적 상호작용이 내부 node voltage를 교란할 수 있고, 교란이 충분히 크면 stored state가 뒤집힐 수 있다.
+- 사용자의 이해: 처음에는 같은 BL을 read/write에 사용해 accidental write가 생긴다고 표현했지만, 문답을 통해 storage-node perturbation/read-disturb 관점으로 수정했다. 또한 SRAM-PIM의 parallel column operation에서 여러 WL과 shared BL 조건이 single-row normal read와 달라질 수 있음을 설명했다. 다만 “WL 수가 늘면 항상 disturb가 증가한다”는 내용은 논문의 직접 주장이 아니라 회로적 해석임을 구분했다.
+
+#### Rail-to-Rail
+
+- 등장 위치: Section II-B, PDF p.3, Fig. 3(b)
+- 논문에서 필요한 이유: current-mode의 limited dynamic range와 대비해 voltage-mode SRAM PIM이 제공하는 dynamic-range 개선을 이해하는 데 필요하다.
+- 실제 정의: rail-to-rail은 output signal이 거의 GND부터 VDD까지의 전체 supply-voltage range를 사용할 수 있다는 뜻이다. 넓은 voltage swing과 dynamic range를 의미하지만 그 자체가 MAC value와 output voltage 사이의 완전한 linearity를 보장하지는 않는다.
+- 사용자의 이해: rail-to-rail의 의미와 voltage-mode가 current-mode보다 큰 dynamic range를 갖는 이유를 질문했고, rail-to-rail과 linearity가 별개라는 설명을 확인한 뒤 PB 기록을 명시적으로 요청했다. 이 개념에 대한 별도의 최종 자기 설명은 아직 확인하지 않았다.
+
+#### DRAM Internal Bandwidth
+
+- 등장 위치: Section III introduction, PDF p.4, Fig. 5
+- 논문에서 필요한 이유: cell-level PIM이 bank-level PIM보다 DRAM array 내부의 병렬 data path를 더 많이 활용하는 이유와 integration-level trade-off를 이해하는 데 필요하다.
+- 실제 정의: DRAM internal bandwidth는 memory array 내부의 많은 bitline과 sense amplifier가 병렬로 제공하는 데이터 전달 능력이다. Cell-level PIM은 column decoder를 거쳐 데이터 경로가 선택·축소되기 전의 넓은 row/bitline-level parallel path를 computation에 활용할 수 있다.
+- 사용자의 이해: 처음에는 cell-level PIM이 cell array 가까이에서 column별 연산 결과를 다뤄 더 많은 연산을 할 수 있다고 설명했다. 이후 internal bandwidth의 정확한 정의와 column decoder 이전/이후 data-path 차이를 보충 설명으로 확인하고 PB 기록을 명시적으로 요청했다. 이 정의에 대한 별도의 최종 자기 설명은 아직 확인하지 않았다.
 
 ### 별도로 이어가는 선수지식
 
@@ -56,11 +75,11 @@
 
 - 근거 위치: Section II-B, PDF pp.2-3, Fig. 2
 - 논문 내 역할: standard 6T와 modified 8T/MOMCAP cell이 analog MAC에서 read disturbance, operation diversity, dynamic range와 non-ideality를 어떻게 다루는지 비교한다.
-- Main Structure (Components): standard 6T; independent RBL path를 추가한 foundry 8T; differential/custom 8T; 6T 위에 two inverters와 XNOR를 둔 voltage-mode cell; 8T와 MOM capacitor를 결합한 cell.
+- Main Structure (Components): Fig. 2(a) standard 6T; Fig. 2(b) independent RBL path를 추가한 foundry 8T; Fig. 2(c) weight ±1 × input 1/0 operation diversity를 지원하는 custom 8T; Fig. 2(d) extra two transistors와 MOM capacitor를 둔 8T1C (MOSCAP). 본문은 별도로 standard 6T 위에 two CMOS inverters와 one XNOR를 둔 differential voltage-mode cell [16]도 설명한다.
 - Operation Overview: binary input을 WL/RWL에, weight를 SRAM node에 두고 bitline의 current 또는 voltage 변화로 multiplication을 표현하며 column에서 accumulation한다.
 - Data / Signal Flow: input WL/RWL → SRAM storage state와 read/discharge path → BL/RBL 변화 → column accumulation 및 sensing.
-- Benefits: independent read path는 read disturbance를 줄이고, custom/differential 구조는 지원 MAC 또는 dynamic range를 확장하며, passive capacitor는 residual analog non-ideality를 줄인다.
-- Challenges / Trade-offs: foundry 8T는 single-ended read와 큰 bitcell area, custom/current mode는 limited dynamic range와 non-ideality, differential/MOMCAP 구조는 증가한 cell size 또는 transistor/capacitor area overhead를 갖는다.
+- Benefits: foundry 8T의 independent read path는 read disturbance를 해결하고 custom 8T는 지원 MAC operation diversity를 넓힌다. 본문의 differential voltage-mode cell은 dynamic range를 개선하며, Fig. 2(d) 8T1C의 embedded passive capacitor는 residual analog non-ideality를 줄이고 MAC operation을 decouple해 SRAM disturb를 제거한다.
+- Challenges / Trade-offs: foundry 8T는 single-ended read와 큰 bitcell area, custom 8T의 current-based accumulation은 limited dynamic range와 non-ideality, differential voltage-mode cell은 increased cell size와 큰 non-ideality, 8T1C는 extra two transistors와 capacitor에 따른 significant bitcell area overhead를 갖는다.
 - 논문이 제공하지 않은 세부사항: 각 cited macro의 전체 timing sequence와 transistor sizing은 이 overview에 제시되지 않는다.
 
 #### Fig. 3(a)-(d) — Analog SRAM Accumulation Modes
@@ -178,7 +197,7 @@
 - Method purpose: SRAM cell에서 binary multiplication을 수행하면서 standard 6T의 read disturbance와 analog non-ideality를 완화한다.
 - Input / Initial state: SRAM internal node에 binary weight가 저장되고 WL/RWL에 binary input level 또는 pulse가 적용된다.
 - Core operation: storage state와 read path가 BL/RBL의 discharge 또는 voltage response를 결정한다.
-- Operation mechanism: foundry 8T는 independent RBL discharge path를 추가하고 custom/differential cells는 지원 weight/input encoding 또는 voltage range를 확장하며 MOMCAP는 passive capacitor contribution으로 non-ideality를 줄인다.
+- Operation mechanism: foundry 8T는 independent RBL discharge path를 추가하고 custom 8T는 지원 weight/input MAC encoding을 확장한다. 본문의 differential voltage-mode cell은 rail-to-rail dynamic range를 제공하며, Fig. 2(d)의 8T1C는 embedded passive capacitor와 decoupled MAC path로 residual analog non-ideality와 SRAM disturb를 완화한다.
 - Output / State change: cell multiplication result가 bitline response로 나타나 column accumulation에 기여한다.
 - Required conditions or assumptions: architecture별 input/weight encoding과 read path가 필요하다.
 - Benefits: read disturbance 완화, operation diversity 또는 dynamic-range/variation 개선.
@@ -394,7 +413,47 @@
 
 ### 이해를 위한 질문
 
-선정된 질문 없음
+#### Rail-to-Rail과 Linearity의 차이
+
+- 사용자의 질문: voltage-mode SRAM PIM에서 rail-to-rail이 정확히 무엇을 뜻하는지, rail-to-rail이면 output이 linear하다고 볼 수 있는지 질문했다.
+- 질문이 발생한 위치 또는 맥락: Section II-B, PDF p.3, Fig. 3(b)의 voltage-mode accumulation.
+- 선정 이유: dynamic range와 non-linearity를 같은 개념으로 혼동하면 current-mode와 voltage-mode의 trade-off를 잘못 해석하게 되므로 현재 논문 이해에 직접 필요하다.
+- 해결 과정: 논문의 voltage-mode가 rail-to-rail dynamic range를 제공하지만 residual non-linearity와 variation이 남는다는 설명을 확인하고, 보충 설명으로 dynamic range는 사용할 수 있는 signal range이고 linearity는 MAC value와 output signal의 비례관계라는 점을 분리했다.
+- 해결하며 알게 된 내용: rail-to-rail은 거의 GND부터 VDD까지의 voltage swing을 뜻하며, 넓은 dynamic range를 제공해도 transistor non-linearity/variation 때문에 MAC-output 관계가 완전히 linear하다는 뜻은 아니다.
+- 해결 상태: resolved
+- 해결하지 못한 부분: transistor-level non-linearity의 정량 모델은 이 overview에서 확인하지 않았다.
+- 해결에 사용한 근거:
+  - Paper direct evidence: Section II-B, PDF p.3, Fig. 3(b)의 rail-to-rail dynamic range와 residual non-linearity/variation 설명.
+  - GPT supplementary explanation: dynamic range와 linearity의 정의를 분리해 설명함.
+  - User interpretation / hypothesis: 설명을 확인한 뒤 rail-to-rail을 PB에 기록해 달라고 명시적으로 요청함.
+
+#### Fig. 3 Charge-Sharing과 Capacitive-Coupling의 Extra Switch 해석
+
+- 사용자의 질문: Fig. 3(c)와 (d)를 보면 switch 개수가 비슷해 보이는데 왜 논문은 charge-sharing이 cell당 switch 하나와 accumulation cycle 하나가 더 필요하다고 하는지 질문했다.
+- 질문이 발생한 위치 또는 맥락: Section II-B, PDF p.3, Fig. 3(c)-(d).
+- 선정 이유: overview의 conceptual schematic을 transistor-level implementation으로 과해석하지 않도록 figure의 abstraction level을 구분할 필요가 있었다.
+- 해결 과정: Fig. 3은 conceptual operation diagram이므로 정확한 transistor count를 모두 그린 회로도가 아니며, overview 본문은 charge-sharing이 capacitive-coupling보다 cell당 switch 하나와 accumulation cycle 하나가 더 필요하다고 직접 명시한다는 점을 확인했다. 정확히 어느 transistor가 추가되는지는 cited references를 보지 않고는 확정하지 않았다.
+- 해결하며 알게 된 내용: overview figure에 보이는 symbol count만으로 transistor-level overhead를 역추론하면 안 되며, paper text와 cited implementation의 상세 회로를 구분해야 한다.
+- 해결 상태: partially-resolved
+- 해결하지 못한 부분: cited references [4]/[17]의 transistor-level extra switch 위치는 확인하지 않았다. 사용자는 현재 논문 이해에는 이 정도면 충분하다고 선택했다.
+- 해결에 사용한 근거:
+  - Paper direct evidence: Section II-B, PDF p.3의 charge-sharing이 capacitive-coupling보다 one more switch/cell과 one more accumulation cycle을 필요로 한다는 설명.
+  - GPT supplementary explanation: conceptual figure와 transistor-level schematic의 abstraction 차이.
+  - User interpretation / hypothesis: 두 그림의 switch 수가 같아 보인다는 관찰에서 질문이 시작됨.
+
+#### DRAM Internal Bandwidth의 정의와 Cell-Level PIM의 이점
+
+- 사용자의 질문: cell-level PIM이 internal bandwidth를 최대한 활용한다는 말의 정확한 의미와 internal bandwidth의 정의를 질문했다.
+- 질문이 발생한 위치 또는 맥락: Section III introduction, PDF p.4, Fig. 5의 cell-level과 bank-level PIM 비교.
+- 선정 이유: DRAM PIM integration level의 핵심 trade-off인 parallel data path 활용과 logic-area constraint를 연결하는 중심 개념이다.
+- 해결 과정: DRAM array 내부에서 많은 bitline과 sense amplifier가 병렬로 제공하는 넓은 data path를 internal bandwidth로 설명하고, cell-level PIM은 column decoder 이전에 연산해 이 parallel path를 활용하지만 bank-level PIM은 column decoder 이후에 logic이 있어 maximum internal bandwidth를 모두 쓰지 못한다는 논문 흐름과 연결했다.
+- 해결하며 알게 된 내용: cell-level PIM의 장점은 단순히 '더 많은 연산'이 아니라, column decoder가 data path를 선택·축소하기 전의 array-level 병렬성을 computation에 직접 활용한다는 데 있다.
+- 해결 상태: resolved
+- 해결하지 못한 부분: 특정 DRAM의 internal bandwidth를 수치로 계산하는 정량 모델은 이 논문 해당 부분에서 다루지 않았다.
+- 해결에 사용한 근거:
+  - Paper direct evidence: Section III introduction, PDF p.4의 cell-level PIM이 whole internal bandwidth를 활용하고 bank-level PIM은 maximum internal bandwidth를 활용하지 못한다는 설명.
+  - GPT supplementary explanation: bitline/sense-amplifier parallel path와 column decoder 전후의 data-path 폭 차이를 개념적으로 설명함.
+  - User interpretation / hypothesis: 처음에는 cell array 근처에서 column별 연산을 하므로 bank-level보다 더 많은 연산을 할 수 있다고 설명했고, 이후 정의를 보충해 이해함.
 
 ### 비판적 질문
 
@@ -414,8 +473,18 @@
 
 ## 14. Reading Session History
 
-아직 기록되지 않음
+### 2026-09-11
+
+- 읽은 범위: Abstract/Introduction을 이어 Section II SRAM PIM의 Fig. 2-4와 Section III DRAM PIM 도입부/Fig. 5의 cell-level, bank-level, 3-D-level 분류까지 읽고 확인했다. Section III-A DRAM background의 1T1C 동작 설명은 다음 세션으로 남겼다.
+- 이해한 내용: 6T read disturbance와 8T/8T1C 개선 방향, analog SRAM current/voltage/charge-domain accumulation의 dynamic range·non-linearity·area/cycle trade-off, digital SRAM PIM의 XNOR/NOR multiplication과 adder-based accumulation 및 density cost, DRAM PIM integration level에 따른 internal bandwidth·logic-area trade-off, 3-D PIM의 separate logic die와 TSV를 이용한 high-bandwidth/energy-efficient communication을 설명·교정했다.
+- Question Selection Gate를 통과한 질문과 해결 상태: Rail-to-rail과 linearity 차이 — resolved; Fig. 3 charge-sharing/capacitive-coupling의 extra switch 해석 — partially-resolved (overview 수준에서 충분, transistor-level reference는 미확인); DRAM internal bandwidth 정의와 cell-level advantage — resolved.
+- Bridge 변화: 논문 안에서 해결한 선수지식에 `SRAM Read Disturbance`, `Rail-to-Rail`, `DRAM Internal Bandwidth`를 사용자 명시 요청에 따라 추가했다. 별도 Learning Log는 생성하지 않았다.
+- 종료 당시 Resume Point: Section III-A, PDF p.4의 DRAM architecture/background 첫 문단부터 1T1C, VDD/2 precharge, charge sharing, sense-amplifier operation을 읽으며 재개.
 
 ## 사용자 분석 근거
 
-아직 기록되지 않음
+- 사용자는 standard 6T SRAM-PIM의 read disturbance를 처음에는 shared BL의 accidental write로 설명했으나, correction 후 storage-node perturbation 문제로 수정해 이해했다.
+- 사용자는 Fig. 3의 current/voltage/charge-sharing/capacitive-coupling mode를 비교해 설명했고, rail-to-rail과 linearity를 구분했다. Charge-domain의 exact switch topology는 overview만으로 확정할 수 없음을 받아들이고 추가 deep dive는 선택하지 않았다.
+- 사용자는 digital SRAM PIM에서 cell당 XNOR/full-adder 같은 compute logic이 들어가면 unit-cell area 증가와 memory density 감소가 발생한다고 설명했다.
+- 사용자는 DRAM cell-level PIM이 array/sense-amplifier 가까이에서 넓은 병렬 path를 활용하고, bank-level은 column decoder 뒤에서 logic area를 얻는 대신 maximum internal bandwidth 활용이 제한된다는 방향을 설명했다.
+- 사용자는 3-D PIM이 separate logic die를 memory die와 TSV로 적층해 larger processing logic과 high-bandwidth memory-logic communication을 가능하게 한다고 설명했다.
