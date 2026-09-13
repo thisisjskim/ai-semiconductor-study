@@ -149,7 +149,7 @@ expected_sha: new 또는 읽어서 확인한 40자리 SHA
 
 후속 댓글에는 envelope를 반복하지 않고 Markdown의 다음 부분만 보낸다. Issue 생성이나 chunk 전송이 실패하면 닫지 말고 어느 단계에서 실패했는지 알린다.
 
-Paper Reading Checkpoint는 같은 Issue transport를 사용하되 별도 계약으로 분리한다. 사용자가 논문 읽기 종료, Resume Point 변경, Bridge 추가·상태 변경 또는 Paper Note 분석 반영을 승인했을 때 `system/PAPER_NOTE_ISSUE_CONTRACT.md`를 읽고 `[paper-note] paper-slug` Issue를 사용한다. 이 요청에는 정확히 `operation`, `intent: paper-reading-checkpoint`, `target_path`, `expected_sha`만 넣는다. GitHub Actions가 `Checkpoint recorded at`을 자동 설정하며, 검증된 한 개의 `paper-notes/**` 파일만 쓴다.
+Paper Reading Checkpoint는 같은 Issue transport를 사용하되 별도 계약으로 분리한다. 사용자가 논문 읽기 종료, Resume Point 변경, Bridge 추가·상태 변경 또는 Paper Note 분석 반영을 승인했을 때 `system/PAPER_NOTE_ISSUE_CONTRACT.md`를 읽고 `[paper-note] paper-slug` Issue를 사용한다. 이 요청에는 정확히 `operation`, `intent: paper-reading-checkpoint`, `target_path`, `expected_sha`만 넣는다. GitHub Actions가 `Checkpoint recorded at`을 자동 설정하며, 검증된 한 개의 `paper-notes/**` 파일만 쓴다. 새 파일과 paper-source 분석 변경은 v1 전체 문서를 사용한다. 사용자 학습에서 Resume Point·Reading Session History·사용자 분석 근거·Prerequisite Bridge·User-Identified Limitations·Questions·Research Connection을 바꾸는 두 번째 cycle은 v2 delta를 사용한다.
 
 별도 선수지식 학습으로 Learning Log와 Paper Note가 함께 바뀌면 사용자에게 두 변경을 한 번에 보여 주고 한 번 승인받을 수 있다. 실행은 한 Issue가 한 파일만 처리한다는 원칙을 유지해 다음 순서로 직렬 처리한다.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-13
+
+- 작은 Paper Reading Checkpoint에서 전체 Paper Note를 재전송하지 않도록 `research-os-paper-note:v2` delta 계약 추가
+- v2가 Resume Point·Reading Session History·사용자 분석 근거·Prerequisite Bridge와 conversation-derived User Limitations·Questions·Research Connections를 record 단위로 upsert한 뒤 전체 canonical 결과를 검증하도록 ingest 확장
+- Paper Note ingest마다 실행하던 전체 regression test를 PR 기반 Research OS Contract Tests workflow로 이동
+
 AI Semiconductor Research OS의 주요 기능 변경 사항을 기록한다.
 
 ## v0.3.0 — Current

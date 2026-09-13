@@ -103,6 +103,30 @@ def payload(
     }
 
 
+def delta_payload(
+    delta: dict,
+    expected_sha: str,
+    created_at: str = "2026-08-28T01:02:03Z",
+) -> dict:
+    body = (
+        "<!-- research-os-paper-note:v2\n"
+        "operation: checkpoint-update\n"
+        "intent: paper-reading-checkpoint\n"
+        "target_path: paper-notes/foundational/2026-08-27-example-accelerator.md\n"
+        f"expected_sha: {expected_sha}\n"
+        "-->\n"
+        + json.dumps(delta, ensure_ascii=False)
+    )
+    return {
+        "title": "[paper-note] example-accelerator",
+        "issue_created_at": created_at,
+        "author": "owner",
+        "repository_owner": "owner",
+        "body": body,
+        "comments": [],
+    }
+
+
 def expect_error(function, code: str) -> None:
     try:
         function()
@@ -289,7 +313,7 @@ def assert_repository_contract() -> None:
     assert "name: Paper Note Ingest" in workflow
     assert "startsWith(github.event.issue.title, '[paper-note]')" in workflow
     assert "issue_created_at: issue.created_at" in workflow
-    assert "python -B scripts/test_ingest_paper_note.py" in workflow
+    assert "python -B scripts/test_ingest_paper_note.py" not in workflow
     assert "python -B scripts/ingest_paper_note.py" in workflow
     preflight = workflow.split("- name: Preflight Paper Note", 1)[1].split(
         "- name: Ingest Paper Note", 1
@@ -303,6 +327,7 @@ def assert_repository_contract() -> None:
         encoding="utf-8"
     )
     assert "research-os-paper-note:v1" in contract
+    assert "research-os-paper-note:v2" in contract
     assert "intent: paper-reading-checkpoint" in contract
     assert "Issue의 변경되지 않는 `created_at`" in contract
     assert "사용자가 직접 PB 기록을 요청했거나 GPT의 제안에 명시적으로 동의한 개념만 포함한다" in contract
@@ -757,6 +782,171 @@ def assert_ingest_contract() -> None:
         )
 
 
+def assert_delta_checkpoint_contract() -> None:
+    delta = {
+        "resume_point": "Section 4 / PDF p.7의 첫 문장부터 재개한다.",
+        "reading_session_history": {
+            "date": "2026-08-28",
+            "read_range": "Section 3.2까지 읽음",
+            "understood": "partial sum 이동을 사용자 언어로 설명함",
+            "questions": "선정된 질문 없음",
+            "bridge_changes": "변경 없음",
+            "ending_resume_point": "Section 4 / PDF p.7의 첫 문장",
+        },
+        "user_analysis_evidence": ["“partial sum은 local buffer를 거쳐 이동한다.”"],
+        "prerequisite_bridge": {
+            "resolved_upsert": [
+                {
+                    "concept": "Partial sum",
+                    "location": "Section 3.2",
+                    "reason": "dataflow를 이해하기 위해 필요",
+                    "definition": "부분 곱을 누적하는 중간 결과",
+                    "user_understanding": "사용자가 자기 언어로 설명함",
+                }
+            ],
+            "tracked_upsert": [
+                {
+                    "concept": "NoC fundamentals",
+                    "status": "studying",
+                    "reason": "tile 간 이동을 이해하기 위해 필요",
+                    "sufficient_criterion": "routing과 flow control의 차이를 설명함",
+                    "learning_logs": [
+                        "learning-logs/2026/08/2026-08-28-noc-fundamentals.md"
+                    ],
+                }
+            ],
+        },
+        "user_identified_limitations_upsert": [
+            {
+                "title": "Inter-tile movement overhead",
+                "limitation": "tile 간 partial sum 이동이 병목이 될 수 있음",
+                "related_architecture_method": "Figure 4 tiled accelerator",
+                "user_basis": "local accumulation 이후 global 이동 경로",
+                "paper_direct": "Section 3.2에서 계층적 이동을 설명함",
+                "needs_confirmation": "정량적 overhead는 추가 확인 필요",
+            }
+        ],
+        "questions_upsert": [
+            {
+                "category": "understanding",
+                "title": "Partial sum movement",
+                "user_question": "partial sum은 어디에서 합쳐지는가?",
+                "context": "Section 3.2 / Figure 4",
+                "selection_reason": "dataflow 이해에 직접 필요",
+                "resolution_process": "Figure와 연결 본문을 함께 확인함",
+                "learned": "local buffer와 global accumulation을 구분함",
+                "resolution_status": "partially-resolved",
+                "unresolved": "NoC arbitration 방식",
+                "evidence": {
+                    "paper_direct": "Section 3.2의 계층적 accumulation 설명",
+                    "gpt_supplementary": "NoC의 일반 역할 설명",
+                    "user_interpretation": "이동량이 병목 후보라는 사용자 해석",
+                },
+            }
+        ],
+        "research_connections_upsert": [
+            {
+                "title": "Data movement-aware PIM",
+                "user_interest": "PIM 내부 이동 비용을 연구하고 싶음",
+                "paper_element": "hierarchical partial sum accumulation",
+                "evidence_location": "Section 3.2 / Figure 4",
+                "connection": "연산 위치와 이동량의 관계를 비교할 수 있음",
+                "role": "후속 비교 논문의 기준점",
+                "questions_limitations_relation": "Partial sum movement 질문과 연결",
+                "boundary": "정량 결과는 아직 확인되지 않음",
+                "future_use": "research framing",
+            }
+        ],
+    }
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        target = root / "paper-notes/foundational/2026-08-27-example-accelerator.md"
+        target.parent.mkdir(parents=True)
+        learning_log = root / "learning-logs/2026/08/2026-08-28-noc-fundamentals.md"
+        learning_log.parent.mkdir(parents=True)
+        learning_log.write_text("# stored Learning Log\n", encoding="utf-8")
+        original = ingest.set_checkpoint_recorded_at(note(), "2026-08-27T10:20:30Z")
+        target.write_text(original, encoding="utf-8")
+        original_sections = ingest.parse_sections(original)
+        sha = ingest.git_blob_sha(target.read_bytes())
+
+        path, operation, timestamp = ingest.ingest(delta_payload(delta, sha), root)
+        assert path == target.relative_to(root).as_posix()
+        assert operation == "checkpoint-update"
+        assert timestamp == "2026-08-28T01:02:03Z"
+        stored = target.read_text(encoding="utf-8")
+        assert "- Resume Point: Section 4 / PDF p.7의 첫 문장부터 재개한다." in stored
+        assert "### 2026-08-28" in stored
+        assert "- 읽은 범위: Section 3.2까지 읽음" in stored
+        assert "> “partial sum은 local buffer를 거쳐 이동한다.”" in stored
+        assert "#### Partial sum" in stored
+        assert "- 실제 정의: 부분 곱을 누적하는 중간 결과" in stored
+        assert "#### NoC fundamentals" in stored
+        assert "- Status: studying" in stored
+        assert "`learning-logs/2026/08/2026-08-28-noc-fundamentals.md`" in stored
+        assert "#### Inter-tile movement overhead" in stored
+        assert "#### Partial sum movement" in stored
+        assert "- 해결 상태: partially-resolved" in stored
+        assert "### Data movement-aware PIM" in stored
+        assert "- Checkpoint recorded at: 2026-08-28T01:02:03Z" in stored
+
+        stored_sections = ingest.parse_sections(stored)
+        for heading in (
+            "## 3. Problem",
+            "## 4. Key Idea",
+            "## 5. Architecture",
+            "## 6. Method",
+            "## 13. Final Summary",
+        ):
+            assert stored_sections[heading] == original_sections[heading]
+        original_paper_limits = original_sections["## 10. Limitations"].split(
+            "### User-Identified Limitations", 1
+        )[0]
+        stored_paper_limits = stored_sections["## 10. Limitations"].split(
+            "### User-Identified Limitations", 1
+        )[0]
+        assert stored_paper_limits == original_paper_limits
+
+        follow_up = json.loads(json.dumps(delta))
+        follow_up["reading_session_history"]["date"] = "2026-08-29"
+        follow_up["prerequisite_bridge"]["tracked_upsert"][0]["status"] = (
+            "sufficient-for-paper"
+        )
+        follow_up["prerequisite_bridge"]["tracked_upsert"][0][
+            "sufficient_criterion"
+        ] = "routing과 flow control을 사용자 언어로 설명함"
+        follow_up["questions_upsert"][0]["resolution_status"] = "resolved"
+        follow_up["questions_upsert"][0]["unresolved"] = "해당 없음"
+        current_sha = ingest.git_blob_sha(target.read_bytes())
+        ingest.ingest(
+            delta_payload(
+                follow_up, current_sha, created_at="2026-08-29T01:02:03Z"
+            ),
+            root,
+        )
+        followed = target.read_text(encoding="utf-8")
+        assert followed.count("#### NoC fundamentals") == 1
+        assert "- Status: sufficient-for-paper" in followed
+        assert "- 이 논문에 충분한 기준: routing과 flow control을 사용자 언어로 설명함" in followed
+        assert followed.count("#### Inter-tile movement overhead") == 1
+        assert followed.count("#### Partial sum movement") == 1
+        assert followed.count("### Data movement-aware PIM") == 1
+        assert "- 해결 상태: resolved" in followed
+
+        expect_error(
+            lambda: ingest.validate_payload(delta_payload(delta, sha), root),
+            "paper-note-validation-error",
+        )
+
+        invalid = dict(delta)
+        invalid["unexpected"] = "value"
+        current_sha = ingest.git_blob_sha(target.read_bytes())
+        expect_error(
+            lambda: ingest.validate_payload(delta_payload(invalid, current_sha), root),
+            "invalid-delta",
+        )
+
+
 def assert_bridge_validation() -> None:
     resolved_concept = """
 ### 논문 안에서 해결한 선수지식
@@ -1015,6 +1205,7 @@ def main() -> int:
     assert_repository_contract()
     assert_paper_tutoring_policy_contract()
     assert_ingest_contract()
+    assert_delta_checkpoint_contract()
     assert_bridge_validation()
     assert_identity_and_checkpoint_validation()
     assert_envelope_contract()

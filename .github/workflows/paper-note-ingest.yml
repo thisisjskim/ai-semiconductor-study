@@ -73,12 +73,6 @@ jobs:
             );
             core.setOutput("issue_number", String(issueNumber));
 
-      - name: Run Paper Note contract tests
-        run: python -B scripts/test_ingest_paper_note.py
-
-      - name: Run writer concurrency contract tests
-        run: python -B scripts/test_workflow_concurrency.py
-
       - name: Preflight Paper Note
         run: |
           python -B scripts/ingest_paper_note.py \

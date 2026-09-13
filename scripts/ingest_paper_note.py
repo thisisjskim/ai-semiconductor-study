@@ -20,7 +20,7 @@ TITLE_RE = re.compile(r"^\[paper-note\] (?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)$")
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 ENVELOPE_RE = re.compile(
-    r"\A<!--\s*research-os-paper-note:v1\s*\n(?P<meta>.*?)\n-->\s*\n?",
+    r"\A<!--\s*research-os-paper-note:(?P<version>v1|v2)\s*\n(?P<meta>.*?)\n-->\s*\n?",
     re.DOTALL,
 )
 RESULT_MARKER = "<!-- research-os-result -->"
@@ -93,11 +93,11 @@ def assemble(payload: dict) -> str:
     return "\n\n".join(chunk for chunk in chunks if chunk).strip() + "\n"
 
 
-def parse_envelope(assembled: str) -> tuple[dict[str, str], str]:
+def parse_envelope(assembled: str) -> tuple[str, dict[str, str], str]:
     match = ENVELOPE_RE.match(assembled)
     if not match:
         raise IngestError(
-            "Issue 본문 첫 부분에 research-os-paper-note:v1 메타데이터가 없습니다."
+            "Issue 본문 첫 부분에 research-os-paper-note:v1 또는 v2 메타데이터가 없습니다."
         )
     metadata: dict[str, str] = {}
     for raw_line in match.group("meta").splitlines():
@@ -124,7 +124,518 @@ def parse_envelope(assembled: str) -> tuple[dict[str, str], str]:
             "invalid-envelope",
         )
     markdown = assembled[match.end() :].strip() + "\n"
-    return metadata, markdown
+    return match.group("version"), metadata, markdown
+
+
+def section_bounds(markdown: str, heading: str) -> tuple[int, int]:
+    """Return the byte offsets for one exact level-two section body."""
+    heading_match = re.search(rf"(?m)^{re.escape(heading)}\s*$", markdown)
+    if not heading_match:
+        raise IngestError(f"필수 section이 없습니다: `{heading}`")
+    body_start = heading_match.end()
+    next_heading = re.search(r"(?m)^##\s+", markdown[body_start:])
+    body_end = body_start + next_heading.start() if next_heading else len(markdown)
+    return body_start, body_end
+
+
+def replace_resume_point(markdown: str, resume_point: str) -> str:
+    start, end = section_bounds(markdown, "## 1. Reading Checkpoint")
+    body = markdown[start:end]
+    replacement = f"- Resume Point: {resume_point}"
+    updated, count = re.subn(
+        r"(?m)^- Resume Point:.*$", lambda _: replacement, body, count=1
+    )
+    if count != 1:
+        raise IngestError(
+            "Reading Checkpoint에는 정확히 하나의 Resume Point가 필요합니다.",
+            "invalid-resume-point-structure",
+        )
+    return markdown[:start] + updated + markdown[end:]
+
+
+def append_to_section(markdown: str, heading: str, addition: str) -> str:
+    start, end = section_bounds(markdown, heading)
+    body = markdown[start:end].rstrip()
+    separator = "\n\n" if body.strip() else "\n"
+    updated = body + separator + addition.strip() + "\n\n"
+    return markdown[:start] + updated + markdown[end:].lstrip("\n")
+
+
+def validate_delta_text(value: object, label: str, *, max_length: int = 4000) -> str:
+    text = str(value or "").strip()
+    if not text:
+        raise IngestError(f"v2 delta의 {label} 값이 비어 있습니다.", "invalid-delta")
+    if len(text) > max_length:
+        raise IngestError(f"v2 delta의 {label} 값이 지나치게 깁니다.", "invalid-delta")
+    if "\n## " in f"\n{text}" or "\r" in text:
+        raise IngestError(
+            f"v2 delta의 {label}에는 level-two heading 또는 CR 문자를 넣을 수 없습니다.",
+            "invalid-delta",
+        )
+    return text
+
+
+def parse_checkpoint_delta(raw: str) -> dict:
+    try:
+        delta = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise IngestError(
+            "v2 본문은 유효한 JSON object여야 합니다.", "invalid-delta-json"
+        ) from error
+    if not isinstance(delta, dict):
+        raise IngestError("v2 본문은 JSON object여야 합니다.", "invalid-delta")
+    allowed = {
+        "resume_point",
+        "reading_session_history",
+        "user_analysis_evidence",
+        "prerequisite_bridge",
+        "user_identified_limitations_upsert",
+        "questions_upsert",
+        "research_connections_upsert",
+    }
+    extra = sorted(set(delta) - allowed)
+    if extra:
+        raise IngestError(
+            "v2 delta에 허용되지 않는 필드: " + ", ".join(extra), "invalid-delta"
+        )
+    if "resume_point" not in delta or "reading_session_history" not in delta:
+        raise IngestError(
+            "v2 delta에는 resume_point와 reading_session_history가 필요합니다.",
+            "invalid-delta",
+        )
+    return delta
+
+
+def validate_concept_name(value: object) -> str:
+    concept = validate_delta_text(value, "concept", max_length=120)
+    if "\n" in concept or concept.startswith("#"):
+        raise IngestError("PB concept는 단일 행의 일반 텍스트여야 합니다.", "invalid-delta")
+    return concept
+
+
+def validate_record_title(value: object, label: str = "title") -> str:
+    title = validate_delta_text(value, label, max_length=160)
+    if "\n" in title or title.startswith("#"):
+        raise IngestError(f"{label}은 단일 행의 일반 텍스트여야 합니다.", "invalid-delta")
+    return title
+
+
+def one_line(value: object, label: str, *, max_length: int = 4000) -> str:
+    text = validate_delta_text(value, label, max_length=max_length)
+    if "\n" in text:
+        raise IngestError(f"{label}은 단일 행이어야 합니다.", "invalid-delta")
+    return text
+
+
+def upsert_subsection_record(
+    markdown: str,
+    parent_heading: str,
+    subsection_heading: str,
+    record_title: str,
+    block: str,
+) -> str:
+    parent_start, parent_end = section_bounds(markdown, parent_heading)
+    parent = markdown[parent_start:parent_end]
+    subsection_match = re.search(
+        rf"(?m)^{re.escape(subsection_heading)}\s*$", parent
+    )
+    if not subsection_match:
+        raise IngestError(f"필수 subsection이 없습니다: `{subsection_heading}`")
+    body_start = subsection_match.end()
+    next_subsection = re.search(r"(?m)^###\s+", parent[body_start:])
+    body_end = body_start + next_subsection.start() if next_subsection else len(parent)
+    body = parent[body_start:body_end]
+    record_matches = list(re.finditer(r"(?m)^####\s+(.+?)\s*$", body))
+    target_index = next(
+        (
+            index
+            for index, match in enumerate(record_matches)
+            if match.group(1).strip() == record_title
+        ),
+        None,
+    )
+    rendered = f"#### {record_title}\n\n{block.strip()}"
+    if target_index is None:
+        cleaned = re.sub(
+            r"(?m)^\s*(?:- 없음|선정된 질문 없음)\s*$", "", body
+        ).strip()
+        updated_body = (cleaned + "\n\n" if cleaned else "\n") + rendered + "\n\n"
+    else:
+        item_start = record_matches[target_index].start()
+        item_end = (
+            record_matches[target_index + 1].start()
+            if target_index + 1 < len(record_matches)
+            else len(body)
+        )
+        updated_body = body[:item_start] + rendered + "\n\n" + body[item_end:].lstrip("\n")
+    updated_parent = parent[:body_start] + updated_body + parent[body_end:]
+    return markdown[:parent_start] + updated_parent + markdown[parent_end:]
+
+
+def upsert_section_record(
+    markdown: str, parent_heading: str, record_title: str, block: str
+) -> str:
+    parent_start, parent_end = section_bounds(markdown, parent_heading)
+    body = markdown[parent_start:parent_end]
+    record_matches = list(re.finditer(r"(?m)^###\s+(.+?)\s*$", body))
+    target_index = next(
+        (
+            index
+            for index, match in enumerate(record_matches)
+            if match.group(1).strip() == record_title
+        ),
+        None,
+    )
+    rendered = f"### {record_title}\n\n{block.strip()}"
+    if target_index is None:
+        cleaned = re.sub(
+            r"(?m)^\s*(?:- 없음|확인된 연구 연결 없음)\s*$", "", body
+        ).strip()
+        updated = (cleaned + "\n\n" if cleaned else "\n") + rendered + "\n\n"
+    else:
+        item_start = record_matches[target_index].start()
+        item_end = (
+            record_matches[target_index + 1].start()
+            if target_index + 1 < len(record_matches)
+            else len(body)
+        )
+        updated = body[:item_start] + rendered + "\n\n" + body[item_end:].lstrip("\n")
+    return markdown[:parent_start] + updated + markdown[parent_end:]
+
+
+def upsert_bridge_concept(
+    markdown: str, subsection_heading: str, concept: str, block: str
+) -> str:
+    section_start, section_end = section_bounds(markdown, "## 2. Prerequisite Bridge")
+    section = markdown[section_start:section_end]
+    subsection_match = re.search(
+        rf"(?m)^{re.escape(subsection_heading)}\s*$", section
+    )
+    if not subsection_match:
+        raise IngestError(f"Prerequisite Bridge subsection 누락: {subsection_heading}")
+    body_start = subsection_match.end()
+    next_subsection = re.search(r"(?m)^###\s+", section[body_start:])
+    body_end = body_start + next_subsection.start() if next_subsection else len(section)
+    body = section[body_start:body_end]
+    concept_matches = list(re.finditer(r"(?m)^####\s+(.+?)\s*$", body))
+    target_index = next(
+        (
+            index
+            for index, match in enumerate(concept_matches)
+            if match.group(1).strip() == concept
+        ),
+        None,
+    )
+    rendered = f"#### {concept}\n\n{block.strip()}"
+    if target_index is None:
+        cleaned = re.sub(r"(?m)^\s*- 없음\s*$", "", body).strip()
+        updated_body = (cleaned + "\n\n" if cleaned else "\n") + rendered + "\n\n"
+    else:
+        item_start = concept_matches[target_index].start()
+        item_end = (
+            concept_matches[target_index + 1].start()
+            if target_index + 1 < len(concept_matches)
+            else len(body)
+        )
+        updated_body = body[:item_start] + rendered + "\n\n" + body[item_end:].lstrip("\n")
+    updated_section = section[:body_start] + updated_body + section[body_end:]
+    return markdown[:section_start] + updated_section + markdown[section_end:]
+
+
+def apply_bridge_delta(markdown: str, value: object) -> str:
+    if not isinstance(value, dict):
+        raise IngestError("prerequisite_bridge는 JSON object여야 합니다.", "invalid-delta")
+    allowed = {"resolved_upsert", "tracked_upsert"}
+    extra = sorted(set(value) - allowed)
+    if extra:
+        raise IngestError("prerequisite_bridge에 허용되지 않는 필드: " + ", ".join(extra), "invalid-delta")
+    for key in allowed:
+        records = value.get(key, [])
+        if not isinstance(records, list):
+            raise IngestError(f"prerequisite_bridge.{key}는 JSON array여야 합니다.", "invalid-delta")
+        if len(records) > 20:
+            raise IngestError(f"prerequisite_bridge.{key}는 20개를 넘을 수 없습니다.", "invalid-delta")
+    for record in value.get("resolved_upsert", []):
+        if not isinstance(record, dict):
+            raise IngestError("resolved_upsert 항목은 JSON object여야 합니다.", "invalid-delta")
+        required = {"concept", "location", "reason", "definition", "user_understanding"}
+        if set(record) != required:
+            raise IngestError("resolved_upsert 필드를 확인하세요.", "invalid-delta")
+        concept = validate_concept_name(record["concept"])
+        fields = (
+            ("등장 위치", "location"),
+            ("논문에서 필요한 이유", "reason"),
+            ("실제 정의", "definition"),
+            ("사용자의 이해", "user_understanding"),
+        )
+        lines = []
+        for label, key in fields:
+            text = validate_delta_text(record[key], key)
+            if "\n" in text:
+                raise IngestError(f"{key}는 단일 행이어야 합니다.", "invalid-delta")
+            lines.append(f"- {label}: {text}")
+        markdown = upsert_bridge_concept(
+            markdown, "### 논문 안에서 해결한 선수지식", concept, "\n".join(lines)
+        )
+    for record in value.get("tracked_upsert", []):
+        if not isinstance(record, dict):
+            raise IngestError("tracked_upsert 항목은 JSON object여야 합니다.", "invalid-delta")
+        required = {"concept", "status", "reason", "sufficient_criterion", "learning_logs"}
+        if set(record) != required:
+            raise IngestError("tracked_upsert 필드를 확인하세요.", "invalid-delta")
+        concept = validate_concept_name(record["concept"])
+        status = validate_delta_text(record["status"], "status", max_length=30)
+        reason = validate_delta_text(record["reason"], "reason")
+        criterion = validate_delta_text(record["sufficient_criterion"], "sufficient_criterion")
+        logs = record["learning_logs"]
+        if status not in BRIDGE_STATUSES or not isinstance(logs, list):
+            raise IngestError("tracked_upsert의 status 또는 learning_logs를 확인하세요.", "invalid-delta")
+        if any("\n" in item for item in (reason, criterion)):
+            raise IngestError("tracked_upsert 설명은 단일 행이어야 합니다.", "invalid-delta")
+        log_lines = []
+        for log in logs:
+            path = validate_delta_text(log, "learning_log", max_length=200)
+            if not LEARNING_LOG_PATH_RE.fullmatch(path):
+                raise IngestError(f"잘못된 Learning Log 경로: {path}", "invalid-delta")
+            log_lines.append(f"  - `{path}`")
+        if not log_lines:
+            log_lines.append("  - 없음")
+        block = "\n".join(
+            [
+                f"- Status: {status}",
+                f"- 논문에서 필요한 이유: {reason}",
+                f"- 이 논문에 충분한 기준: {criterion}",
+                "- Learning Logs:",
+                *log_lines,
+            ]
+        )
+        markdown = upsert_bridge_concept(
+            markdown, "### 별도로 이어가는 선수지식", concept, block
+        )
+    return markdown
+
+
+def require_record(record: object, required: set[str], label: str) -> dict:
+    if not isinstance(record, dict) or set(record) != required:
+        raise IngestError(f"{label} 필드를 확인하세요.", "invalid-delta")
+    return record
+
+
+def apply_user_limitations(markdown: str, records: object) -> str:
+    if not isinstance(records, list) or len(records) > 20:
+        raise IngestError("user_identified_limitations_upsert는 최대 20개의 JSON array여야 합니다.", "invalid-delta")
+    required = {
+        "title",
+        "limitation",
+        "related_architecture_method",
+        "user_basis",
+        "paper_direct",
+        "needs_confirmation",
+    }
+    fields = (
+        ("사용자가 지적한 limitation", "limitation"),
+        ("Related Architecture / Method", "related_architecture_method"),
+        ("사용자가 근거로 사용한 paper content", "user_basis"),
+        ("Paper에서 직접 확인된 내용", "paper_direct"),
+        ("추가 확인이 필요한 부분", "needs_confirmation"),
+    )
+    for item in records:
+        record = require_record(item, required, "user limitation")
+        title = validate_record_title(record["title"])
+        block = "\n".join(
+            f"- {label}: {one_line(record[key], key)}" for label, key in fields
+        )
+        markdown = upsert_subsection_record(
+            markdown,
+            "## 10. Limitations",
+            "### User-Identified Limitations",
+            title,
+            block,
+        )
+    return markdown
+
+
+QUESTION_CATEGORIES = {
+    "understanding": "### 이해를 위한 질문",
+    "critical": "### 비판적 질문",
+    "follow-up-research": "### 후속 연구 질문",
+}
+
+
+def apply_questions(markdown: str, records: object) -> str:
+    if not isinstance(records, list) or len(records) > 30:
+        raise IngestError("questions_upsert는 최대 30개의 JSON array여야 합니다.", "invalid-delta")
+    required = {
+        "category",
+        "title",
+        "user_question",
+        "context",
+        "selection_reason",
+        "resolution_process",
+        "learned",
+        "resolution_status",
+        "unresolved",
+        "evidence",
+    }
+    evidence_required = {"paper_direct", "gpt_supplementary", "user_interpretation"}
+    for item in records:
+        record = require_record(item, required, "question")
+        category = one_line(record["category"], "category", max_length=30)
+        if category not in QUESTION_CATEGORIES:
+            raise IngestError("question category를 확인하세요.", "invalid-delta")
+        status = one_line(record["resolution_status"], "resolution_status", max_length=30)
+        if status not in {"resolved", "partially-resolved", "unresolved"}:
+            raise IngestError("question resolution_status를 확인하세요.", "invalid-delta")
+        evidence = require_record(record["evidence"], evidence_required, "question evidence")
+        block = "\n".join(
+            [
+                f"- 사용자의 질문: {one_line(record['user_question'], 'user_question')}",
+                f"- 질문이 발생한 위치 또는 맥락: {one_line(record['context'], 'context')}",
+                f"- 선정 이유: {one_line(record['selection_reason'], 'selection_reason')}",
+                f"- 해결 과정: {one_line(record['resolution_process'], 'resolution_process')}",
+                f"- 해결하며 알게 된 내용: {one_line(record['learned'], 'learned')}",
+                f"- 해결 상태: {status}",
+                f"- 해결하지 못한 부분: {one_line(record['unresolved'], 'unresolved')}",
+                "- 해결에 사용한 근거:",
+                f"  - Paper direct evidence: {one_line(evidence['paper_direct'], 'paper_direct')}",
+                f"  - GPT supplementary explanation: {one_line(evidence['gpt_supplementary'], 'gpt_supplementary')}",
+                f"  - User interpretation / hypothesis: {one_line(evidence['user_interpretation'], 'user_interpretation')}",
+            ]
+        )
+        markdown = upsert_subsection_record(
+            markdown,
+            "## 11. Questions",
+            QUESTION_CATEGORIES[category],
+            validate_record_title(record["title"]),
+            block,
+        )
+    return markdown
+
+
+def apply_research_connections(markdown: str, records: object) -> str:
+    if not isinstance(records, list) or len(records) > 20:
+        raise IngestError("research_connections_upsert는 최대 20개의 JSON array여야 합니다.", "invalid-delta")
+    required = {
+        "title",
+        "user_interest",
+        "paper_element",
+        "evidence_location",
+        "connection",
+        "role",
+        "questions_limitations_relation",
+        "boundary",
+        "future_use",
+    }
+    fields = (
+        ("사용자가 표현한 research interest 또는 goal", "user_interest"),
+        ("연결되는 Paper element", "paper_element"),
+        ("연결 근거 위치", "evidence_location"),
+        ("연결 방식", "connection"),
+        ("이 논문이 내 연구 방향에서 수행하는 역할", "role"),
+        ("기존 Questions / Limitations와의 관계", "questions_limitations_relation"),
+        ("연결의 경계 또는 아직 확인되지 않은 부분", "boundary"),
+        ("향후 활용", "future_use"),
+    )
+    for item in records:
+        record = require_record(item, required, "research connection")
+        block = "\n".join(
+            f"- {label}: {one_line(record[key], key)}" for label, key in fields
+        )
+        markdown = upsert_section_record(
+            markdown,
+            "## 12. Connection to My Research Direction",
+            validate_record_title(record["title"]),
+            block,
+        )
+    return markdown
+
+
+def render_session_history(value: object) -> str:
+    if not isinstance(value, dict):
+        raise IngestError(
+            "reading_session_history는 JSON object여야 합니다.", "invalid-delta"
+        )
+    required = {
+        "date",
+        "read_range",
+        "understood",
+        "questions",
+        "bridge_changes",
+        "ending_resume_point",
+    }
+    missing = sorted(required - set(value))
+    extra = sorted(set(value) - required)
+    if missing or extra:
+        details = []
+        if missing:
+            details.append("누락: " + ", ".join(missing))
+        if extra:
+            details.append("허용되지 않음: " + ", ".join(extra))
+        raise IngestError(
+            "reading_session_history 필드를 확인하세요 ("
+            + "; ".join(details)
+            + ").",
+            "invalid-delta",
+        )
+    date = validate_delta_text(value["date"], "date", max_length=10)
+    try:
+        dt.date.fromisoformat(date)
+    except ValueError as error:
+        raise IngestError(
+            "reading_session_history.date는 YYYY-MM-DD여야 합니다.", "invalid-delta"
+        ) from error
+    fields = (
+        ("읽은 범위", "read_range"),
+        ("이해한 내용", "understood"),
+        ("Question Selection Gate를 통과한 질문과 해결 상태", "questions"),
+        ("Bridge 변화", "bridge_changes"),
+        ("종료 당시 Resume Point", "ending_resume_point"),
+    )
+    lines = [f"### {date}", ""]
+    for label, key in fields:
+        text = validate_delta_text(value[key], key)
+        if "\n" in text:
+            raise IngestError(f"{key}는 한 문단의 단일 행이어야 합니다.", "invalid-delta")
+        lines.append(f"- {label}: {text}")
+    return "\n".join(lines)
+
+
+def apply_checkpoint_delta(markdown: str, raw_delta: str, recorded_at: str) -> str:
+    delta = parse_checkpoint_delta(raw_delta)
+    resume_point = validate_delta_text(delta["resume_point"], "resume_point")
+    if "\n" in resume_point:
+        raise IngestError("resume_point는 단일 행이어야 합니다.", "invalid-delta")
+    markdown = replace_resume_point(markdown, resume_point)
+    markdown = append_to_section(
+        markdown,
+        "## 14. Reading Session History",
+        render_session_history(delta["reading_session_history"]),
+    )
+    if "prerequisite_bridge" in delta:
+        markdown = apply_bridge_delta(markdown, delta["prerequisite_bridge"])
+    if "user_identified_limitations_upsert" in delta:
+        markdown = apply_user_limitations(
+            markdown, delta["user_identified_limitations_upsert"]
+        )
+    if "questions_upsert" in delta:
+        markdown = apply_questions(markdown, delta["questions_upsert"])
+    if "research_connections_upsert" in delta:
+        markdown = apply_research_connections(
+            markdown, delta["research_connections_upsert"]
+        )
+    evidence = delta.get("user_analysis_evidence", [])
+    if not isinstance(evidence, list):
+        raise IngestError(
+            "user_analysis_evidence는 JSON array여야 합니다.", "invalid-delta"
+        )
+    if len(evidence) > 20:
+        raise IngestError("한 checkpoint의 사용자 분석 근거는 20개를 넘을 수 없습니다.", "invalid-delta")
+    for item in evidence:
+        text = validate_delta_text(item, "user_analysis_evidence", max_length=2000)
+        if "\n" in text:
+            raise IngestError("사용자 분석 근거 한 항목은 단일 행이어야 합니다.", "invalid-delta")
+        markdown = append_to_section(markdown, "## 사용자 분석 근거", f"> {text}")
+    return set_checkpoint_recorded_at(markdown, recorded_at)
 
 
 def markdown_heading_lines(markdown: str) -> list[str]:
@@ -431,7 +942,7 @@ def validate_payload(payload: dict, root: Path) -> tuple[str, str, str, str]:
     if not issue_author or issue_author.casefold() != repo_owner.casefold():
         raise IngestError("Repository owner가 만든 Issue만 처리할 수 있습니다.")
     checkpoint_recorded_at = normalize_timestamp(payload.get("issue_created_at"))
-    metadata, markdown = parse_envelope(assemble(payload))
+    version, metadata, content = parse_envelope(assemble(payload))
     operation = metadata["operation"]
     intent = metadata["intent"]
     target_path = metadata["target_path"]
@@ -444,12 +955,16 @@ def validate_payload(payload: dict, root: Path) -> tuple[str, str, str, str]:
     if title_match.group("slug") != target_match.group("slug"):
         raise IngestError("Issue 제목과 target_path의 slug가 다릅니다.")
     target = root / target_path
+    if version == "v2" and operation != "checkpoint-update":
+        raise IngestError("v2는 operation: checkpoint-update만 허용합니다.", "invalid-operation")
+    if version == "v1" and operation == "checkpoint-update":
+        raise IngestError("checkpoint-update는 v2 envelope를 사용해야 합니다.", "invalid-operation")
     if operation == "create":
         if expected_sha != "new":
             raise IngestError("새 파일은 expected_sha: new를 사용해야 합니다.")
         if target.exists():
             raise IngestError("같은 경로의 파일이 이미 있습니다. update 절차를 사용하세요.")
-    elif operation == "update":
+    elif operation in {"update", "checkpoint-update"}:
         if not SHA_RE.fullmatch(expected_sha):
             raise IngestError("기존 파일 수정에는 읽어서 확인한 40자리 expected_sha가 필요합니다.")
         if not target.exists():
@@ -460,8 +975,13 @@ def validate_payload(payload: dict, root: Path) -> tuple[str, str, str, str]:
                 f"파일이 읽은 뒤 변경되었습니다. expected {expected_sha}, actual {actual_sha}"
             )
     else:
-        raise IngestError("operation은 create 또는 update만 허용합니다.")
-    markdown = set_checkpoint_recorded_at(markdown, checkpoint_recorded_at)
+        raise IngestError("operation은 create, update 또는 checkpoint-update만 허용합니다.")
+    if version == "v2":
+        markdown = apply_checkpoint_delta(
+            target.read_text(encoding="utf-8"), content, checkpoint_recorded_at
+        )
+    else:
+        markdown = set_checkpoint_recorded_at(content, checkpoint_recorded_at)
     validate_markdown(markdown, target_match, root)
     return target_path, operation, checkpoint_recorded_at, markdown
 
