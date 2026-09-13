@@ -149,6 +149,8 @@ Issue 생성과 닫기는 저장 요청을 queue에 넣는 **enqueue**다. 이�
 
 Paper Reading Checkpoint를 저장할 때는 `system/PAPER_NOTE_ISSUE_CONTRACT.md`, `system/PAPER_NOTE_AUTHORING_GUIDE.md`, `templates/paper-note.md`를 읽는다. 기존 Paper Note update이면 전체 파일과 최신 SHA를 먼저 확인한다. 마지막 checkpoint 이후 conversation에서 사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 명시적으로 동의한 개념만 PB Inventory로 만들고 기존·제안 Bridge와 대조한다. 질문·설명·correction 또는 reference 후보가 있었다는 이유만으로 자동 추가하지 않으며, 일반적인 Paper Note 저장 승인을 지정되지 않은 PB 항목의 추가 승인으로 확대하지 않는다. 사용자에게 최소한 create/update, target path, Resume Point, Bridge 변화와 아래 상태창·audit의 변경 전·후를 보여 주고 승인을 받는다.
 
+기존 Paper Note의 두 번째 cycle은 `research-os-paper-note:v2` delta를 사용한다. 범위는 Resume Point, Reading Session History, 사용자 분석 근거, Prerequisite Bridge, User-Identified Limitations, Questions와 Connection to My Research Direction이다. 승인되고 selection gate를 통과한 record만 concept 또는 category/title 단위 upsert로 보내며 기존 전체 문서를 다시 작성하거나 Issue로 재전송하지 않는다. 첫 번째 cycle의 paper-source section 또는 세 번째 cycle의 Final Summary가 바뀌면 v1 전체 update를 사용한다.
+
 ```text
 Current Learning Context 상태창
 - Current Paper Note: <path 또는 없음>

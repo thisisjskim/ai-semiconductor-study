@@ -35,9 +35,6 @@ def job_block(workflow: str, job_id: str) -> str:
 def assert_writer_queue(path: str, job_id: str, issue_prefix: str | None) -> None:
     workflow = (ROOT / path).read_text(encoding="utf-8")
     block = job_block(workflow, job_id)
-    assert "python -B scripts/test_workflow_concurrency.py" in block, (
-        f"{path}: writer queue 계약 테스트 실행 단계가 없습니다."
-    )
     expected = (
         "    concurrency:\n"
         "      group: research-os-main\n"
@@ -73,6 +70,13 @@ def main() -> int:
     assert 'workflows: ["Learning Log Ingest", "Paper Note Ingest", "Progress Update"]' in refresh
     assert "github.event.workflow_run.conclusion == 'success'" in refresh
     assert '- "scripts/test_workflow_concurrency.py"' in refresh
+
+    contract_tests = (
+        ROOT / ".github/workflows/research-os-contract-tests.yml"
+    ).read_text(encoding="utf-8")
+    assert "pull_request:" in contract_tests
+    assert "python -B scripts/test_ingest_paper_note.py" in contract_tests
+    assert "python -B scripts/test_workflow_concurrency.py" in contract_tests
 
     # The shared queue is intentionally restricted to the four jobs that can
     # write generated state or user-approved records to main.

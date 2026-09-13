@@ -11,7 +11,7 @@
 | GitHub Issue | 승인된 Learning Log, Paper Reading Checkpoint 또는 Progress Update 요청과 versioned envelope를 전달하는 queue다. Issue 생성·닫기는 처리 완료가 아니다. |
 | GitHub Actions | Issue와 comments를 payload로 만들고 검증·저장·결과 회신을 연결하는 orchestration layer다. |
 | `scripts/ingest_learning_log.py` | Learning Log 저장의 canonical validation 및 Markdown 변환 구현이다. 작성자, 제목, envelope, 경로, 문서 형식, create/update와 SHA를 검사한다. |
-| `scripts/ingest_paper_note.py` | Paper Reading Checkpoint 저장의 canonical validation 및 Markdown 변환 구현이다. Paper Note 경로, Resume Point, Bridge 상태와 연결된 Learning Log를 검사한다. |
+| `scripts/ingest_paper_note.py` | Paper Reading Checkpoint 저장의 canonical validation 및 Markdown 변환 구현이다. v1 전체 문서 create/update와 v2의 두 번째 cycle 전체 delta merge를 지원하고, Paper Note 경로, Resume Point, Bridge 상태와 연결된 Learning Log를 검사한다. |
 | `system/LEARNING_LOG_METADATA_SCHEMA.json` | Learning Log Domain의 단일 canonical enum이다. 작성 지침, 저장 validator와 context builder가 같은 값을 사용한다. |
 | `scripts/apply_progress_update.py` | 승인된 Current Boundary 전환의 SHA, evidence와 boundary id를 검증하고 `roadmap/PROGRESS.md`의 boundary 한 줄만 수정한다. |
 | `scripts/learning_boundaries.py` | Progress Action과 Context builder가 함께 사용하는 Learning Boundary loader다. |

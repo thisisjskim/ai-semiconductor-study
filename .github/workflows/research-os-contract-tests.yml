@@ -1,0 +1,29 @@
+name: Research OS Contract Tests
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "system/**"
+      - "templates/**"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run Paper Note contract tests
+        run: python -B scripts/test_ingest_paper_note.py
+
+      - name: Run Learning Context contract tests
+        run: python -B scripts/test_build_learning_context.py
+
+      - name: Run writer concurrency contract tests
+        run: python -B scripts/test_workflow_concurrency.py
