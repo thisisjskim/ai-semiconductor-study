@@ -9,12 +9,12 @@
 - Authors: Donghyuk Kim; Chengshuo Yu; Shanshan Xie; Yuzong Chen; Joo-Young Kim; Bongjin Kim; Jaydeep P. Kulkarni; Tony Tae-Hyoung Kim
 - Paper link: https://doi.org/10.1109/JETCAS.2022.3160455
 - Started: 2026-09-10
-- Checkpoint recorded at: 2026-09-11T15:03:20Z
+- Checkpoint recorded at: 2026-09-13T17:00:54Z
 - Related notes: 없음
 
 ## 1. Reading Checkpoint
 
-- Resume Point: Section III-A — Background of DRAM Architecture and Operation, PDF p.4. 다음 세션에서 첫 문단 “A DRAM chip consists of the memory cells...”부터 1T1C 구조, VDD/2 bitline precharge, charge sharing, sense-amplifier 동작을 읽으며 재개한다. Abstract/Introduction, Section II SRAM PIM, Section III 도입부와 Fig. 5의 cell-level/bank-level/3-D-level 분류까지 사용자 reading과 문답을 완료했다.
+- Resume Point: Paper completed — Section VII. CONCLUSION까지 본문 완독. 미독 본문 없음. 다음 세션에서는 이 Paper Note의 Final Summary와 Questions/Prerequisite Bridge를 기준으로 논문 전체를 복습하거나 다음 foundational/related paper 비교 단계로 이동한다.
 
 ## 2. Prerequisite Bridge
 
@@ -40,6 +40,48 @@
 - 논문에서 필요한 이유: cell-level PIM이 bank-level PIM보다 DRAM array 내부의 병렬 data path를 더 많이 활용하는 이유와 integration-level trade-off를 이해하는 데 필요하다.
 - 실제 정의: DRAM internal bandwidth는 memory array 내부의 많은 bitline과 sense amplifier가 병렬로 제공하는 데이터 전달 능력이다. Cell-level PIM은 column decoder를 거쳐 데이터 경로가 선택·축소되기 전의 넓은 row/bitline-level parallel path를 computation에 활용할 수 있다.
 - 사용자의 이해: 처음에는 cell-level PIM이 cell array 가까이에서 column별 연산 결과를 다뤄 더 많은 연산을 할 수 있다고 설명했다. 이후 internal bandwidth의 정확한 정의와 column decoder 이전/이후 data-path 차이를 보충 설명으로 확인하고 PB 기록을 명시적으로 요청했다. 이 정의에 대한 별도의 최종 자기 설명은 아직 확인하지 않았다.
+
+#### 2-D Mesh NoC
+
+- 등장 위치: Section III-D, PDF p.6, Fig. 8의 Neurocube
+- 논문에서 필요한 이유: vault별 PE가 어떻게 inter-vault communication을 수행하고 flexible data mapping을 지원하는지 이해하는 데 필요하다.
+- 실제 정의: 2-D Mesh NoC(Network-on-Chip)는 PE들을 mesh topology로 연결해 PE-to-PE, 특히 vault 간 data communication을 수행하는 on-chip network다. MAC computation 자체는 PE가 담당하고 NoC는 PE 간 data 이동을 담당한다.
+- 사용자의 이해: 모든 PE가 서로 직접 연결되는 것이 아니라 mesh 경로를 통해 data를 전달한다는 점과, NoC는 compute unit이 아니라 communication fabric이라는 점을 확인했다. 사용자가 PB 저장 후보로 명시했다.
+
+#### PIM Offloading
+
+- 등장 위치: Section V-B, PDF pp.9-10
+- 논문에서 필요한 이유: host CPU/GPU와 PIM이 함께 있는 system에서 어떤 operation을 PIM에 넘길지 이해하는 데 필요하다.
+- 실제 정의: 원래 host가 수행하던 연산 중 PIM에서 실행할 때 이득을 얻을 수 있는 PIM-friendly operation을 식별해 PIM hardware에 할당하는 것이다. 모든 연산을 PIM으로 보내는 것이 아니라 workload 특성과 memory behavior를 고려해 선택한다.
+- 사용자의 이해: offloading을 “CPU/GPU가 하던 계산 중 PIM에 적합한 연산을 골라 넘기는 것”으로 이해했고 PB 저장 후보로 명시했다.
+
+#### MPKI
+
+- 등장 위치: Section V-B, PDF p.10의 PIM-friendly operation identification 사례
+- 논문에서 필요한 이유: cache locality가 낮고 memory access가 많은 operation을 식별하는 정량 기준을 이해하는 데 필요하다.
+- 실제 정의: MPKI(Misses Per Kilo Instructions)는 1000개의 instruction을 실행할 때 발생하는 cache miss 횟수다. MPKI가 높을수록 lower-level memory 접근과 data movement overhead가 커질 가능성이 높다. 논문의 cited criterion에서는 last-level-cache MPKI > 10을 PIM-friendly operation 식별 기준 중 하나로 사용한다.
+- 사용자의 이해: 높은 MPKI가 cache miss와 DRAM 접근 증가를 의미하고 PIM offloading 후보를 찾는 데 쓰일 수 있음을 확인했다. 사용자가 PB 저장 후보로 명시했다.
+
+#### MNIST vs. CIFAR-10
+
+- 등장 위치: Section VI-B, PDF p.12, Table VI
+- 논문에서 필요한 이유: 서로 다른 dataset에서 보고되는 test accuracy와 accuracy drop 수치를 같은 난이도로 단순 비교하지 않기 위해 필요하다.
+- 실제 정의: MNIST는 28×28 grayscale 손글씨 숫자 0-9 분류 dataset이고, CIFAR-10은 32×32 RGB 이미지의 10개 object class를 분류하는 dataset이다. 이 dataset 설명 자체는 overview 논문의 직접 설명이 아니라 일반 배경지식이다.
+- 사용자의 이해: MNIST는 비교적 단순해 높은 accuracy가 나오고 최근 CIM 연구에서는 더 어려운 CIFAR-10이 많이 사용된다는 설명을 듣고 PB 저장 후보로 명시했다. 별도의 최종 자기 설명은 확인하지 않았다.
+
+#### im2col
+
+- 등장 위치: Section VI-C, PDF pp.12-13
+- 논문에서 필요한 이유: conventional CIM에서 convolution을 matrix multiplication으로 바꾸는 과정이 왜 data duplication, memory redundancy와 bandwidth 사용을 늘리는지 이해하는 데 필요하다.
+- 실제 정의: im2col(image-to-column)은 convolution의 sliding-window patch들을 펼쳐 matrix multiplication 형태로 재배열하는 방법이다. 연산 결과는 같지만 overlapping patch의 input value가 여러 번 materialize되어 memory usage와 data movement가 증가할 수 있다.
+- 사용자의 이해: 직접 숫자 예시를 통해 일반 convolution과 im2col matrix multiplication의 결과가 동일함을 확인했고, overlapping patch 때문에 같은 값이 반복 저장된다는 문제를 이해한 뒤 PB 저장 후보로 명시했다.
+
+#### Matrix Lowering Scheme (MEC, ref. [67])
+
+- 등장 위치: Section VI-C, PDF p.13; 구체 mechanism은 reference [67]에서 보충 확인
+- 논문에서 필요한 이유: im2col의 data duplication과 intra-memory traffic을 줄이는 첫 번째 해결 방향을 이해하는 데 필요하다.
+- 실제 정의: overview는 memory overhead 감소와 convolution 가속 효과만 직접 설명한다. Reference [67]의 MEC는 각 overlapping patch를 모두 별도 복제해 큰 im2col matrix를 만드는 대신, 여러 patch가 공유하는 input 영역을 compact lowered representation으로 두고 이를 재사용해 여러 small matrix multiplication을 수행하는 방향이다.
+- 사용자의 이해: “여러 patch에서 공유되는 data를 매번 복제하지 않고 compact하게 저장해 재사용한다”는 직관을 이해했고, overview 본문 밖의 보충 지식임을 구분한 상태에서 PB 저장 후보로 명시했다.
 
 ### 별도로 이어가는 선수지식
 
@@ -407,7 +449,13 @@
 
 ### User-Identified Limitations
 
-사용자가 지적한 limitation 없음
+#### Matrix Lowering Scheme의 Mechanism 설명 부족
+
+- 사용자가 지적한 limitation: Section VI-C에서 matrix lowering scheme의 장점은 설명하지만, 실제로 어떤 data layout과 computation 절차로 redundancy를 줄이는지는 overview 본문만으로 알기 어렵다고 지적했다.
+- Related Architecture / Method: Section VI-C Intra-Memory Data Movement의 matrix lowering scheme [67]
+- 사용자가 근거로 사용한 paper content: memory overhead를 줄이고 convolution을 가속하며 intra-memory traffic 문제를 완화한다는 효과 설명은 있지만 세부 algorithm mechanism이 생략되어 있다는 점.
+- Paper에서 직접 확인된 내용: overview는 matrix lowering scheme의 효과와 적용 목적을 설명하지만 compact representation의 구체 구성·operation sequence는 제시하지 않는다.
+- 추가 확인이 필요한 부분: 구체 mechanism은 reference [67] MEC에서 확인했으며, overview 자체의 paper-source section에는 이를 직접 주장으로 확장하지 않는다.
 
 ## 11. Questions
 
@@ -455,6 +503,62 @@
   - GPT supplementary explanation: bitline/sense-amplifier parallel path와 column decoder 전후의 data-path 폭 차이를 개념적으로 설명함.
   - User interpretation / hypothesis: 처음에는 cell array 근처에서 column별 연산을 하므로 bank-level보다 더 많은 연산을 할 수 있다고 설명했고, 이후 정의를 보충해 이해함.
 
+#### Fixed-Offset Address Pattern과 Data Mapping
+
+- 사용자의 질문: [52]의 fixed offset access pattern에서 'prediction'이 실제 address를 찾거나 검색하는 것인지, 1000→1004→1008 같은 sequence가 어떻게 생기는지 질문했다.
+- 질문이 발생한 위치 또는 맥락: Section V-C Data Mapping.
+- 선정 이유: address prediction을 memory search로 오해하면 data mapping의 목적과 mechanism을 잘못 이해하게 되므로 핵심 correction 가치가 있었다.
+- 해결 과정: memory access는 필요한 address를 직접 access하는 것이며, regular array/tensor layout과 program access pattern 때문에 여러 access 사이에 일정한 offset이 나타날 수 있음을 설명했다. [52]는 이 반복 관계를 이용해 관련 code/data를 같은 PIM computation unit 가까이에 배치한다는 흐름으로 정리했다.
+- 해결하며 알게 된 내용: fixed-offset pattern은 한 memory location을 추측하는 것이 아니라 여러 memory access 사이의 관계를 예측해 placement를 최적화하는 데 사용된다.
+- 해결 상태: resolved
+- 해결하지 못한 부분: cited work의 predictor microarchitecture 상세는 overview에서 설명되지 않는다.
+- 해결에 사용한 근거:
+  - Paper direct evidence: Section V-C의 85% fixed-offset access observation과 predictable mapping 설명.
+  - GPT supplementary explanation: address search와 access-pattern prediction의 차이, array/tensor의 regular layout 예시.
+  - User interpretation / hypothesis: 처음에는 prediction을 address search로 이해했지만 이후 “program/data structure/access pattern → predictable address relation → PIM mapping”으로 수정했다.
+
+#### Cache Coherence와 CoNDA의 Optimistic Execution
+
+- 사용자의 질문: CPU와 PIM이 같은 data를 공유할 때 stale data가 왜 문제인지, CoNDA의 optimistic execution이 정확히 무엇을 뜻하는지 질문했다.
+- 질문이 발생한 위치 또는 맥락: Section V-E Cache Coherence.
+- 선정 이유: host-PIM integration에서 correctness와 communication bottleneck을 동시에 이해하는 핵심 system concept이다.
+- 해결 과정: coherence의 목적은 수정 순서를 단순히 판단하는 것이 아니라 shared data의 current/valid state를 보장하는 것이라고 correction했다. CoNDA는 optimistic execution 동안 coherence request를 멈추고 PIM read/write 및 CPU write address 정보를 추적한 뒤 execution 후 필요한 shared-data coherence만 처리하는 방식으로 정리했다.
+- 해결하며 알게 된 내용: optimistic은 “문제가 없다고 가정하고 먼저 실행한 뒤 이후 conflict/coherence를 확인·관리”한다는 의미이며, overview는 rerun mechanism까지는 설명하지 않는다.
+- 해결 상태: resolved
+- 해결하지 못한 부분: conflict 발생 시 detailed recovery/rerun protocol은 overview에서 확인하지 않았다.
+- 해결에 사용한 근거:
+  - Paper direct evidence: Section V-E의 CoNDA optimistic execution, address tracking, modified data write restriction, execution 후 selective coherence 설명.
+  - GPT supplementary explanation: stale data, consistency/current value, optimistic의 일반적인 의미.
+  - User interpretation / hypothesis: 처음에는 “누가 먼저 수정했는지 판단” 및 “나중에 rerun”으로 확장했으나 correction 후 selective coherence 관리로 수정했다.
+
+#### Accuracy Drop, Ideal Software와 Hardware-Aware Retraining
+
+- 사용자의 질문: accuracy drop이 simulation과 실제 결과의 gap인지, ideal 상태의 accuracy를 어떻게 얻는지, gradient-blocking/quantization과 DAC calibration/retraining의 관계가 무엇인지 질문했다.
+- 질문이 발생한 위치 또는 맥락: Section VI-B Test Accuracy, Table VI와 [65] 사례.
+- 선정 이유: analog CIM accuracy degradation의 baseline, 원인, 보정과 retraining을 분리해 이해하는 데 직접 필요했다.
+- 해결 과정: accuracy drop은 ideal software accuracy와 CIM implementation accuracy의 차이로 정리했고, ideal software는 hardware non-ideality를 넣지 않은 floating-point software baseline으로 실제 계산 가능함을 설명했다. DAC calibration은 hardware output characteristic을 보정하는 과정이고 retraining은 남은 hardware error에 network weight가 적응하도록 다시 학습하는 별도 단계로 구분했다. Gradient-blocking/STE는 quantization 때문에 gradient가 끊기지 않도록 backward path를 근사해 retraining을 가능하게 하는 보충 개념으로 설명했다.
+- 해결하며 알게 된 내용: calibrated DAC는 retraining 전부터 uncalibrated보다 accuracy가 높고, 이후 두 경우 모두 retraining으로 추가 회복된다. 따라서 hardware calibration과 hardware-aware retraining은 상호 보완적이다.
+- 해결 상태: resolved
+- 해결하지 못한 부분: [65]의 실제 DAC calibration circuit/algorithm detail과 [66]의 full mathematical derivation은 overview에 없다.
+- 해결에 사용한 근거:
+  - Paper direct evidence: Section VI-B의 91.9% floating-point software accuracy, calibrated/uncalibrated 90.3%/81.6%, 3 epoch retraining 후 91.6%/86.2% 결과.
+  - GPT supplementary explanation: ideal software baseline, quantization, gradient-blocking/STE 직관, general DAC calibration 개념.
+  - User interpretation / hypothesis: 처음에는 calibrated DAC와 retraining을 동일 과정으로 이해했지만, retraining 전 accuracy 차이를 근거로 두 단계를 분리해 이해했다.
+
+#### im2col, Matrix Lowering과 Direct Convolution의 차이
+
+- 사용자의 질문: im2col이 무엇인지, matrix lowering scheme이 compact lowered matrix를 어떻게 만드는지, direct convolution이 “다른 SRAM에서 data를 가져오는 것”인지 질문했다.
+- 질문이 발생한 위치 또는 맥락: Section VI-C Intra-Memory Data Movement.
+- 선정 이유: 이 subsection의 핵심 문제인 data duplication과 두 해결 방향을 이해하는 데 필요했다.
+- 해결 과정: 숫자 예시로 convolution과 im2col matrix multiplication이 동일한 결과를 만든다는 점을 확인했다. im2col은 overlapping patch를 반복 materialize해 redundancy를 만들고, MEC는 shared input region을 compact하게 유지해 duplication을 줄이며, direct convolution in SRAM은 neighboring SRAM bit-cell 사이에서 기존 data를 recycling해 extra duplication 없이 여러 cycle에 재사용한다는 차이를 설명했다.
+- 해결하며 알게 된 내용: matrix lowering은 data representation/algorithm 쪽 개선이고, direct convolution은 SRAM 내부 data reuse를 이용하는 접근이다. “다른 SRAM에서 data를 가져온다”가 아니라 이미 존재하는 data를 neighboring bit-cell 사이에서 재활용하는 것이 핵심이다.
+- 해결 상태: resolved
+- 해결하지 못한 부분: direct-convolution recycling의 exact circuit timing/path와 MEC의 full implementation detail은 overview 밖 reference에서 더 확인해야 한다.
+- 해결에 사용한 근거:
+  - Paper direct evidence: Section VI-C의 im2col duplication, matrix lowering의 memory-overhead reduction, direct convolution의 neighboring SRAM bit-cell data recycling 설명.
+  - GPT supplementary explanation: numeric im2col example와 reference [67] MEC의 compact-lowering intuition.
+  - User interpretation / hypothesis: data를 “가져온다”는 표현을 버리고 “이미 있는 cell data를 recycling한다”로 수정했다.
+
 ### 비판적 질문
 
 선정된 질문 없음
@@ -469,7 +573,39 @@
 
 ## 13. Final Summary
 
-아직 분석하지 않음
+### Problem
+
+- AI/ML의 data-intensive workload에서 processor와 memory가 분리된 von-Neumann 구조의 빈번한 data movement가 performance와 energy bottleneck을 만든다. 이 overview는 이를 줄이기 위한 PIM을 memory type과 integration level별로 정리하고, 실제 system adoption에 필요한 software와 residual challenge까지 함께 조사한다.
+
+### Key Idea
+
+- SRAM, DRAM, ReRAM 기반 PIM을 bitcell/circuit/macro/architecture 수준에서 비교하고, host system과 연결되는 framework-library-runtime-device-driver software stack, offloading/mapping/scheduling/coherence, 그리고 data converter overhead·test accuracy·intra-memory data movement를 하나의 design space로 정리한다.
+
+### Architecture
+
+- SRAM PIM: analog current/voltage/charge-domain accumulation과 fully digital SRAM PIM.
+- DRAM PIM: cell-level, bank-level, 3-D stacked PIM으로 integration level을 나누며 internal bandwidth와 logic-area feasibility 사이의 trade-off를 보인다.
+- ReRAM PIM: conductance 기반 current/voltage sensing, multi-bit/signed MAC, coprocessor와 versatile macro를 포함한다.
+- System integration: application에서 PIM hardware까지 framework → library → runtime → device driver가 이어지며, runtime/offloading/mapping/scheduling/coherence가 hardware benefit을 실제 system에서 살리는 데 필요하다.
+
+### Main Claim / Result and Supporting Evidence
+
+- Main claim / result: PIM은 computation을 memory 내부 또는 가까이에 배치해 processor-memory data movement를 줄이는 유망한 memory-centric computing paradigm이지만, memory technology와 integration approach마다 density, logic integration, sensing/conversion, accuracy, coherence와 internal data movement의 서로 다른 비용과 제약이 존재한다.
+- Representative supporting evidence or synthesis basis: (1) SRAM/DRAM/ReRAM의 representative architecture와 trade-off를 Fig. 2-13 및 Tables I-IV로 survey, (2) ReRAM converter 사례에서 ADC/DAC가 power/area를 크게 지배하는 결과와 Table V, (3) Table VI의 MNIST/CIFAR-10 test accuracy와 software-accuracy drop, (4) Section V의 offloading·mapping·scheduling·coherence 문제, (5) Section VI의 data converter overhead, test accuracy, intra-memory movement 세 research direction.
+- Evidence conditions / scope: 이 논문은 overview/review paper이며 하나의 공통 hardware baseline에서 신규 통합 실험을 수행한 것이 아니다. 수치 결과는 cited works의 silicon/simulation 결과를 종합한 것이다.
+- 근거 위치: Sections II-VI, Figs. 2-13, Tables I-VI, Section VII Conclusion.
+
+### Main Trade-off
+
+- PIM은 off-chip processor-memory data movement를 줄여 bandwidth/energy 이득을 얻지만, compute를 memory 가까이에 넣는 방식에 따라 bitcell area와 density 감소, DRAM logic-integration 제약, ADC/DAC overhead, analog non-linearity와 accuracy loss, bank/host integration overhead, im2col과 같은 intra-memory duplication/data movement가 새 비용으로 나타난다.
+
+### Limitation
+
+- 논문이 직접 제시하는 향후 핵심 과제는 PIM을 쉽게 사용할 수 있는 advanced software stack, data converter overhead 감소, ML test accuracy 향상, intra-memory data movement 최소화다. 또한 일부 3-D PIM 사례는 simulation-only이며, overview 특성상 cited architecture의 세부 transistor/timing/algorithm mechanism은 원 reference를 확인해야 하는 경우가 있다.
+
+### 내가 기억할 한 문장
+
+- 대화에서 확인되지 않음
 
 ## 14. Reading Session History
 
@@ -481,6 +617,14 @@
 - Bridge 변화: 논문 안에서 해결한 선수지식에 `SRAM Read Disturbance`, `Rail-to-Rail`, `DRAM Internal Bandwidth`를 사용자 명시 요청에 따라 추가했다. 별도 Learning Log는 생성하지 않았다.
 - 종료 당시 Resume Point: Section III-A, PDF p.4의 DRAM architecture/background 첫 문단부터 1T1C, VDD/2 precharge, charge sharing, sense-amplifier operation을 읽으며 재개.
 
+### 2026-09-14
+
+- 읽은 범위: 이전 checkpoint 이후 Section III DRAM PIM의 bank-level/3-D PIM, Section IV ReRAM PIM의 필요한 범위, Section V PIM Software Stack 전체, Section VI Research Direction의 Data Converter Overhead·Test Accuracy·Intra-Memory Data Movement, Section VII Conclusion까지 읽고 학습을 완료했다. 사용자는 Section III-A의 상세 1T1C background와 Section IV의 일부 세부 architecture는 현재 목적상 의도적으로 깊게 파지 않고 진행했다.
+- 이해한 내용: bank-level Newton/HBM-PIM과 3-D PIM 구조, Neurocube의 2-D mesh NoC, PIM software stack의 계층과 역할, PIM offloading 및 MPKI 기준, data mapping의 same-bank/same-row와 fixed-offset pattern, ReRAM CNN mapping, execution scheduling의 dependency/affinity/time prediction, host-PIM cache coherence와 CoNDA, converter overhead의 area/power 문제, software ideal accuracy와 CIM accuracy drop, calibration과 retraining의 차이, gradient-blocking/STE의 직관, im2col duplication과 matrix lowering/direct convolution의 intra-memory movement 절감 방향을 문답으로 확인했다.
+- Question Selection Gate를 통과한 질문과 해결 상태: Fixed-offset address pattern과 data mapping — resolved; Cache coherence와 CoNDA optimistic execution — resolved; Accuracy drop/ideal software/hardware-aware retraining — resolved; im2col/matrix lowering/direct convolution — resolved. Overview 밖 세부 circuit/algorithm은 필요한 reference 범위를 별도로 표시했다.
+- Bridge 변화: 사용자 명시 요청/승인에 따라 `2-D Mesh NoC`, `PIM Offloading`, `MPKI`, `MNIST vs. CIFAR-10`, `im2col`, `Matrix Lowering Scheme (MEC, ref. [67])`를 논문 안에서 해결한 선수지식에 추가했다. 별도 Learning Log는 생성하지 않았다.
+- 종료 당시 Resume Point: Paper completed — Section VII Conclusion까지 본문 완독, 미독 본문 없음.
+
 ## 사용자 분석 근거
 
 - 사용자는 standard 6T SRAM-PIM의 read disturbance를 처음에는 shared BL의 accidental write로 설명했으나, correction 후 storage-node perturbation 문제로 수정해 이해했다.
@@ -488,3 +632,16 @@
 - 사용자는 digital SRAM PIM에서 cell당 XNOR/full-adder 같은 compute logic이 들어가면 unit-cell area 증가와 memory density 감소가 발생한다고 설명했다.
 - 사용자는 DRAM cell-level PIM이 array/sense-amplifier 가까이에서 넓은 병렬 path를 활용하고, bank-level은 column decoder 뒤에서 logic area를 얻는 대신 maximum internal bandwidth 활용이 제한된다는 방향을 설명했다.
 - 사용자는 3-D PIM이 separate logic die를 memory die와 TSV로 적층해 larger processing logic과 high-bandwidth memory-logic communication을 가능하게 한다고 설명했다.
+- 사용자는 Neurocube에서 2-D Mesh NoC가 PE 간 communication을 담당하고 실제 MAC은 PE가 수행한다는 점을 구분했다.
+- 사용자는 PIM software stack을 Framework → Library → Runtime → Device Driver → PIM Hardware의 계층으로 정리했고, 아래로 갈수록 hardware에 가까워진다는 방향을 이해했다. Runtime은 offload/instruction/resource/kernel configuration, Device Driver는 PIM memory-space allocation을 담당한다는 점을 확인했다.
+- 사용자는 PIM offloading을 “모든 연산을 PIM에 넘기는 것이 아니라 PIM-friendly operation을 골라 넘기는 것”으로 설명했고, 높은 MPKI가 낮은 cache locality와 더 많은 lower-level memory access를 시사해 candidate criterion이 될 수 있음을 이해했다.
+- 사용자는 fixed-offset access prediction을 처음에는 address search와 유사하게 이해했으나, correction 후 regular data structure/access pattern이 만드는 여러 access 사이의 관계를 이용해 PIM mapping을 최적화하는 것으로 수정했다.
+- 사용자는 Section V-D scheduling에서 offloading selection과 runtime scheduling을 구분했고, dependency information은 parallel execution 가능 여부, affinity model은 적합한 computation core, execution-time model은 각 core에서의 실행시간을 예측한다는 세 역할을 구분했다.
+- 사용자는 cache coherence를 CPU/PIM shared data의 stale value 문제로 연결했고, coherence의 핵심이 “누가 먼저 수정했는지”가 아니라 current/consistent value를 보장하는 것임을 correction 후 이해했다. CoNDA의 optimistic execution을 먼저 실행하고 address 정보를 추적한 뒤 필요한 coherence만 처리하는 흐름으로 정리했다.
+- 사용자는 Section VI-A의 다양한 converter architecture를 모두 외우기보다, analog CIM이 data movement를 줄이는 대신 DAC/ADC와 extra circuit의 area/power overhead를 만든다는 최종 problem statement를 현재 단계의 핵심으로 선택했다.
+- 사용자는 CIFAR-10 accuracy와 accuracy drop을 읽으며 software ideal baseline과 hardware implementation을 구분했고, calibrated DAC와 network retraining을 처음에는 같은 과정으로 이해했으나 retraining 전에도 accuracy 차이가 있다는 근거로 hardware calibration과 model retraining을 서로 다른 보완적 방법으로 수정했다.
+- 사용자는 gradient-blocking/STE를 quantization 때문에 learning signal이 막히지 않도록 backward gradient를 전달해 network가 hardware/quantization error에 적응하도록 retraining하는 직관으로 이해했고 저장 후보로 지정했다. 다만 이 항목 자체는 별도 PB 추가를 명시하지 않아 PB에는 자동 추가하지 않았다.
+- 사용자는 im2col의 overlapping patch가 같은 input data를 반복 materialize해 redundancy와 bandwidth usage를 늘린다는 점을 숫자 예시로 이해했다.
+- 사용자는 direct convolution in SRAM을 처음에는 “다른 SRAM에서 필요한 data를 가져오는 방식”으로 표현했으나, correction 후 이미 존재하는 neighboring SRAM bit-cell의 data를 recycling하여 extra duplication을 줄이는 것으로 수정했다.
+- 사용자는 matrix lowering scheme이 overview에서는 효과만 설명되고 구체 mechanism이 생략돼 있다고 직접 지적했고, reference [67]의 MEC 보충 설명을 통해 shared input region을 compact representation으로 재사용한다는 직관을 이해했다.
+- 사용자는 Section VII Conclusion까지 읽었다고 명시해 이 논문 본문의 완독을 확인했다.
