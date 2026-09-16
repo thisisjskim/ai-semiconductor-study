@@ -295,6 +295,7 @@ def assert_template_contract() -> None:
     ):
         assert policy_text not in template, policy_text
     assert "## 14. Reading Session History" in template
+    assert "## 학습 흐름 기록" in template
     for removed in (
         "- Status: queued | reading | analyzed | revisiting",
         "- Current section:",
@@ -332,6 +333,8 @@ def assert_repository_contract() -> None:
     assert "Issue의 변경되지 않는 `created_at`" in contract
     assert "사용자가 직접 PB 기록을 요청했거나 GPT의 제안에 명시적으로 동의한 개념만 포함한다" in contract
     assert "checkpoint 전체의 저장 승인을 지정되지 않은 PB 항목 추가 승인으로 사용하지 않는다" in contract
+    assert "learning_flow_records_upsert" in contract
+    assert "이 표현만으로 Issue를 생성하거나 저장 승인을 요청하지 않는다" in contract
     assert (ROOT / "system/PAPER_NOTE_AUTHORING_GUIDE.md").is_file()
     assert (ROOT / "paper-notes/README.md").is_file()
     entrypoint = (ROOT / "system/CHATGPT_ENTRYPOINT.md").read_text(encoding="utf-8")
@@ -341,6 +344,7 @@ def assert_repository_contract() -> None:
     assert "최신 Learning Log가 eDRAM·CNN 등 다른 주제여도" in entrypoint
     assert "system/PAPER_NOTE_ISSUE_CONTRACT.md" in entrypoint
     assert "변경 전·후" in entrypoint
+    assert "Deferred Capture Inventory" in entrypoint
     policy = (ROOT / "system/RESEARCH_OS.md").read_text(encoding="utf-8")
     assert "paper-notes/{foundational|ssl-lab|related}/YYYY-MM-DD-paper-slug.md" in policy
     assert ".github/workflows/paper-note-ingest.yml" in policy
@@ -379,7 +383,11 @@ def assert_paper_tutoring_policy_contract() -> None:
         "GPT의 추론이며 원 논문 또는 reference 확인 필요",
         "기존 Paper Note, 사용자가 붙여 넣은 문장, DOI·웹페이지·abstract, GPT가 찾은 다른 사본이나 모델의 기억만으로 exact fact를 원문에서 재확인한 것처럼 표현하지 않는다",
         "exact number나 mechanism을 직접 확인했다면 불필요하게 가능성 표현으로 약화하지 않고",
-        "사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 동의한 개념만 임시 PB Inventory로 모은다",
+        "사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 동의한 개념만 PB Inventory로 확정한다",
+        "### Deferred Capture Inventory",
+        "즉시 GitHub workflow로 이동하지 않는다",
+        "마지막 checkpoint 이후 대화를 다시 검토",
+        "무엇을 다루는가`, `내가 어떻게 이해했는가`, `현재 상태",
         "이 문서에 없는 새로운 user-facing pedagogical framework",
     ):
         assert required in tutoring
@@ -563,6 +571,7 @@ def assert_paper_tutoring_policy_contract() -> None:
         "Final Summary는 사용자의 완독 선언과 마지막 본문 범위까지의 checkpoint가 모두 확인된 경우에만",
         "Final Summary 작성이나 완독 사실을 사용자의 전체 이해 또는 mastery evidence로 기록하지 않는다",
         "Full-paper source synthesis를 사용자가 해당 범위를 읽거나 이해했다는 evidence로 기록하지 않는다",
+        "모든 deferred PB·상세 저장 요청을 관련 Learning Flow record에 병합",
     ):
         assert required in behavior_scenarios
 
@@ -609,7 +618,7 @@ def assert_paper_tutoring_policy_contract() -> None:
     assert "PDF access" not in authoring
     assert "임시 경로나 과거 conversation의 attachment URL을 영구 경로처럼 기록하지 않는다" in authoring
     assert "Paper Note의 identity가 있다는 사실 자체는 원문 접근 evidence가 아니다" in authoring
-    assert "PB 기록은 사용자가 자연어로 직접 요청하거나 GPT의 PB 제안에 명시적으로 동의한 경우에만 수행한다" in tutoring
+    assert "PB 기록은 사용자가 자연어로 직접 요청하거나 GPT의 PB 제안에 명시적으로 동의한 경우에만 선택한다" in tutoring
     assert "사용자의 명시적 요청이나 GPT 제안에 대한 동의 없이 prerequisite를 PB에 자동 추가하지 않는다" in tutoring
     assert "### Paper-source section의 evidence boundary" in authoring
     assert "합리적으로 추론할 수 있어도 paper fact로 작성하지 않는다" in authoring
@@ -705,6 +714,9 @@ def assert_paper_tutoring_policy_contract() -> None:
     ):
         assert required in architecture_authoring, required
     assert "## 9. 사용자 선택 PB Inventory와 Bridge Audit" in authoring
+    assert "### Deferred Capture Inventory와 상세 저장 요청" in authoring
+    assert "이 표현만으로 GitHub 저장 workflow나 승인 요청을 시작하지 않는다" in authoring
+    assert "stable ID `LR-001` 형식으로 upsert" in authoring
     assert "마지막으로 저장된 checkpoint 이후 현재 conversation" in authoring
     assert "새로운 고정 section이나 evidence status field를 추가하지 않는다" in authoring
     assert "사용자가 명시적으로 선택한 개념만 PB Inventory에 넣었는가?" in authoring
@@ -722,6 +734,8 @@ def assert_paper_tutoring_policy_contract() -> None:
         "기존 `Questions` 또는 관련 분석 section에만 자연어로 보존한다",
         "사용자가 직접 선택한 PB:",
         "GPT 제안 후 승인된 PB:",
+        "사용자가 세션 종료와 전체 정리를 함께 요청하면",
+        "Prerequisite Bridge의 `관련 학습 흐름`",
     ):
         assert required in bridge_audit
     for removed in (
@@ -734,6 +748,7 @@ def assert_paper_tutoring_policy_contract() -> None:
     paper_template = (ROOT / "templates/paper-note.md").read_text(encoding="utf-8")
     assert "Prerequisite Inventory" not in paper_template
     assert "Prerequisite Bridge audit" not in paper_template
+    assert "## 학습 흐름 기록" in paper_template
 
     assert "사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 명시적으로 동의한 개념만" in entrypoint
     assert "질문·설명·correction 또는 reference 후보가 있었다는 이유만으로 자동 추가하지 않으며" in entrypoint
@@ -794,6 +809,18 @@ def assert_delta_checkpoint_contract() -> None:
             "ending_resume_point": "Section 4 / PDF p.7의 첫 문장",
         },
         "user_analysis_evidence": ["“partial sum은 local buffer를 거쳐 이동한다.”"],
+        "learning_flow_records_upsert": [
+            {
+                "record_id": "LR-001",
+                "title": "Partial sum movement",
+                "record_type": "detailed-prerequisite",
+                "paper_location": "Section 3.2 / PDF p.6 / Figure 4",
+                "selection_reason": "사용자가 PB와 상세 저장을 요청함",
+                "paper_context": "Figure 4는 local accumulation 이후 partial sum 이동을 설명한다.",
+                "learning_process": "처음에는 이동 위치를 몰랐고, figure와 본문을 함께 확인했다.\n\n- 이해에 사용한 예시: local buffer와 global accumulation 비교",
+                "current_state": "사용자가 이동 흐름을 자기 언어로 설명했다. NoC arbitration은 미해결이다.",
+            }
+        ],
         "prerequisite_bridge": {
             "resolved_upsert": [
                 {
@@ -802,6 +829,7 @@ def assert_delta_checkpoint_contract() -> None:
                     "reason": "dataflow를 이해하기 위해 필요",
                     "definition": "부분 곱을 누적하는 중간 결과",
                     "user_understanding": "사용자가 자기 언어로 설명함",
+                    "learning_record_id": "LR-001",
                 }
             ],
             "tracked_upsert": [
@@ -813,6 +841,7 @@ def assert_delta_checkpoint_contract() -> None:
                     "learning_logs": [
                         "learning-logs/2026/08/2026-08-28-noc-fundamentals.md"
                     ],
+                    "learning_record_id": "LR-001",
                 }
             ],
         },
@@ -866,6 +895,8 @@ def assert_delta_checkpoint_contract() -> None:
         learning_log.parent.mkdir(parents=True)
         learning_log.write_text("# stored Learning Log\n", encoding="utf-8")
         original = ingest.set_checkpoint_recorded_at(note(), "2026-08-27T10:20:30Z")
+        original = original.replace("\n## 학습 흐름 기록\n\n- 없음\n", "", 1)
+        assert "## 학습 흐름 기록" not in original
         target.write_text(original, encoding="utf-8")
         original_sections = ingest.parse_sections(original)
         sha = ingest.git_blob_sha(target.read_bytes())
@@ -879,8 +910,15 @@ def assert_delta_checkpoint_contract() -> None:
         assert "### 2026-08-28" in stored
         assert "- 읽은 범위: Section 3.2까지 읽음" in stored
         assert "> “partial sum은 local buffer를 거쳐 이동한다.”" in stored
+        assert "## 학습 흐름 기록" in stored
+        assert "### LR-001 — Partial sum movement" in stored
+        assert "- 저장 유형: detailed-prerequisite" in stored
+        assert "#### 무엇을 다루는가" in stored
+        assert "#### 내가 어떻게 이해했는가" in stored
+        assert "#### 현재 상태" in stored
         assert "#### Partial sum" in stored
         assert "- 실제 정의: 부분 곱을 누적하는 중간 결과" in stored
+        assert "- 관련 학습 흐름: LR-001" in stored
         assert "#### NoC fundamentals" in stored
         assert "- Status: studying" in stored
         assert "`learning-logs/2026/08/2026-08-28-noc-fundamentals.md`" in stored
@@ -917,6 +955,12 @@ def assert_delta_checkpoint_contract() -> None:
         ] = "routing과 flow control을 사용자 언어로 설명함"
         follow_up["questions_upsert"][0]["resolution_status"] = "resolved"
         follow_up["questions_upsert"][0]["unresolved"] = "해당 없음"
+        follow_up["learning_flow_records_upsert"][0]["current_state"] = (
+            "사용자가 이동과 arbitration을 모두 자기 언어로 설명했다."
+        )
+        follow_up["learning_flow_records_upsert"][0]["title"] = (
+            "Partial sum 이동과 arbitration"
+        )
         current_sha = ingest.git_blob_sha(target.read_bytes())
         ingest.ingest(
             delta_payload(
@@ -931,6 +975,9 @@ def assert_delta_checkpoint_contract() -> None:
         assert followed.count("#### Inter-tile movement overhead") == 1
         assert followed.count("#### Partial sum movement") == 1
         assert followed.count("### Data movement-aware PIM") == 1
+        assert followed.count("### LR-001 —") == 1
+        assert "### LR-001 — Partial sum 이동과 arbitration" in followed
+        assert "사용자가 이동과 arbitration을 모두 자기 언어로 설명했다." in followed
         assert "- 해결 상태: resolved" in followed
 
         expect_error(
@@ -944,6 +991,39 @@ def assert_delta_checkpoint_contract() -> None:
         expect_error(
             lambda: ingest.validate_payload(delta_payload(invalid, current_sha), root),
             "invalid-delta",
+        )
+
+        invalid_record = json.loads(json.dumps(delta))
+        invalid_record["learning_flow_records_upsert"][0]["record_id"] = "partial-sum"
+        current_sha = ingest.git_blob_sha(target.read_bytes())
+        expect_error(
+            lambda: ingest.validate_payload(
+                delta_payload(invalid_record, current_sha), root
+            ),
+            "invalid-delta",
+        )
+
+        invalid_heading = json.loads(json.dumps(delta))
+        invalid_heading["learning_flow_records_upsert"][0]["paper_context"] = (
+            "## injected section"
+        )
+        expect_error(
+            lambda: ingest.validate_payload(
+                delta_payload(invalid_heading, current_sha), root
+            ),
+            "invalid-delta",
+        )
+
+        dangling_reference = json.loads(json.dumps(delta))
+        dangling_reference.pop("learning_flow_records_upsert")
+        dangling_reference["prerequisite_bridge"]["resolved_upsert"][0][
+            "learning_record_id"
+        ] = "LR-999"
+        expect_error(
+            lambda: ingest.validate_payload(
+                delta_payload(dangling_reference, current_sha), root
+            ),
+            "missing-learning-flow-record",
         )
 
 

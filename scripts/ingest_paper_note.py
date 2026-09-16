@@ -27,6 +27,8 @@ RESULT_MARKER = "<!-- research-os-result -->"
 COMMANDS = {"/기록", "/retry", "/ingest"}
 PAPER_TYPES = {"foundational", "ssl-lab", "related"}
 BRIDGE_STATUSES = {"studying", "paused", "sufficient-for-paper"}
+LEARNING_FLOW_TYPES = {"detailed", "prerequisite", "detailed-prerequisite"}
+LEARNING_FLOW_ID_RE = re.compile(r"^LR-[0-9]{3,}$")
 ENVELOPE_FIELDS = {"operation", "intent", "target_path", "expected_sha"}
 REQUIRED_METADATA = (
     "Title",
@@ -188,6 +190,7 @@ def parse_checkpoint_delta(raw: str) -> dict:
         "resume_point",
         "reading_session_history",
         "user_analysis_evidence",
+        "learning_flow_records_upsert",
         "prerequisite_bridge",
         "user_identified_limitations_upsert",
         "questions_upsert",
@@ -303,6 +306,117 @@ def upsert_section_record(
     return markdown[:parent_start] + updated + markdown[parent_end:]
 
 
+def ensure_learning_flow_section(markdown: str) -> str:
+    heading = "## 학습 흐름 기록"
+    if re.search(rf"(?m)^{re.escape(heading)}\s*$", markdown):
+        return markdown
+    before = re.search(r"(?m)^## 사용자 분석 근거\s*$", markdown)
+    if not before:
+        raise IngestError("필수 section이 없습니다: `## 사용자 분석 근거`")
+    addition = f"{heading}\n\n- 없음\n\n"
+    return markdown[: before.start()] + addition + markdown[before.start() :]
+
+
+def upsert_learning_flow_record(
+    markdown: str, record_id: str, title: str, block: str
+) -> str:
+    section_start, section_end = section_bounds(markdown, "## 학습 흐름 기록")
+    body = markdown[section_start:section_end]
+    records = list(
+        re.finditer(r"(?m)^###\s+(?P<id>LR-[0-9]{3,})\s+—\s+.+?\s*$", body)
+    )
+    target_index = next(
+        (
+            index
+            for index, match in enumerate(records)
+            if match.group("id") == record_id
+        ),
+        None,
+    )
+    rendered = f"### {record_id} — {title}\n\n{block.strip()}"
+    if target_index is None:
+        cleaned = re.sub(r"(?m)^\s*- 없음\s*$", "", body).strip()
+        updated = (cleaned + "\n\n" if cleaned else "\n") + rendered + "\n\n"
+    else:
+        item_start = records[target_index].start()
+        item_end = (
+            records[target_index + 1].start()
+            if target_index + 1 < len(records)
+            else len(body)
+        )
+        updated = body[:item_start] + rendered + "\n\n" + body[item_end:].lstrip("\n")
+    return markdown[:section_start] + updated + markdown[section_end:]
+
+
+def learning_flow_markdown(value: object, label: str) -> str:
+    text = validate_delta_text(value, label, max_length=12000)
+    if re.search(r"(?m)^ {0,3}#{1,4}\s+", text):
+        raise IngestError(
+            f"{label}에는 Markdown heading을 넣을 수 없습니다.", "invalid-delta"
+        )
+    return text
+
+
+def apply_learning_flow_records(markdown: str, records: object) -> str:
+    if not isinstance(records, list) or len(records) > 20:
+        raise IngestError(
+            "learning_flow_records_upsert는 최대 20개의 JSON array여야 합니다.",
+            "invalid-delta",
+        )
+    required = {
+        "record_id",
+        "title",
+        "record_type",
+        "paper_location",
+        "selection_reason",
+        "paper_context",
+        "learning_process",
+        "current_state",
+    }
+    markdown = ensure_learning_flow_section(markdown)
+    for item in records:
+        record = require_record(item, required, "learning flow record")
+        record_id = one_line(record["record_id"], "record_id", max_length=20)
+        if not LEARNING_FLOW_ID_RE.fullmatch(record_id):
+            raise IngestError(
+                "learning flow record_id는 LR-001 형식이어야 합니다.",
+                "invalid-delta",
+            )
+        record_type = one_line(
+            record["record_type"], "record_type", max_length=40
+        )
+        if record_type not in LEARNING_FLOW_TYPES:
+            raise IngestError(
+                "learning flow record_type을 확인하세요.", "invalid-delta"
+            )
+        title = validate_record_title(record["title"])
+        paper_location = one_line(
+            record["paper_location"], "paper_location", max_length=500
+        )
+        selection_reason = one_line(
+            record["selection_reason"], "selection_reason", max_length=2000
+        )
+        block = "\n\n".join(
+            [
+                f"- 저장 유형: {record_type}",
+                f"- 논문 위치: {paper_location}",
+                f"- 상세 저장 요청: {selection_reason}",
+                "#### 무엇을 다루는가\n\n"
+                + learning_flow_markdown(record["paper_context"], "paper_context"),
+                "#### 내가 어떻게 이해했는가\n\n"
+                + learning_flow_markdown(
+                    record["learning_process"], "learning_process"
+                ),
+                "#### 현재 상태\n\n"
+                + learning_flow_markdown(record["current_state"], "current_state"),
+            ]
+        )
+        markdown = upsert_learning_flow_record(
+            markdown, record_id, title, block
+        )
+    return markdown
+
+
 def upsert_bridge_concept(
     markdown: str, subsection_heading: str, concept: str, block: str
 ) -> str:
@@ -359,7 +473,8 @@ def apply_bridge_delta(markdown: str, value: object) -> str:
         if not isinstance(record, dict):
             raise IngestError("resolved_upsert 항목은 JSON object여야 합니다.", "invalid-delta")
         required = {"concept", "location", "reason", "definition", "user_understanding"}
-        if set(record) != required:
+        allowed_fields = required | {"learning_record_id"}
+        if not required.issubset(record) or set(record) - allowed_fields:
             raise IngestError("resolved_upsert 필드를 확인하세요.", "invalid-delta")
         concept = validate_concept_name(record["concept"])
         fields = (
@@ -374,6 +489,16 @@ def apply_bridge_delta(markdown: str, value: object) -> str:
             if "\n" in text:
                 raise IngestError(f"{key}는 단일 행이어야 합니다.", "invalid-delta")
             lines.append(f"- {label}: {text}")
+        if "learning_record_id" in record:
+            record_id = one_line(
+                record["learning_record_id"], "learning_record_id", max_length=20
+            )
+            if not LEARNING_FLOW_ID_RE.fullmatch(record_id):
+                raise IngestError(
+                    "learning_record_id는 LR-001 형식이어야 합니다.",
+                    "invalid-delta",
+                )
+            lines.append(f"- 관련 학습 흐름: {record_id}")
         markdown = upsert_bridge_concept(
             markdown, "### 논문 안에서 해결한 선수지식", concept, "\n".join(lines)
         )
@@ -381,7 +506,8 @@ def apply_bridge_delta(markdown: str, value: object) -> str:
         if not isinstance(record, dict):
             raise IngestError("tracked_upsert 항목은 JSON object여야 합니다.", "invalid-delta")
         required = {"concept", "status", "reason", "sufficient_criterion", "learning_logs"}
-        if set(record) != required:
+        allowed_fields = required | {"learning_record_id"}
+        if not required.issubset(record) or set(record) - allowed_fields:
             raise IngestError("tracked_upsert 필드를 확인하세요.", "invalid-delta")
         concept = validate_concept_name(record["concept"])
         status = validate_delta_text(record["status"], "status", max_length=30)
@@ -409,6 +535,16 @@ def apply_bridge_delta(markdown: str, value: object) -> str:
                 *log_lines,
             ]
         )
+        if "learning_record_id" in record:
+            record_id = one_line(
+                record["learning_record_id"], "learning_record_id", max_length=20
+            )
+            if not LEARNING_FLOW_ID_RE.fullmatch(record_id):
+                raise IngestError(
+                    "learning_record_id는 LR-001 형식이어야 합니다.",
+                    "invalid-delta",
+                )
+            block += f"\n- 관련 학습 흐름: {record_id}"
         markdown = upsert_bridge_concept(
             markdown, "### 별도로 이어가는 선수지식", concept, block
         )
@@ -622,6 +758,10 @@ def apply_checkpoint_delta(markdown: str, raw_delta: str, recorded_at: str) -> s
     if "research_connections_upsert" in delta:
         markdown = apply_research_connections(
             markdown, delta["research_connections_upsert"]
+        )
+    if "learning_flow_records_upsert" in delta:
+        markdown = apply_learning_flow_records(
+            markdown, delta["learning_flow_records_upsert"]
         )
     evidence = delta.get("user_analysis_evidence", [])
     if not isinstance(evidence, list):
@@ -885,6 +1025,28 @@ def validate_bridges(bridge_text: str, root: Path) -> None:
             )
 
 
+def validate_learning_flow_references(sections: dict[str, str]) -> None:
+    bridge_ids = set(
+        re.findall(
+            r"(?m)^- 관련 학습 흐름:\s*(LR-[0-9]{3,})\s*$",
+            sections["## 2. Prerequisite Bridge"],
+        )
+    )
+    if not bridge_ids:
+        return
+    learning_flow = sections.get("## 학습 흐름 기록", "")
+    record_ids = set(
+        re.findall(r"(?m)^###\s+(LR-[0-9]{3,})\s+—\s+", learning_flow)
+    )
+    missing = sorted(bridge_ids - record_ids)
+    if missing:
+        raise IngestError(
+            "Prerequisite Bridge가 존재하지 않는 학습 흐름 record를 참조합니다: "
+            + ", ".join(missing),
+            "missing-learning-flow-record",
+        )
+
+
 def validate_markdown(markdown: str, target_match: re.Match[str], root: Path) -> None:
     if len(markdown) < 700:
         raise IngestError("Paper Note가 지나치게 짧습니다. canonical 전체 문서를 보내야 합니다.")
@@ -930,6 +1092,7 @@ def validate_markdown(markdown: str, target_match: re.Match[str], root: Path) ->
     if not resume_point or resume_point in {"없음", "아직 기록되지 않음"}:
         raise IngestError("Reading Checkpoint의 Resume Point가 필요합니다.")
     validate_bridges(sections["## 2. Prerequisite Bridge"], root)
+    validate_learning_flow_references(sections)
 
 
 def validate_payload(payload: dict, root: Path) -> tuple[str, str, str, str]:

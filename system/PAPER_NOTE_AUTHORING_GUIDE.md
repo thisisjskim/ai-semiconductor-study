@@ -197,6 +197,24 @@ Paper Note 저장안을 작성하기 전에 마지막으로 저장된 checkpoint
 - 사용자가 `PB`, `Prerequisite Bridge`, `선수지식` 등으로 남겨 달라고 자연어로 직접 요청한 개념
 - GPT가 PB 기록을 제안한 뒤 사용자가 명시적으로 동의한 개념
 
+### Deferred Capture Inventory와 상세 저장 요청
+
+세션 중의 `PB에 저장해줘`, `이 설명을 꼭 반영해줘`, `더 자세하게 저장해줘`는 현재 conversation의 Deferred Capture Inventory에 항목을 선택하는 표현이다. 이 표현만으로 GitHub 저장 workflow나 승인 요청을 시작하지 않는다. GPT는 후보가 보류됐음을 짧게 알리고 학습을 계속한다.
+
+사용자가 세션 종료와 전체 정리를 함께 요청하면 마지막 checkpoint 이후 대화를 다시 읽어 deferred item마다 다음을 확인한다.
+
+- 요청 종류와 실제 사용자 표현
+- 관련 section/figure와 PDF 근거 위치
+- 사용자가 처음 몰랐던 내용 또는 보존을 선택한 설명
+- 설명에 필요했던 mechanism, 예시, 표, 식, 수치와 조건
+- 초기 이해, 중요한 correction, 이후 사용자 자기 설명 여부
+- Paper direct, GPT supplementary, User interpretation / hypothesis의 경계
+- 현재 상태와 남은 질문
+
+상세 저장 record는 `## 학습 흐름 기록`에 stable ID `LR-001` 형식으로 upsert한다. 하나의 주제는 `무엇을 다루는가`, `내가 어떻게 이해했는가`, `현재 상태`의 세 흐름으로 정리하고, 같은 문장을 Questions·PB·사용자 분석 근거에 반복하지 않는다. 사용자가 보존을 요청한 표·수치 예시가 이해에 결정적이면 조건과 함께 남길 수 있다. GPT의 긴 답변 전체, 반복 설명, 인사와 진행 발언은 복사하지 않는다.
+
+PB 선택은 같은 개념의 상세 Learning Flow record를 `prerequisite` 또는 `detailed-prerequisite`로 만들고, Prerequisite Bridge의 `관련 학습 흐름`에서 ID를 참조한다. Bridge에는 등장 위치, 필요한 이유, 실제 정의와 사용자 이해를 간결하게 유지한다. 사용자가 설명을 마음에 들어 했다는 사실만으로 자기 설명이 확인됐다고 기록하지 않는다.
+
 GPT는 다음 세션 복구에 가치가 큰 개념을 PB로 남길지 제안할 수 있다. 그러나 제안만으로 선택된 것이 아니며, 사용자가 동의하기 전에는 PB Inventory나 저장안에 넣지 않는다. 사용자가 단어의 뜻이나 작동 원리를 질문한 것, GPT가 개념을 설명한 것, 중요한 오해를 correction한 것과 reference deep-dive 후보가 생긴 것만으로는 PB 선택으로 간주하지 않는다.
 
 일반적인 `Paper Note를 저장해줘` 또는 checkpoint 저장 승인은 지정되지 않은 PB 항목의 추가 승인으로 확대 해석하지 않는다. 사용자가 PB 기록은 요청했지만 별도 Learning Log 학습은 선택하지 않았다면 `논문 안에서 해결한 선수지식`으로 분류한다. 별도 학습을 명시적으로 선택한 경우에만 `별도로 이어가는 선수지식`으로 분류한다.
@@ -265,6 +283,10 @@ Prerequisite Bridge audit
 - 사용자의 자기 설명과 AI 설명을 구분했는가?
 - 논문 안에서 해결한 각 선수지식에 등장 위치, 필요한 이유, 실제 정의와 사용자의 이해가 모두 기록됐는가?
 - 마지막 checkpoint 이후 사용자가 명시적으로 선택한 개념만 PB Inventory에 넣었는가?
+- 마지막 checkpoint 이후의 모든 deferred PB·상세 저장 요청을 다시 찾아 반영하거나 제외 이유를 제시했는가?
+- 상세 record가 관련 section/figure, 선택 이유, 이해 과정, 현재 상태와 source boundary를 보존하는가?
+- 마음에 든 GPT 설명을 사용자의 자기 설명 evidence로 승격하지 않았는가?
+- PB의 긴 설명을 Bridge와 학습 흐름 기록에 중복하지 않고 record ID로 연결했는가?
 - GPT가 제안만 했거나 설명·correction만 한 개념을 승인 없이 PB에 추가하지 않았는가?
 - 일반적인 Paper Note 저장 승인을 지정되지 않은 PB 추가 승인으로 확대하지 않았는가?
 - 선택된 PB를 기존·제안 Bridge와 대조했는가?
