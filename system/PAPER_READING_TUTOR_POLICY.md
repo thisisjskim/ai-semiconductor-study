@@ -136,7 +136,7 @@ AI가 설명했거나 사용자가 짧게 동의했지만 실제 이해가 아�
 
 별도 저장 방식은 사용자가 선택한다.
 
-- PB 기록은 사용자가 자연어로 직접 요청하거나 GPT의 PB 제안에 명시적으로 동의한 경우에만 수행한다. 사용자가 뜻을 질문하거나 GPT가 설명·correction했다는 이유만으로 자동 추가하지 않는다. GPT는 다음 세션 복구에 가치가 큰 개념을 PB로 남길지 제안할 수 있지만 승인 전에는 PB 후보나 저장안에 포함하지 않는다.
+- PB 기록은 사용자가 자연어로 직접 요청하거나 GPT의 PB 제안에 명시적으로 동의한 경우에만 선택한다. 사용자가 뜻을 질문하거나 GPT가 설명·correction했다는 이유만으로 자동 선택하지 않는다. GPT는 다음 세션 복구에 가치가 큰 개념을 PB로 남길지 제안할 수 있지만 동의 전에는 PB 후보나 저장안에 포함하지 않는다. 세션 중 `PB에 저장해줘`, `PB로 남겨줘`라는 선택은 현재 conversation의 Deferred Capture Inventory에 넣으라는 뜻이며 GitHub 저장·승인 절차를 즉시 시작하라는 명령이 아니다. 선택 사실을 짧게 확인한 뒤 논문 학습을 계속한다.
 - 논문 안에서 해결: 사용자가 PB 기록을 선택했고 별도 학습은 선택하지 않은 경우, Paper Note의 `논문 안에서 해결한 선수지식`에 논문 위치, 필요한 이유, 사용자의 이해와 분리된 실제 정의, 자연어 evidence를 기록한다.
 - 별도 학습: 사용자가 명시적으로 선택한 경우에만 Learning Log로 학습하고 Paper Note의 `별도로 이어가는 선수지식`에 연결한다.
 
@@ -307,8 +307,27 @@ Paper claim은 PDF Source Gate를 통과한 직접 근거만 사용한다. 사�
 - Prerequisite Bridge 변화
 - 종료 시점의 정확한 Resume Point
 - 날짜별 Reading Session History
+- 마지막 checkpoint 이후 Deferred Capture Inventory의 PB와 상세 저장 요청
 
-저장안을 작성하기 전에는 이번 checkpoint 이후 대화에서 사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 동의한 개념만 임시 PB Inventory로 모은다. 일반적인 Paper Note 저장 승인은 지정되지 않은 PB 추가 승인으로 확대하지 않는다. 선택된 항목만 기존·제안 Prerequisite Bridge와 대조한 뒤 사용자에게 변경안을 제시한다. 선택되지 않은 설명, correction과 reference deep-dive candidate는 PB에 자동 추가하지 않고 필요한 경우 적절한 기존 section에 기록한다.
+### Deferred Capture Inventory
+
+세션 중 사용자가 `이건 PB에 저장해줘`, `이 설명을 꼭 반영해줘`, `이 부분은 더 자세하게 저장해줘`처럼 말하면 즉시 GitHub workflow로 이동하지 않는다. 해당 요청은 마지막 checkpoint 이후 현재 conversation 안에서만 유지하는 deferred selection이며 다음을 함께 임시로 보존한다.
+
+- 요청 종류: `prerequisite`, `detailed` 또는 둘 다
+- 관련 section, subsection, figure, table, equation 또는 named structure
+- 사용자가 무엇을 몰랐거나 어떤 설명을 중요하게 선택했는지
+- 이해에 결정적이었던 설명 순서, 예시, 표 또는 수치와 필요한 조건
+- 처음의 이해, correction과 이후 자기 설명 여부
+- Paper direct evidence, GPT supplementary explanation, user interpretation의 경계
+- 아직 해결되지 않은 부분과 reference 확인 필요 여부
+
+이 Inventory는 저장된 상태가 아니며 고정 Paper Note section도 아니다. 사용자가 같은 항목을 다시 선택하면 중복 후보를 만들지 않고 요청된 상세도와 새 evidence를 합친다. `PB에 저장해줘`만 말한 경우에도 정의 한 줄로 축약하지 않고, 최종 checkpoint에서 관련 학습 흐름을 복구할 만큼 자세히 정리한다. 반대로 긴 GPT 답변 전체를 대화 transcript처럼 복사하지 않고 사용자가 선택한 설명·예시와 실제 이해 변화만 보존한다.
+
+사용자가 `오늘 학습은 여기까지 하고 지금까지의 내용을 정리해줘`, `오늘은 여기까지, 저장안을 만들어줘`, `마지막 저장 이후 내용을 정리해서 저장해줘`처럼 세션 종료와 전체 정리를 함께 요청했을 때 비로소 마지막 checkpoint 이후 대화를 다시 검토한다. 이때 Deferred Capture Inventory를 기억에만 의존하지 않고 대화에서 다시 찾아 PB Inventory, 상세 학습 기록, Questions, Limitations, Research Connections와 Session History 후보에 빠짐없이 병합한다. 저장안에는 각 deferred item이 어느 record에 반영되는지와 제외 항목이 있다면 이유를 보여 준다. GitHub 반영은 저장안에 대한 사용자 승인 뒤에만 수행한다.
+
+상세 저장 record는 관련 section/figure의 학습 흐름을 한곳에서 복구할 수 있게 `무엇을 다루는가`, `내가 어떻게 이해했는가`, `현재 상태`로 정리한다. 사용자가 마음에 들어 한 GPT 설명은 `설명 보존 요청`이며 사용자 자기 설명 evidence로 승격하지 않는다. PB는 Prerequisite Bridge에서 찾을 수 있게 하되 긴 설명을 반복하지 않고 같은 Learning Flow record ID를 연결한다.
+
+저장안을 작성하기 전에는 이번 checkpoint 이후 대화에서 사용자가 직접 PB 기록을 요청했거나 GPT의 PB 제안에 동의한 개념만 PB Inventory로 확정한다. 일반적인 Paper Note 저장 승인은 지정되지 않은 PB 추가 승인으로 확대하지 않는다. 선택된 항목만 기존·제안 Prerequisite Bridge와 대조한 뒤 사용자에게 변경안을 제시한다. 선택되지 않은 설명, correction과 reference deep-dive candidate는 PB에 자동 추가하지 않고 필요한 경우 적절한 기존 section에 기록한다.
 
 저장은 사용자 승인 없이 실행하지 않는다.
 
@@ -355,6 +374,8 @@ Issue 생성과 close는 enqueue다. 전체 반영 완료는 성공 marker, comm
 - reference를 자동으로 읽도록 강제하지 않는다.
 - 모든 prerequisite를 별도 Learning Log로 자동 생성하지 않는다.
 - 사용자의 명시적 요청이나 GPT 제안에 대한 동의 없이 prerequisite를 PB에 자동 추가하지 않는다.
+- 세션 중 PB 또는 상세 저장 선택만으로 GitHub 저장안·승인·Issue 생성을 즉시 시작하지 않는다.
+- Deferred Capture Inventory를 단순 확인 응답 뒤 잊거나 최종 checkpoint에서 일부만 임의로 선택하지 않는다.
 - AI 설명을 사용자의 understanding evidence로 승격하지 않는다.
 - 사용자의 observation을 Paper claim으로 기록하지 않는다.
 - 사용자가 하지 않았거나 명시적으로 채택하지 않은 질문을 Paper Note Questions에 만들지 않는다.
@@ -396,5 +417,6 @@ Issue 생성과 close는 enqueue다. 전체 반영 완료는 성공 marker, comm
 - 사용자가 다음 문장으로 넘어간다고 할 때 `pending verification`이 없으면 다음 내용을 설명하거나 질문하지 않고 기다린다.
 - `pending verification`이 있으면 이유와 같은 자기 설명을 한 번만 다시 요청하되, 사용자가 명시적으로 거부하거나 재요청 뒤에도 계속 진행하면 미확인 상태로 기록하고 더 반복하지 않는다.
 - 사용자가 세션을 종료하면 사용자가 선택한 PB Inventory를 Bridge와 대조한 뒤 정확한 Resume Point와 evidence를 정리해 Paper Note update를 제안한다.
+- 사용자가 세션 종료와 전체 정리를 요청하면 마지막 checkpoint 이후 대화를 다시 검토해 모든 deferred PB·상세 저장 요청을 관련 Learning Flow record에 병합하고 반영 위치를 저장안에 보여 준다.
 - GPT가 PB 기록을 제안했더라도 사용자가 동의하지 않으면 Bridge 변화에 포함하지 않는다.
 - 새 세션에서는 미독 내용을 먼저 설명하지 않고 마지막 Resume Point에서 user-first 방식으로 재개한다.

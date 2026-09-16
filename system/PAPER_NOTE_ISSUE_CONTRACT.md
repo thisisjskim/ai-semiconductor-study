@@ -12,7 +12,7 @@
 
 1. 현재 `state/CURRENT_LEARNING_CONTEXT.md`가 가리키는 Paper Note 또는 새로 만들 대상 경로를 확인한다.
 2. Update이면 `main`의 기존 Paper Note 전체와 40자리 blob SHA를 읽는다.
-3. 새 Paper Note 또는 paper-source 분석 section을 바꾸는 일반 update이면 `templates/paper-note.md`와 `system/PAPER_NOTE_AUTHORING_GUIDE.md`를 읽고 전체 canonical Markdown을 작성한다. 사용자와의 학습으로 Resume Point, Reading Session History, 사용자 분석 근거와 Prerequisite Bridge를 바꾸는 checkpoint이면 아래 v2 delta를 작성하고 기존 전체 문서를 재전송하지 않는다. Metadata의 제목·저자·Paper link는 이번 채팅에서 PDF Source Gate를 통과한 첨부 PDF의 identity와 일치해야 하며 임시 attachment 경로나 과거 conversation URL은 저장하지 않는다.
+3. 새 Paper Note 또는 paper-source 분석 section을 바꾸는 일반 update이면 `templates/paper-note.md`와 `system/PAPER_NOTE_AUTHORING_GUIDE.md`를 읽고 전체 canonical Markdown을 작성한다. 사용자와의 학습으로 Resume Point, Reading Session History, 사용자 분석 근거, 학습 흐름 기록과 Prerequisite Bridge를 바꾸는 checkpoint이면 아래 v2 delta를 작성하고 기존 전체 문서를 재전송하지 않는다. Metadata의 제목·저자·Paper link는 이번 채팅에서 PDF Source Gate를 통과한 첨부 PDF의 identity와 일치해야 하며 임시 attachment 경로나 과거 conversation URL은 저장하지 않는다.
 4. `studying` Bridge를 저장하거나 다른 Learning Log를 연결하면 해당 Log의 성공 comment, commit과 실제 파일을 먼저 확인한다. 저장된 `studying`에는 실제 Learning Log 경로가 하나 이상 필요하다.
 5. 사용자에게 create/update, target path, Resume Point, Bridge 변화와 변경 전·후 상태창을 보여 주고 승인을 받는다.
 6. 정확한 title과 envelope로 Issue를 만들고 필요한 chunk를 모두 추가한 뒤 닫는다.
@@ -21,6 +21,8 @@
 9. 이어지는 Learning Context Refresh에서 Current Paper가 해당 경로로 갱신됐는지 확인한다.
 
 Bridge 변화에는 사용자가 직접 PB 기록을 요청했거나 GPT의 제안에 명시적으로 동의한 개념만 포함한다. Paper Note 또는 checkpoint 전체의 저장 승인을 지정되지 않은 PB 항목 추가 승인으로 사용하지 않는다.
+
+세션 중 `PB에 저장해줘`, `이 설명을 반영해줘`, `더 자세하게 저장해줘`는 Deferred Capture Inventory 선택이다. 이 표현만으로 Issue를 생성하거나 저장 승인을 요청하지 않는다. 세션 종료와 전체 정리 요청이 있을 때 마지막 checkpoint 이후 대화를 다시 검토해 모든 deferred item을 저장안에 포함하고, 저장안 승인 뒤에만 이 계약을 실행한다.
 
 ## Checkpoint 시간
 
@@ -55,7 +57,7 @@ Issue 제목의 slug는 target path의 날짜 뒤 slug와 같아야 한다. Pape
 
 ### v2: 작은 reading checkpoint delta
 
-기존 paper-source 분석 section을 바꾸지 않고 두 번째 cycle의 Resume Point, Reading Session History, 사용자 분석 근거, Prerequisite Bridge, User-Identified Limitations, Questions와 Research Connection을 갱신할 때는 전체 Paper Note 대신 다음 JSON delta를 보낸다.
+기존 paper-source 분석 section을 바꾸지 않고 두 번째 cycle의 Resume Point, Reading Session History, 사용자 분석 근거, 학습 흐름 기록, Prerequisite Bridge, User-Identified Limitations, Questions와 Research Connection을 갱신할 때는 전체 Paper Note 대신 다음 JSON delta를 보낸다.
 
 ```text
 <!-- research-os-paper-note:v2
@@ -75,20 +77,32 @@ expected_sha: <방금 읽은 target file의 40자리 blob SHA>
     "ending_resume_point": "종료 당시 Resume Point"
   },
   "user_analysis_evidence": ["사용자의 실제 표현"],
+  "learning_flow_records_upsert": [{
+    "record_id": "LR-001",
+    "title": "Section/Figure 안에서 학습한 주제",
+    "record_type": "detailed | prerequisite | detailed-prerequisite",
+    "paper_location": "Section / PDF p. / Figure / Table / Equation",
+    "selection_reason": "사용자가 PB 또는 상세 저장을 선택한 실제 이유",
+    "paper_context": "논문이 다루는 구조·작동과 필요한 source boundary를 Markdown으로 정리",
+    "learning_process": "처음 몰랐던 내용, 중요 설명·예시, correction과 사용자 자기 설명 여부를 Markdown으로 정리",
+    "current_state": "확인된 이해, 설명만 들은 부분, 미해결 질문과 reference 확인 필요를 Markdown으로 정리"
+  }],
   "prerequisite_bridge": {
     "resolved_upsert": [{
       "concept": "논문 안에서 해결한 개념",
       "location": "논문 위치",
       "reason": "논문에서 필요한 이유",
       "definition": "사용자 이해와 분리된 실제 정의",
-      "user_understanding": "자연어 understanding evidence"
+      "user_understanding": "자연어 understanding evidence",
+      "learning_record_id": "LR-001"
     }],
     "tracked_upsert": [{
       "concept": "별도로 이어가는 개념",
       "status": "studying | paused | sufficient-for-paper",
       "reason": "논문에서 필요한 이유",
       "sufficient_criterion": "이 논문에 충분한 기준",
-      "learning_logs": ["learning-logs/YYYY/MM/YYYY-MM-DD-topic.md"]
+      "learning_logs": ["learning-logs/YYYY/MM/YYYY-MM-DD-topic.md"],
+      "learning_record_id": "LR-001"
     }]
   },
   "user_identified_limitations_upsert": [{
@@ -129,7 +143,7 @@ expected_sha: <방금 읽은 target file의 40자리 blob SHA>
 }
 ```
 
-`resume_point`와 `reading_session_history`는 필수이고 나머지 delta field는 변화가 없으면 생략할 수 있다. PB는 concept 이름, 나머지 conversation-derived record는 category와 title을 기준으로 새 항목을 추가하거나 기존 항목만 교체한다. 기존 Bridge 검증과 전체 canonical Markdown 검증은 병합 결과에 다시 적용한다. 첫 번째 cycle의 paper-source section과 세 번째 cycle의 Final Summary를 바꿀 때만 v1 전체 update를 사용한다.
+`resume_point`와 `reading_session_history`는 필수이고 나머지 delta field는 변화가 없으면 생략할 수 있다. Learning Flow record는 바뀌지 않는 `LR-001` 형식 ID, PB는 concept 이름, 나머지 conversation-derived record는 category와 title을 기준으로 새 항목을 추가하거나 기존 항목만 교체한다. 동일한 deferred item을 다시 선택하면 새 Learning Flow record를 늘리지 않고 기존 ID에 상세도와 evidence를 병합한다. PB의 `learning_record_id`는 대응하는 상세 record가 있을 때만 넣는 선택 field다. 기존 Bridge 검증과 전체 canonical Markdown 검증은 병합 결과에 다시 적용한다. 첫 번째 cycle의 paper-source section과 세 번째 cycle의 Final Summary를 바꿀 때만 v1 전체 update를 사용한다.
 
 ## 사용자 승인과 두 기록 연결
 
