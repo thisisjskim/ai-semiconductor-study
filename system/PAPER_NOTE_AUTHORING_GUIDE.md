@@ -238,6 +238,8 @@ Prerequisite Bridge audit
 - Metadata의 제목·저자·논문 식별 정보가 첨부 PDF와 일치하는가?
 - 임시 attachment 경로나 과거 conversation URL을 영구 source로 기록하지 않았는가?
 - 이번 paper-specific 평가가 PDF Source Gate를 통과한 상태에서 이루어졌는가?
+- PDF가 없거나 실제로 읽히지 않았을 때 접근 불가를 먼저 명시하고 paper-specific 답변·추론·정리를 중단했는가?
+- Paper Note, 과거 대화, 웹 사본, 모델 기억 또는 일반 지식으로 첨부 PDF를 대신하지 않았는가?
 - Architecture가 첨부 PDF 전체의 architecture 관련 본문과 figure를 근거로 작성되었는가?
 - Method가 Architecture와 같은 family·structure heading, 이름과 순서를 따르는가?
 - Trade-off마다 논문이 직접 연결한 Gain과 Cost가 모두 있고 PDF 근거가 있는가?
