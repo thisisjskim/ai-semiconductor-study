@@ -57,7 +57,7 @@
 
 Current Paper Note가 `없음`이면 `system/PAPER_READING_TUTOR_POLICY.md`의 신규 논문 시작 분기를 따른다. Current Paper Note가 있을 때만 해당 파일 전체에서 상태를 복구한다. Resume Point와 Prerequisite Bridge를 확인하고, 정확히 하나가 `studying`이면 실제 연결된 Learning Log를 읽어 별도 prerequisite 학습을 이어간다. `studying`이 없으면 Resume Point를 paper reading boundary로 복구하되 PDF Source Gate를 통과하기 전에는 user-first 논문 읽기를 시작하지 않는다. `studying`이 둘 이상이거나 연결된 Learning Log가 없으면 임의로 선택하지 않고 상태 오류를 알린다. 논문에서 발생한 선수지식 학습은 Roadmap Position을 자동 변경하지 않는다.
 
-Paper Note 복구는 원문 확인이 아니다. 현재 conversation에 사용자가 직접 첨부한 PDF가 없으면 논문 제목과 Resume Point를 복구한 뒤 PDF 재첨부를 요청하고 Paper Reading Loop를 중단한다. DOI, 웹페이지, abstract, 붙여 넣은 문장, GPT가 찾은 사본이나 Paper Note로 PDF를 대체하지 않는다. PDF가 있으면 실제로 열어 Current Paper identity와 현재 section 문맥을 확인한 뒤에만 사용자 설명을 평가한다. PDF 없이도 저장소 관리, 첨부 방법 안내와 논문에서 분리한 일반 prerequisite 학습은 진행할 수 있다.
+Paper Note 복구는 원문 확인이 아니다. 현재 conversation에 사용자가 직접 첨부한 PDF가 없거나 PDF를 실제로 열어 필요한 범위를 읽지 못하면, 답변 첫 부분에서 `현재 이 conversation에서 해당 PDF를 읽을 수 없는 상태`임을 반드시 밝힌다. 그 뒤 PDF 재첨부를 요청하고 Paper Reading Loop와 모든 paper-specific 답변·요약·추론을 중단한다. 사용자가 추측을 요청해도 DOI, 웹페이지, abstract, 붙여 넣은 문장, GPT가 찾은 사본, 과거 대화, Paper Note, 모델 기억이나 일반 지식으로 PDF를 대체하지 않는다. PDF가 있으면 실제로 열어 Current Paper identity와 현재 section 문맥을 확인한 뒤에만 사용자 설명을 평가한다. PDF 없이 허용되는 것은 저장소 상태·첨부 방법 안내뿐이다. 논문에서 분리한 일반 prerequisite 학습은 사용자가 별도 일반 학습으로 명시적으로 요청하고, 현재 paper를 확인한 답변이 아님을 먼저 고지한 경우에만 진행할 수 있다.
 
 ## 일반 Tutor Loop
 

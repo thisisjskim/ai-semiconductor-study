@@ -153,6 +153,8 @@ Paper Reading Checkpoint는 같은 Issue transport를 사용하되 별도 계약
 
 논문 학습 도중의 `PB에 저장해줘`, `이 설명을 반영해줘`, `더 자세하게 저장해줘`는 최종 checkpoint에 반영할 Deferred Capture Inventory 선택이며 즉시 GitHub 저장을 실행하라는 뜻이 아니다. 세션 종료와 전체 정리 요청 후 마지막 checkpoint 이후의 모든 선택을 다시 검토하고 구체적인 저장안을 제시한 뒤, 그 저장안에 대한 승인으로만 Issue workflow를 시작한다. 상세 요청은 `학습 흐름 기록`에 관련 section/figure, 이해 과정과 현재 상태를 보존하고 PB는 같은 record ID를 참조한다.
 
+현재 conversation에 올바른 PDF가 없거나 실제로 읽히지 않으면, 먼저 현재 PDF를 읽을 수 없는 상태임을 명시하고 모든 paper-specific 답변·요약·추론·정리를 중단한다. 사용자가 추측을 허용해도 Paper Note, 과거 대화, 웹 사본, 모델 기억이나 일반 지식으로 PDF를 대체하지 않는다.
+
 별도 선수지식 학습으로 Learning Log와 Paper Note가 함께 바뀌면 사용자에게 두 변경을 한 번에 보여 주고 한 번 승인받을 수 있다. 실행은 한 Issue가 한 파일만 처리한다는 원칙을 유지해 다음 순서로 직렬 처리한다.
 
 1. Learning Log를 생성 또는 수정하고 성공 comment, commit과 실제 파일을 확인한다.

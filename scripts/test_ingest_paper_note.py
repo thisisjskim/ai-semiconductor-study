@@ -408,7 +408,12 @@ def assert_paper_tutoring_policy_contract() -> None:
         "paper tutoring을 중단한다",
         "페이지 이미지나 supplementary 자료는 이미 올바른 PDF가 제공된 상태에서",
         "정확·불완전·잘못 이해한 내용으로 판정",
-        "논문에서 분리한 일반 prerequisite 학습은 진행할 수 있다",
+        "논문에서 분리한 일반 prerequisite 학습은 아래의 명시적 요청 조건을 충족할 때만 가능하다",
+        "이 gate는 **fail-closed**로 적용한다",
+        "현재 이 conversation에서 해당 PDF를 읽을 수 없는 상태",
+        "사용자가 명시적으로 추측을 요청해도",
+        "paper-specific 답변을 중단한다",
+        "경계가 불분명하면 paper-specific 요청으로 취급해 답하지 않는다",
     ):
         assert required in source_gate
     assert "현재 접근 가능한 PDF·full text" not in tutoring
@@ -585,10 +590,13 @@ def assert_paper_tutoring_policy_contract() -> None:
     assert "Current Paper Note가 있을 때만" in paper_loop
     assert "Resume Point를 paper reading boundary로 복구하되 PDF Source Gate를 통과하기 전에는" in paper_loop
     assert "Paper Note 복구는 원문 확인이 아니다" in paper_loop
-    assert "현재 conversation에 사용자가 직접 첨부한 PDF가 없으면" in paper_loop
-    assert "PDF 재첨부를 요청하고 Paper Reading Loop를 중단한다" in paper_loop
-    assert "붙여 넣은 문장, GPT가 찾은 사본이나 Paper Note로 PDF를 대체하지 않는다" in paper_loop
-    assert "논문에서 분리한 일반 prerequisite 학습은 진행할 수 있다" in paper_loop
+    assert "현재 conversation에 사용자가 직접 첨부한 PDF가 없거나" in paper_loop
+    assert "PDF 재첨부를 요청하고 Paper Reading Loop와" in paper_loop
+    assert "GPT가 찾은 사본, 과거 대화, Paper Note, 모델 기억이나 일반 지식으로 PDF를 대체하지 않는다" in paper_loop
+    assert "논문에서 분리한 일반 prerequisite 학습은 사용자가 별도 일반 학습으로 명시적으로 요청" in paper_loop
+    assert "현재 이 conversation에서 해당 PDF를 읽을 수 없는 상태" in paper_loop
+    assert "모든 paper-specific 답변·요약·추론을 중단한다" in paper_loop
+    assert "사용자가 추측을 요청해도" in paper_loop
     assert "Explain → Example" not in paper_loop
     assert "Progression over Exhaustiveness" not in paper_loop
     general_tutor_loop = entrypoint.split("## 일반 Tutor Loop", 1)[1]
